@@ -1,6 +1,6 @@
 module AbstractSparseArrays
 using ArrayLayouts: ArrayLayouts, MatMulMatAdd, MemoryLayout, MulAdd
-using NDTensors.SparseArraysBase: SparseArraysBase, AbstractSparseArray, Zero
+using SparseArraysBase: SparseArraysBase, AbstractSparseArray, Zero
 
 struct SparseArray{T,N,Zero} <: AbstractSparseArray{T,N}
   data::Vector{T}

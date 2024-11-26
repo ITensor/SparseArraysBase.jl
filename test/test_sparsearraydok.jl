@@ -7,9 +7,8 @@
 
 using Dictionaries: Dictionary
 using Test: @test, @testset, @test_broken
-using NDTensors.SparseArraysBase:
-  SparseArraysBase, SparseArrayDOK, SparseMatrixDOK, @maybe_grow
-using NDTensors.SparseArraysBase: storage_indices, stored_length
+using SparseArraysBase: SparseArraysBase, SparseArrayDOK, SparseMatrixDOK, @maybe_grow
+using SparseArraysBase: storage_indices, stored_length
 using SparseArrays: SparseMatrixCSC, nnz
 @testset "SparseArrayDOK (eltype=$elt)" for elt in
                                             (Float32, ComplexF32, Float64, ComplexF64)
