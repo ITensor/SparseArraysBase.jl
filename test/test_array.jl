@@ -1,5 +1,5 @@
 @eval module $(gensym())
-using NDTensors.SparseArraysBase: SparseArraysBase
+using SparseArraysBase: SparseArraysBase
 include("SparseArraysBaseTestUtils/SparseArraysBaseTestUtils.jl")
 using Test: @test, @testset
 @testset "Array (eltype=$elt)" for elt in (Float32, ComplexF32, Float64, ComplexF64)

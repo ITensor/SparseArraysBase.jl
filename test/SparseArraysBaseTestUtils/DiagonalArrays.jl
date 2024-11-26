@@ -1,5 +1,5 @@
 module DiagonalArrays
-using NDTensors.SparseArraysBase: SparseArraysBase
+using SparseArraysBase: SparseArraysBase
 
 struct DiagonalArray{T,N} <: AbstractArray{T,N}
   data::Vector{T}

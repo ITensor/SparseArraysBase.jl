@@ -1,6 +1,6 @@
 module SparseArrays
 using LinearAlgebra: LinearAlgebra
-using NDTensors.SparseArraysBase: SparseArraysBase, Zero
+using SparseArraysBase: SparseArraysBase, Zero
 
 struct SparseArray{T,N,Zero} <: AbstractArray{T,N}
   data::Vector{T}
@@ -76,7 +76,7 @@ function SparseArraysBase.setindex_notstored!(
 end
 
 # TODO: Make this into a generic definition of all `AbstractArray`?
-using NDTensors.SparseArraysBase: perm, stored_indices
+using SparseArraysBase: perm, stored_indices
 function SparseArraysBase.stored_indices(
   a::PermutedDimsArray{<:Any,<:Any,<:Any,<:Any,<:SparseArray}
 )
@@ -86,7 +86,7 @@ function SparseArraysBase.stored_indices(
 end
 
 # TODO: Make this into a generic definition of all `AbstractArray`?
-using NDTensors.SparseArraysBase: sparse_storage
+using SparseArraysBase: sparse_storage
 function SparseArraysBase.sparse_storage(
   a::PermutedDimsArray{<:Any,<:Any,<:Any,<:Any,<:SparseArray}
 )
@@ -94,7 +94,7 @@ function SparseArraysBase.sparse_storage(
 end
 
 # TODO: Make this into a generic definition of all `AbstractArray`?
-using NDTensors.NestedPermutedDimsArrays: NestedPermutedDimsArray
+using NestedPermutedDimsArrays: NestedPermutedDimsArray
 function SparseArraysBase.stored_indices(
   a::NestedPermutedDimsArray{<:Any,<:Any,<:Any,<:Any,<:SparseArray}
 )
@@ -104,8 +104,8 @@ function SparseArraysBase.stored_indices(
 end
 
 # TODO: Make this into a generic definition of all `AbstractArray`?
-using NDTensors.NestedPermutedDimsArrays: NestedPermutedDimsArray
-using NDTensors.SparseArraysBase: sparse_storage
+using NestedPermutedDimsArrays: NestedPermutedDimsArray
+using SparseArraysBase: sparse_storage
 function SparseArraysBase.sparse_storage(
   a::NestedPermutedDimsArray{<:Any,<:Any,<:Any,<:Any,<:SparseArray}
 )

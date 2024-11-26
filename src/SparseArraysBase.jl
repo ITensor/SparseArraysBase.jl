@@ -1,4 +1,5 @@
 module SparseArraysBase
+
 include("sparsearrayinterface/arraylayouts.jl")
 include("sparsearrayinterface/densearray.jl")
 include("sparsearrayinterface/vectorinterface.jl")
@@ -33,4 +34,5 @@ include("sparsearraydok/sparsearraydok.jl")
 include("sparsearraydok/sparsematrixdok.jl")
 include("sparsearraydok/sparsevectordok.jl")
 include("sparsearraydok/arraylayouts.jl")
+
 end

@@ -1,6 +1,6 @@
 @eval module $(gensym())
 using LinearAlgebra: norm
-using NDTensors.SparseArraysBase: SparseArraysBase
+using SparseArraysBase: SparseArraysBase
 include("SparseArraysBaseTestUtils/SparseArraysBaseTestUtils.jl")
 using .SparseArraysBaseTestUtils.DiagonalArrays: DiagonalArray
 using Test: @test, @testset, @test_throws

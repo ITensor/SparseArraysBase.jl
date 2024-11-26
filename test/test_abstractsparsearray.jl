@@ -1,7 +1,7 @@
 @eval module $(gensym())
 using LinearAlgebra: dot, mul!, norm
-using NDTensors.SparseArraysBase: SparseArraysBase
-using NDTensors.NestedPermutedDimsArrays: NestedPermutedDimsArray
+using SparseArraysBase: SparseArraysBase
+using NestedPermutedDimsArrays: NestedPermutedDimsArray
 include("SparseArraysBaseTestUtils/SparseArraysBaseTestUtils.jl")
 using .SparseArraysBaseTestUtils.AbstractSparseArrays: AbstractSparseArrays
 using .SparseArraysBaseTestUtils.SparseArrays: SparseArrays

@@ -1,6 +1,6 @@
 using ArrayLayouts: ArrayLayouts, Dot, DualLayout, MatMulMatAdd, MatMulVecAdd, MulAdd
 using LinearAlgebra: Adjoint, Transpose
-using ..TypeParameterAccessors: parenttype
+using TypeParameterAccessors: parenttype
 
 function ArrayLayouts.MemoryLayout(arraytype::Type{<:AnyAbstractSparseArray})
   return SparseLayout()

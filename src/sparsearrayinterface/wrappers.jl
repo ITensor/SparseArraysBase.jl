@@ -1,4 +1,4 @@
-using ..NestedPermutedDimsArrays: NestedPermutedDimsArray
+using NestedPermutedDimsArrays: NestedPermutedDimsArray
 
 ## PermutedDimsArray
 
