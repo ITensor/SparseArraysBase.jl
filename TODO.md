@@ -2,7 +2,7 @@
 
 - Remove Compat.jl from dependencies and test dependencies.
 - Unregistered dependencies: BroadcastMapConversion, NestedPermutedDimsArrays, TypeParameterAccessors.
-- Create SparseArraysBaseLinearAlgebraExt, SparseArraysBaseVectorInterfaceExt.
+- Create SparseArraysBaseLinearAlgebraExt, SparseArraysBaseNestedPermutedDimsArraysExt, SparseArraysBaseVectorInterfaceExt.
 - Change [sources] entries from paths to urls.
 
 # SparseArraysBase
