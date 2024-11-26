@@ -20,6 +20,7 @@ VectorInterface = "409d34a3-91d5-4945-b6ec-7529ddf182d8"
 [sources]
 BroadcastMapConversion = {url = "https://github.com/ITensor/BroadcastMapConversion.jl"}
 NestedPermutedDimsArrays = {url = "https://github.com/ITensor/NestedPermutedDimsArrays.jl"}
+TypeParameterAccessors = {url = "https://github.com/ITensor/TypeParameterAccessors.jl"}
 
 [compat]
 Accessors = "0.1.38"
