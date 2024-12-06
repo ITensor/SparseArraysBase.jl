@@ -1,5 +1,5 @@
 name = "SparseArraysBase"
-uuid = "b8770bf0-c4ae-4888-b9b0-956061873092"
+uuid = "0d5efcca-f356-4864-8770-e1ed8d78f208"
 authors = ["ITensor developers <support@itensor.org> and contributors"]
 version = "0.1.0"
 
