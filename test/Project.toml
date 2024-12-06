@@ -1,0 +1,5 @@
+[deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+SparseArraysBase = "b8770bf0-c4ae-4888-b9b0-956061873092"
+Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"

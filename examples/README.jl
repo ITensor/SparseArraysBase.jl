@@ -37,5 +37,41 @@ julia> Pkg.add("SparseArraysBase")
 
 # ## Examples
 
-using SparseArraysBase: SparseArraysBase
-# Examples go here.
+using SparseArraysBase:
+  SparseArrayDOK,
+  eachstoredindex,
+  getstoredindex,
+  getunstoredindex,
+  isstored,
+  setstoredindex!,
+  setunstoredindex!,
+  storedlength,
+  storedpairs,
+  storedvalues
+using Test: @test, @test_throws
+
+a = SparseArrayDOK{Float64}(2, 2)
+
+# AbstractArray interface:
+
+a[1, 2] = 12
+@test a[1, 1] == 0
+@test a[2, 1] == 0
+@test a[1, 2] == 12
+@test a[2, 2] == 0
+
+# SparseArraysBase interface:
+
+@test issetequal(eachstoredindex(a), [CartesianIndex(1, 2)])
+@test getstoredindex(a, 1, 2) == 12
+@test_throws KeyError getstoredindex(a, 1, 1)
+@test getunstoredindex(a, 1, 1) == 0
+@test getunstoredindex(a, 1, 2) == 0
+@test !isstored(a, 1, 1)
+@test isstored(a, 1, 2)
+@test setstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
+@test_throws KeyError setstoredindex!(copy(a), 21, 2, 1)
+@test setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
+@test storedlength(a) == 1
+@test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
+@test issetequal(storedvalues(a), [12])
