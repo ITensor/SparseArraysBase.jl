@@ -55,6 +55,7 @@ a = SparseArrayDOK{Float64}(2, 2)
 # AbstractArray interface:
 
 a[1, 2] = 12
+@test a == [0 12; 0 0]
 @test a[1, 1] == 0
 @test a[2, 1] == 0
 @test a[1, 2] == 12
@@ -75,3 +76,12 @@ a[1, 2] = 12
 @test storedlength(a) == 1
 @test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
 @test issetequal(storedvalues(a), [12])
+
+# AbstractArray functionality:
+
+b = a .+ 2 .* a'
+@test b == [0 12; 24 0]
+@test storedlength(b) == 2
+@test b isa SparseArrayDOK{Float64}
+
+a * a'
