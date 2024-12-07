@@ -1,11 +1,8 @@
-# TODO: Define `AbstractSparseArray`, make this a subtype.
+# TODO: Rewrite to use `Dictionary`.
 struct SparseArrayDOK{T,N} <: AbstractSparseArray{T,N}
   storage::Dict{CartesianIndex{N},T}
   size::NTuple{N,Int}
 end
-
-const SparseMatrixDOK{T} = SparseArrayDOK{T,2}
-const SparseVectorDOK{T} = SparseArrayDOK{T,1}
 
 function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
   return SparseArrayDOK{T,N}(Dict{CartesianIndex{N},T}(), size)
