@@ -1,25 +1,23 @@
 # TODO: Define `AbstractSparseArray`, make this a subtype.
-struct SparseArrayDOK{T,N} <: AbstractArray{T,N}
+struct SparseArrayDOK{T,N} <: AbstractSparseArray{T,N}
   storage::Dict{CartesianIndex{N},T}
   size::NTuple{N,Int}
 end
 
-function SparseArrayDOK{T}(size::Int...) where {T}
-  N = length(size)
+const SparseMatrixDOK{T} = SparseArrayDOK{T,2}
+const SparseVectorDOK{T} = SparseArrayDOK{T,1}
+
+function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
   return SparseArrayDOK{T,N}(Dict{CartesianIndex{N},T}(), size)
 end
 
-using Derive: @wrappedtype
-# Define `WrappedSparseArrayDOK` and `AnySparseArrayDOK`.
-@wrappedtype SparseArrayDOK
-
-using Derive: Derive
-function Derive.interface(::Type{<:SparseArrayDOK})
-  return SparseArrayInterface()
+function SparseArrayDOK{T}(size::Int...) where {T}
+  return SparseArrayDOK{T,length(size)}(size...)
 end
 
-using Derive: @derive
-@derive AnySparseArrayDOK AbstractArrayOps
+using Derive: @array_aliases
+# Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
+@array_aliases SparseArrayDOK
 
 storage(a::SparseArrayDOK) = a.storage
 Base.size(a::SparseArrayDOK) = a.size

@@ -5,9 +5,13 @@ storedvalues(a) = error()
 isstored(a, I::Int...) = error()
 eachstoredindex(a) = error()
 getstoredindex(a, I::Int...) = error()
-getunstoredindex(a, I::Int...) = error()
 setstoredindex!(a, value, I::Int...) = error()
 setunstoredindex!(a, value, I::Int...) = error()
+
+# Interface defaults.
+# TODO: Have a fallback that handles element types
+# that don't define `zero(::Type)`.
+getunstoredindex(a, I::Int...) = zero(eltype(a))
 
 # Derived interface.
 storedlength(a) = length(storedvalues(a))
@@ -19,22 +23,28 @@ function eachstoredindex(a1, a2, a_rest...)
   return union(eachstoredindex.((a1, a2, a_rest...))...)
 end
 
-# TODO: Add `ndims` type parameter.
-# TODO: Define `AbstractSparseArrayInterface`, make this a subtype.
 using Derive: Derive, @interface, AbstractArrayInterface
-struct SparseArrayInterface <: AbstractArrayInterface end
+
+# TODO: Add `ndims` type parameter.
+# TODO: This isn't used to define interface functions right now.
+# Currently, `@interface` expects an instance, probably it should take a
+# type instead so fallback functions can use abstract types.
+abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
+
+struct SparseArrayInterface <: AbstractSparseArrayInterface end
 
 # Convenient shorthand to refer to the sparse interface.
+# TODO: Define this as `InterfaceFunction(AbstractSparseArrayInterface)`
 const sparse = SparseArrayInterface()
 
 # TODO: Use `ArrayLayouts.layout_getindex`, `ArrayLayouts.sub_materialize`
 # to handle slicing (implemented by copying SubArray).
-@interface sparse function Base.getindex(a, I::Int...)
+@interface AbstractSparseArrayInterface function Base.getindex(a, I::Int...)
   !isstored(a, I...) && return getunstoredindex(a, I...)
   return getstoredindex(a, I...)
 end
 
-@interface sparse function Base.setindex!(a, value, I::Int...)
+@interface AbstractSparseArrayInterface function Base.setindex!(a, value, I::Int...)
   iszero(value) && return a
   if !isstored(a, I...)
     setunstoredindex!(a, value, I...)
@@ -46,23 +56,25 @@ end
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
 # is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
-@interface sparse function Base.similar(a, T::Type, size::Tuple{Vararg{Int}})
+@interface AbstractSparseArrayInterface function Base.similar(
+  a, T::Type, size::Tuple{Vararg{Int}}
+)
   return SparseArrayDOK{T}(size...)
 end
 
 ## TODO: Make this more general, handle mixtures of integers and ranges.
 ## TODO: Make this logic generic to all `similar(::AbstractInterface, ...)`.
-## @interface sparse function Base.similar(a, T::Type, dims::Tuple{Vararg{Base.OneTo}})
+## @interface  AbstractSparseArrayInterface function Base.similar(a, T::Type, dims::Tuple{Vararg{Base.OneTo}})
 ##   return sparse(similar)(interface, a, T, Base.to_shape(dims))
 ## end
 
-@interface sparse function Base.map(f, as...)
+@interface AbstractSparseArrayInterface function Base.map(f, as...)
   # This is defined in this way so we can rely on the Broadcast logic
   # for determining the destination of the operation (element type, shape, etc.).
   return f.(as...)
 end
 
-@interface sparse function Base.map!(f, dest, as...)
+@interface AbstractSparseArrayInterface function Base.map!(f, dest, as...)
   # Check `f` preserves zeros.
   # Define as `map_stored!`.
   # Define `eachstoredindex` promotion.
@@ -72,12 +84,13 @@ end
   return dest
 end
 
-# TODO: Define `AbstractSparseArrayStyle`, make this a subtype.
-struct SparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
+abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
+
+struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
 
 SparseArrayStyle{M}(::Val{N}) where {M,N} = SparseArrayStyle{N}()
 
-@interface sparse function Broadcast.BroadcastStyle(type::Type)
+@interface AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
   return SparseArrayStyle{ndims(type)}()
 end
 
@@ -100,12 +113,12 @@ abstract type AbstractSparseLayout <: ArrayLayouts.MemoryLayout end
 
 struct SparseLayout <: AbstractSparseLayout end
 
-@interface sparse function ArrayLayouts.MemoryLayout(type::Type)
+@interface AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
   return SparseLayout()
 end
 
 using LinearAlgebra: LinearAlgebra
-@interface sparse function LinearAlgebra.mul!(a_dest, a1, a2, α, β)
+@interface AbstractSparseArrayInterface function LinearAlgebra.mul!(a_dest, a1, a2, α, β)
   return ArrayLayouts.mul!(a_dest, a1, a2, α, β)
 end
 
