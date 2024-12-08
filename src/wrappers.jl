@@ -1,3 +1,26 @@
+storedvalues(a::PermutedDimsArray) = storedvalues(parent(a))
+function isstored(a::PermutedDimsArray, I::Int...)
+  return isstored(parent(a), reverse(I)...)
+end
+function eachstoredindex(a::PermutedDimsArray)
+  # TODO: Make lazy with `Iterators.map`.
+  return map(CartesianIndex ∘ reverse ∘ Tuple, collect(eachstoredindex(parent(a))))
+end
+function getstoredindex(a::PermutedDimsArray, I::Int...)
+  return getstoredindex(parent(a), reverse(I)...)
+end
+function getunstoredindex(a::PermutedDimsArray, I::Int...)
+  return getunstoredindex(parent(a), reverse(I)...)
+end
+function setstoredindex!(a::PermutedDimsArray, value, I::Int...)
+  setstoredindex!(parent(a), value, reverse(I)...)
+  return a
+end
+function setunstoredindex!(a::PermutedDimsArray, value, I::Int...)
+  setunstoredindex!(parent(a), value, reverse(I)...)
+  return a
+end
+
 using LinearAlgebra: Adjoint
 storedvalues(a::Adjoint) = storedvalues(parent(a))
 function isstored(a::Adjoint, i::Int, j::Int)

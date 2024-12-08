@@ -1,11 +1,19 @@
-# TODO: Rewrite to use `Dictionary`.
-struct SparseArrayDOK{T,N} <: AbstractSparseArray{T,N}
-  storage::Dict{CartesianIndex{N},T}
+using Dictionaries: Dictionary, IndexError, set!
+
+function default_getunstoredindex(a::AbstractArray, I::Int...)
+  return zero(eltype(a))
+end
+
+struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
+  storage::Dictionary{CartesianIndex{N},T}
   size::NTuple{N,Int}
+  getunstoredindex::F
 end
 
 function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
-  return SparseArrayDOK{T,N}(Dict{CartesianIndex{N},T}(), size)
+  getunstoredindex = default_getunstoredindex
+  F = typeof(getunstoredindex)
+  return SparseArrayDOK{T,N,F}(Dictionary{CartesianIndex{N},T}(), size, getunstoredindex)
 end
 
 function SparseArrayDOK{T}(size::Int...) where {T}
@@ -30,17 +38,17 @@ function getstoredindex(a::SparseArrayDOK, I::Int...)
   return storage(a)[CartesianIndex(I)]
 end
 function getunstoredindex(a::SparseArrayDOK, I::Int...)
-  return zero(eltype(a))
+  return a.getunstoredindex(a, I...)
 end
 function setstoredindex!(a::SparseArrayDOK, value, I::Int...)
-  isstored(a, I...) || throw(KeyError(CartesianIndex(I)))
+  isstored(a, I...) || throw(IndexError("key $(CartesianIndex(I)) not found"))
   storage(a)[CartesianIndex(I)] = value
   return a
 end
 function setunstoredindex!(a::SparseArrayDOK, value, I::Int...)
-  storage(a)[CartesianIndex(I)] = value
+  set!(storage(a), CartesianIndex(I), value)
   return a
 end
 
 # Optional, but faster than the default.
-storedpairs(a::SparseArrayDOK) = storage(a)
+storedpairs(a::SparseArrayDOK) = pairs(storage(a))

@@ -10,15 +10,17 @@ function Derive.interface(::Type{<:AbstractSparseArray})
 end
 
 using Derive: @derive
-# Derive `Base.getindex`, `Base.setindex!`, etc.
-@derive AnyAbstractSparseArray AbstractArrayOps
 
-using LinearAlgebra: LinearAlgebra
-@derive (T=AnyAbstractSparseVecOrMat,) begin
-  LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
-end
-
+# TODO: These need to be loaded since `AbstractArrayOps`
+# includes overloads of functions from these modules.
+# Ideally that wouldn't be needed and can be circumvented
+# with `GlobalRef`.
 using ArrayLayouts: ArrayLayouts
-@derive (T=AnyAbstractSparseArray,) begin
-  ArrayLayouts.MemoryLayout(::Type{<:T})
-end
+using LinearAlgebra: LinearAlgebra
+
+# Derive `Base.getindex`, `Base.setindex!`, etc.
+# TODO: Define `AbstractMatrixOps` and overload for
+# `AnyAbstractSparseMatrix` and `AnyAbstractSparseVector`,
+# which is where matrix multiplication and factorizations
+# shoudl go.
+@derive AnyAbstractSparseArray AbstractArrayOps
