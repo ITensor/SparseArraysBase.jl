@@ -3,6 +3,8 @@
 
 julia&gt; Pkg.Registry.add(url=&quot;https://github.com/ITensor/ITensorRegistry&quot;)</code></pre><p>or:</p><pre><code class="language-julia hljs">julia&gt; Pkg.Registry.add(url=&quot;git@github.com:ITensor/ITensorRegistry.git&quot;)</code></pre><p>if you want to use SSH credentials, which can make it so you don&#39;t have to enter your Github ursername and password when registering packages.</p><p>Then, the package can be added as usual through the package manager:</p><pre><code class="language-julia hljs">julia&gt; Pkg.add(&quot;SparseArraysBase&quot;)</code></pre><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><pre><code class="language-julia hljs">using SparseArraysBase:
   SparseArrayDOK,
+  SparseMatrixDOK,
+  SparseVectorDOK,
   eachstoredindex,
   getstoredindex,
   getunstoredindex,
@@ -14,30 +16,42 @@ julia&gt; Pkg.Registry.add(url=&quot;https://github.com/ITensor/ITensorRegistry&
   storedvalues
 using Test: @test, @test_throws
 
-a = SparseArrayDOK{Float64}(2, 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 SparseArraysBase.SparseArrayDOK{Float64, 2}:
+a = SparseArrayDOK{Float64}(2, 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 SparseArraysBase.SparseArrayDOK{Float64, 2, typeof(SparseArraysBase.default_getunstoredindex)}:
  0.0  0.0
  0.0  0.0</code></pre><p>AbstractArray interface:</p><pre><code class="language-julia hljs">a[1, 2] = 12
 @test a == [0 12; 0 0]
 @test a[1, 1] == 0
 @test a[2, 1] == 0
 @test a[1, 2] == 12
-@test a[2, 2] == 0</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><p>SparseArraysBase interface:</p><pre><code class="language-julia hljs">@test issetequal(eachstoredindex(a), [CartesianIndex(1, 2)])
+@test a[2, 2] == 0</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><p>SparseArraysBase interface:</p><pre><code class="language-julia hljs">using Dictionaries: IndexError
+@test issetequal(eachstoredindex(a), [CartesianIndex(1, 2)])
 @test getstoredindex(a, 1, 2) == 12
-@test_throws KeyError getstoredindex(a, 1, 1)
+@test_throws IndexError getstoredindex(a, 1, 1)
 @test getunstoredindex(a, 1, 1) == 0
 @test getunstoredindex(a, 1, 2) == 0
 @test !isstored(a, 1, 1)
 @test isstored(a, 1, 2)
 @test setstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
-@test_throws KeyError setstoredindex!(copy(a), 21, 2, 1)
+@test_throws IndexError setstoredindex!(copy(a), 21, 2, 1)
 @test setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
 @test storedlength(a) == 1
 @test issetequal(storedpairs(a), [CartesianIndex(1, 2) =&gt; 12])
 @test issetequal(storedvalues(a), [12])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><p>AbstractArray functionality:</p><pre><code class="language-julia hljs">b = a .+ 2 .* a&#39;
+@test b isa SparseMatrixDOK{Float64}
 @test b == [0 12; 24 0]
 @test storedlength(b) == 2
-@test b isa SparseArrayDOK{Float64}
 
-a * a&#39;</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 SparseArraysBase.SparseArrayDOK{Float64, 2}:
- 144.0  0.0
-   0.0  0.0</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Saturday 7 December 2024 00:34">Saturday 7 December 2024</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+b = permutedims(a, (2, 1))
+@test b isa SparseMatrixDOK{Float64}
+@test b[1, 1] == a[1, 1]
+@test b[2, 1] == a[1, 2]
+@test b[1, 2] == a[2, 1]
+@test b[2, 2] == a[2, 2]
+
+b = a * a&#39;
+@test b isa SparseMatrixDOK{Float64}
+@test b == [144 0; 0 0]
+@test storedlength(b) == 1</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><p>Second column.</p><pre><code class="language-julia hljs">b = a[1:2, 2]
+@test b isa SparseVectorDOK{Float64}
+@test b == [12, 0]
+@test storedlength(b) == 1</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Tuesday 10 December 2024 23:28">Tuesday 10 December 2024</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
