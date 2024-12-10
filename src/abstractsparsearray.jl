@@ -22,5 +22,5 @@ using LinearAlgebra: LinearAlgebra
 # TODO: Define `AbstractMatrixOps` and overload for
 # `AnyAbstractSparseMatrix` and `AnyAbstractSparseVector`,
 # which is where matrix multiplication and factorizations
-# shoudl go.
+# should go.
 @derive AnyAbstractSparseArray AbstractArrayOps

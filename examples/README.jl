@@ -39,6 +39,8 @@ julia> Pkg.add("SparseArraysBase")
 
 using SparseArraysBase:
   SparseArrayDOK,
+  SparseMatrixDOK,
+  SparseVectorDOK,
   eachstoredindex,
   getstoredindex,
   getunstoredindex,
@@ -81,15 +83,24 @@ using Dictionaries: IndexError
 # AbstractArray functionality:
 
 b = a .+ 2 .* a'
-@test b isa SparseArrayDOK{Float64}
+@test b isa SparseMatrixDOK{Float64}
 @test b == [0 12; 24 0]
 @test storedlength(b) == 2
 
 b = permutedims(a, (2, 1))
-@test b isa SparseArrayDOK{Float64}
+@test b isa SparseMatrixDOK{Float64}
 @test b[1, 1] == a[1, 1]
 @test b[2, 1] == a[1, 2]
 @test b[1, 2] == a[2, 1]
 @test b[2, 2] == a[2, 2]
 
-a * a'
+b = a * a'
+@test b isa SparseMatrixDOK{Float64}
+@test b == [144 0; 0 0]
+@test storedlength(b) == 1
+
+# Second column.
+b = a[1:2, 2]
+@test b isa SparseVectorDOK{Float64}
+@test b == [12, 0]
+@test storedlength(b) == 1

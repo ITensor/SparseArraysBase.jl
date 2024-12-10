@@ -8,4 +8,4 @@ struct SparseArrayInterface <: AbstractSparseArrayInterface end
 # version of `map`.
 # const sparse = SparseArrayInterface()
 
-Derive.interface(::AbstractSparseArrayStyle) = SparseArrayInterface()
+Derive.interface(::Type{<:AbstractSparseArrayStyle}) = SparseArrayInterface()

@@ -1,12 +1,25 @@
 # Minimal interface for `SparseArrayInterface`.
 # TODO: Define default definitions for these based
 # on the dense case.
+# TODO: Define as `MethodError`.
 storedvalues(a) = error()
 isstored(a, I::Int...) = error()
 eachstoredindex(a) = error()
 getstoredindex(a, I::Int...) = error()
+getunstoredindex(a, I::Int...) = error()
 setstoredindex!(a, value, I::Int...) = error()
 setunstoredindex!(a, value, I::Int...) = error()
+
+# TODO: Use `Base.to_indices`?
+isstored(a::AbstractArray, I::CartesianIndex) = isstored(a, Tuple(I)...)
+getstoredindex(a::AbstractArray, I::CartesianIndex) = getstoredindex(a, Tuple(I)...)
+getunstoredindex(a::AbstractArray, I::CartesianIndex) = getunstoredindex(a, Tuple(I)...)
+function setstoredindex!(a::AbstractArray, value, I::CartesianIndex)
+  return setstoredindex!(a, value, Tuple(I)...)
+end
+function setunstoredindex!(a::AbstractArray, value, I::CartesianIndex)
+  return setunstoredindex!(a, value, Tuple(I)...)
+end
 
 # Interface defaults.
 # TODO: Have a fallback that handles element types
@@ -14,8 +27,11 @@ setunstoredindex!(a, value, I::Int...) = error()
 getunstoredindex(a, I::Int...) = zero(eltype(a))
 
 # Derived interface.
-storedlength(a) = length(storedvalues(a))
-storedpairs(a) = map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+storedlength(a::AbstractArray) = length(storedvalues(a))
+storedpairs(a::AbstractArray) = map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+function storedvalues(a::AbstractArray)
+  return @view a[collect(eachstoredindex(a))]
+end
 
 function eachstoredindex(a1, a2, a_rest...)
   # TODO: Make this more customizable, say with a function
@@ -23,7 +39,7 @@ function eachstoredindex(a1, a2, a_rest...)
   return union(eachstoredindex.((a1, a2, a_rest...))...)
 end
 
-using Derive: Derive, @interface, AbstractArrayInterface
+using Derive: Derive, @derive, @interface, AbstractArrayInterface
 
 # TODO: Add `ndims` type parameter.
 # TODO: This isn't used to define interface functions right now.
@@ -31,14 +47,20 @@ using Derive: Derive, @interface, AbstractArrayInterface
 # type instead so fallback functions can use abstract types.
 abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
-# TODO: Use `ArrayLayouts.layout_getindex`, `ArrayLayouts.sub_materialize`
-# to handle slicing (implemented by copying SubArray).
-@interface AbstractSparseArrayInterface function Base.getindex(a, I::Int...)
+# We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
+# indices and linear indices.
+@interface ::AbstractSparseArrayInterface function Base.getindex(
+  a::AbstractArray{<:Any,N}, I::Vararg{Int,N}
+) where {N}
   !isstored(a, I...) && return getunstoredindex(a, I...)
   return getstoredindex(a, I...)
 end
 
-@interface AbstractSparseArrayInterface function Base.setindex!(a, value, I::Int...)
+# We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
+# indices and linear indices.
+@interface ::AbstractSparseArrayInterface function Base.setindex!(
+  a::AbstractArray{<:Any,N}, value, I::Vararg{Int,N}
+) where {N}
   iszero(value) && return a
   if !isstored(a, I...)
     setunstoredindex!(a, value, I...)
@@ -50,14 +72,16 @@ end
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
 # is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
-@interface AbstractSparseArrayInterface function Base.similar(
-  a, T::Type, size::Tuple{Vararg{Int}}
+@interface ::AbstractSparseArrayInterface function Base.similar(
+  a::AbstractArray, T::Type, size::Tuple{Vararg{Int}}
 )
   # TODO: Define `default_similartype` or something like that?
   return SparseArrayDOK{T}(size...)
 end
 
-@interface AbstractSparseArrayInterface function Base.map!(f, dest, as...)
+@interface ::AbstractSparseArrayInterface function Base.map!(
+  f, dest::AbstractArray, as::AbstractArray...
+)
   # Check `f` preserves zeros.
   # Define as `map_stored!`.
   # Define `eachstoredindex` promotion.
@@ -67,15 +91,15 @@ end
   return dest
 end
 
-# TODO: Make this a subtype of `Derive.AbstractArrayStyle{N}` instead.
-using Derive: Derive
-abstract type AbstractSparseArrayStyle{N} <: Derive.AbstractArrayStyle{N} end
+abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
+
+@derive AbstractSparseArrayStyle AbstractArrayStyleOps
 
 struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
 
 SparseArrayStyle{M}(::Val{N}) where {M,N} = SparseArrayStyle{N}()
 
-@interface AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
+@interface ::AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
   return SparseArrayStyle{ndims(type)}()
 end
 
@@ -83,10 +107,10 @@ using ArrayLayouts: ArrayLayouts, MatMulMatAdd
 
 abstract type AbstractSparseLayout <: ArrayLayouts.MemoryLayout end
 
-struct SparseLayout <: AbstractSparseLayout end
-
-@interface AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
-  return SparseLayout()
+function ArrayLayouts.sub_materialize(::AbstractSparseLayout, a::AbstractArray, axes::Tuple)
+  a_dest = similar(a)
+  a_dest .= a
+  return a_dest
 end
 
 function mul_indices(I1::CartesianIndex{2}, I2::CartesianIndex{2})
@@ -138,4 +162,10 @@ function ArrayLayouts.materialize!(
 )
   sparse_mul!(m.C, m.A, m.B, m.α, m.β)
   return m.C
+end
+
+struct SparseLayout <: AbstractSparseLayout end
+
+@interface ::AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
+  return SparseLayout()
 end
