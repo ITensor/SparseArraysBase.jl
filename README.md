@@ -34,6 +34,8 @@ julia> Pkg.add("SparseArraysBase")
 ````julia
 using SparseArraysBase:
   SparseArrayDOK,
+  SparseMatrixDOK,
+  SparseVectorDOK,
   eachstoredindex,
   getstoredindex,
   getunstoredindex,
@@ -62,15 +64,16 @@ a[1, 2] = 12
 SparseArraysBase interface:
 
 ````julia
+using Dictionaries: IndexError
 @test issetequal(eachstoredindex(a), [CartesianIndex(1, 2)])
 @test getstoredindex(a, 1, 2) == 12
-@test_throws KeyError getstoredindex(a, 1, 1)
+@test_throws IndexError getstoredindex(a, 1, 1)
 @test getunstoredindex(a, 1, 1) == 0
 @test getunstoredindex(a, 1, 2) == 0
 @test !isstored(a, 1, 1)
 @test isstored(a, 1, 2)
 @test setstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
-@test_throws KeyError setstoredindex!(copy(a), 21, 2, 1)
+@test_throws IndexError setstoredindex!(copy(a), 21, 2, 1)
 @test setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
 @test storedlength(a) == 1
 @test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
@@ -81,11 +84,30 @@ AbstractArray functionality:
 
 ````julia
 b = a .+ 2 .* a'
+@test b isa SparseMatrixDOK{Float64}
 @test b == [0 12; 24 0]
 @test storedlength(b) == 2
-@test b isa SparseArrayDOK{Float64}
 
-a * a'
+b = permutedims(a, (2, 1))
+@test b isa SparseMatrixDOK{Float64}
+@test b[1, 1] == a[1, 1]
+@test b[2, 1] == a[1, 2]
+@test b[1, 2] == a[2, 1]
+@test b[2, 2] == a[2, 2]
+
+b = a * a'
+@test b isa SparseMatrixDOK{Float64}
+@test b == [144 0; 0 0]
+@test storedlength(b) == 1
+````
+
+Second column.
+
+````julia
+b = a[1:2, 2]
+@test b isa SparseVectorDOK{Float64}
+@test b == [12, 0]
+@test storedlength(b) == 1
 ````
 
 ---

@@ -2,13 +2,16 @@
 # TODO: Define default definitions for these based
 # on the dense case.
 # TODO: Define as `MethodError`.
-storedvalues(a) = error()
-isstored(a, I::Int...) = error()
-eachstoredindex(a) = error()
-getstoredindex(a, I::Int...) = error()
-getunstoredindex(a, I::Int...) = error()
-setstoredindex!(a, value, I::Int...) = error()
-setunstoredindex!(a, value, I::Int...) = error()
+## isstored(a::AbstractArray, I::Int...) = true
+isstored(a::AbstractArray, I::Int...) = error("Not implemented.")
+## eachstoredindex(a::AbstractArray) = eachindex(a)
+eachstoredindex(a::AbstractArray) = error("Not implemented.")
+## getstoredindex(a::AbstractArray, I::Int...) = getindex(a, I...)
+getstoredindex(a::AbstractArray, I::Int...) = error("Not implemented.")
+## setstoredindex!(a::AbstractArray, value, I::Int...) = setindex!(a, value, I...)
+setstoredindex!(a::AbstractArray, value, I::Int...) = error("Not implemented.")
+## setunstoredindex!(a::AbstractArray, value, I::Int...) = setindex!(a, value, I...)
+setunstoredindex!(a::AbstractArray, value, I::Int...) = error("Not implemented.")
 
 # TODO: Use `Base.to_indices`?
 isstored(a::AbstractArray, I::CartesianIndex) = isstored(a, Tuple(I)...)
@@ -24,7 +27,7 @@ end
 # Interface defaults.
 # TODO: Have a fallback that handles element types
 # that don't define `zero(::Type)`.
-getunstoredindex(a, I::Int...) = zero(eltype(a))
+getunstoredindex(a::AbstractArray, I::Int...) = zero(eltype(a))
 
 # Derived interface.
 storedlength(a::AbstractArray) = length(storedvalues(a))

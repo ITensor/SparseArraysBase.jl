@@ -1,5 +1,6 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Derive = "a07dfc7f-7d04-4eb5-84cc-a97f051f655a"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 SparseArraysBase = "0d5efcca-f356-4864-8770-e1ed8d78f208"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
