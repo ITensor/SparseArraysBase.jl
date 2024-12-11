@@ -50,7 +50,9 @@ end
 StoredValues(a::AbstractArray) = StoredValues(a, collect(eachstoredindex(a)))
 Base.size(a::StoredValues) = size(a.storedindices)
 Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
-Base.setindex!(a::StoredValues, value, I::Int) = setstoredindex!(a.array, value, a.storedindices[I])
+function Base.setindex!(a::StoredValues, value, I::Int)
+  return setstoredindex!(a.array, value, a.storedindices[I])
+end
 
 storedvalues(a::AbstractArray) = StoredValues(a)
 
