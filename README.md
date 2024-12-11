@@ -53,6 +53,10 @@ a = SparseArrayDOK{Float64}(2, 2)
 AbstractArray interface:
 
 ````julia
+@test iszero(a)
+@test iszero(sum(a))
+@test iszero(storedlength(a))
+
 a[1, 2] = 12
 @test a == [0 12; 0 0]
 @test a[1, 1] == 0
@@ -78,6 +82,10 @@ using Dictionaries: IndexError
 @test storedlength(a) == 1
 @test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
 @test issetequal(storedvalues(a), [12])
+@test sum(a) == 12
+@test isreal(a)
+@test !iszero(a)
+@test mapreduce(x -> 2x, +, a) == 24
 ````
 
 AbstractArray functionality:
@@ -87,6 +95,10 @@ b = a .+ 2 .* a'
 @test b isa SparseMatrixDOK{Float64}
 @test b == [0 12; 24 0]
 @test storedlength(b) == 2
+@test sum(b) == 36
+@test isreal(b)
+@test !iszero(b)
+@test mapreduce(x -> 2x, +, b) == 72
 
 b = permutedims(a, (2, 1))
 @test b isa SparseMatrixDOK{Float64}

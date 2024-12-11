@@ -32,9 +32,27 @@ getunstoredindex(a::AbstractArray, I::Int...) = zero(eltype(a))
 # Derived interface.
 storedlength(a::AbstractArray) = length(storedvalues(a))
 storedpairs(a::AbstractArray) = map(I -> I => getstoredindex(a, I), eachstoredindex(a))
-function storedvalues(a::AbstractArray)
-  return @view a[collect(eachstoredindex(a))]
+
+# A view of the stored values of an array.
+# Similar to: `@view a[collect(eachstoredindex(a))]`, but the issue
+# with that is it returns a `SubArray` wrapping a sparse array, which
+# is then interpreted as a sparse array so it can lead to recursion.
+# Also, that involves extra logic for determining if the indices are
+# stored or not, but we know the indices are stored so we can use
+# `getstoredindex` and `setstoredindex!`.
+# Most sparse arrays should overload `storedvalues` directly
+# and avoid this wrapper since it adds extra indirection to
+# access stored values.
+struct StoredValues{T,A<:AbstractArray{T},I} <: AbstractVector{T}
+  array::A
+  storedindices::I
 end
+StoredValues(a::AbstractArray) = StoredValues(a, collect(eachstoredindex(a)))
+Base.size(a::StoredValues) = size(a.storedindices)
+Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
+Base.setindex!(a::StoredValues, value, I::Int) = setstoredindex!(a.array, value, a.storedindices[I])
+
+storedvalues(a::AbstractArray) = StoredValues(a)
 
 function eachstoredindex(a1, a2, a_rest...)
   # TODO: Make this more customizable, say with a function
@@ -64,8 +82,8 @@ end
 @interface ::AbstractSparseArrayInterface function Base.setindex!(
   a::AbstractArray{<:Any,N}, value, I::Vararg{Int,N}
 ) where {N}
-  iszero(value) && return a
   if !isstored(a, I...)
+    iszero(value) && return a
     setunstoredindex!(a, value, I...)
     return a
   end
@@ -92,6 +110,30 @@ end
     dest[I] = f(map(a -> a[I], as)...)
   end
   return dest
+end
+
+# `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
+function reduce_init(f, op, as...)
+  # TODO: Generalize this.
+  @assert isone(length(as))
+  a = only(as)
+  ## TODO: Make this more efficient for block sparse
+  ## arrays, in that case it allocates a block. Maybe
+  ## it can use `FillArrays.Zeros`.
+  return f(getunstoredindex(a, first(eachindex(a))))
+end
+
+@interface ::AbstractSparseArrayInterface function Base.mapreduce(
+  f, op, as::AbstractArray...; init=reduce_init(f, op, as...), kwargs...
+)
+  # TODO: Generalize this.
+  @assert isone(length(as))
+  a = only(as)
+  output = mapreduce(f, op, storedvalues(a); init, kwargs...)
+  ## TODO: Bring this check back, or make the function more general.
+  ## f_notstored = apply_notstored(f, a)
+  ## @assert isequal(op(output, eltype(output)(f_notstored)), output)
+  return output
 end
 
 abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end

@@ -49,7 +49,10 @@ function getunstoredindex(a::SparseArrayDOK, I::Int...)
   return a.getunstoredindex(a, I...)
 end
 function setstoredindex!(a::SparseArrayDOK, value, I::Int...)
+  # TODO: Have a way to disable this check, analogous to `checkbounds`,
+  # since this is already checked in `setindex!`.
   isstored(a, I...) || throw(IndexError("key $(CartesianIndex(I)) not found"))
+  # TODO: If `iszero(value)`, unstore the index.
   storage(a)[CartesianIndex(I)] = value
   return a
 end
