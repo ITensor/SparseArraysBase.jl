@@ -1,25 +1,30 @@
 # Minimal interface for `SparseArrayInterface`.
-# TODO: Define default definitions for these based
-# on the dense case.
-# TODO: Define as `MethodError`.
-## isstored(a::AbstractArray, I::Int...) = true
-isstored(a::AbstractArray, I::Int...) = error("Not implemented.")
-## eachstoredindex(a::AbstractArray) = eachindex(a)
-eachstoredindex(a::AbstractArray) = error("Not implemented.")
-## getstoredindex(a::AbstractArray, I::Int...) = getindex(a, I...)
-getstoredindex(a::AbstractArray, I::Int...) = error("Not implemented.")
-## setstoredindex!(a::AbstractArray, value, I::Int...) = setindex!(a, value, I...)
-setstoredindex!(a::AbstractArray, value, I::Int...) = error("Not implemented.")
-## setunstoredindex!(a::AbstractArray, value, I::Int...) = setindex!(a, value, I...)
-setunstoredindex!(a::AbstractArray, value, I::Int...) = error("Not implemented.")
+isstored(a::AbstractArray, I::Int...) = true
+eachstoredindex(a::AbstractArray) = eachindex(a)
+getstoredindex(a::AbstractArray, I::Int...) = getindex(a, I...)
+function setstoredindex!(a::AbstractArray, value, I::Int...)
+  setindex!(a, value, I...)
+  return a
+end
+# TODO: Should this error by default if the value at the index
+# is stored? It could be disabled with something analogous
+# to `checkbounds`, like `checkstored`/`checkunstored`.
+function setunstoredindex!(a::AbstractArray, value, I::Int...)
+  setindex!(a, value, I...)
+  return a
+end
 
 # TODO: Use `Base.to_indices`?
 isstored(a::AbstractArray, I::CartesianIndex) = isstored(a, Tuple(I)...)
+# TODO: Use `Base.to_indices`?
 getstoredindex(a::AbstractArray, I::CartesianIndex) = getstoredindex(a, Tuple(I)...)
+# TODO: Use `Base.to_indices`?
 getunstoredindex(a::AbstractArray, I::CartesianIndex) = getunstoredindex(a, Tuple(I)...)
+# TODO: Use `Base.to_indices`?
 function setstoredindex!(a::AbstractArray, value, I::CartesianIndex)
   return setstoredindex!(a, value, Tuple(I)...)
 end
+# TODO: Use `Base.to_indices`?
 function setunstoredindex!(a::AbstractArray, value, I::CartesianIndex)
   return setunstoredindex!(a, value, Tuple(I)...)
 end
@@ -32,6 +37,9 @@ getunstoredindex(a::AbstractArray, I::Int...) = zero(eltype(a))
 # Derived interface.
 storedlength(a::AbstractArray) = length(storedvalues(a))
 storedpairs(a::AbstractArray) = map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+
+to_vec(x) = vec(collect(x))
+to_vec(x::AbstractArray) = vec(x)
 
 # A view of the stored values of an array.
 # Similar to: `@view a[collect(eachstoredindex(a))]`, but the issue
@@ -47,7 +55,7 @@ struct StoredValues{T,A<:AbstractArray{T},I} <: AbstractVector{T}
   array::A
   storedindices::I
 end
-StoredValues(a::AbstractArray) = StoredValues(a, collect(eachstoredindex(a)))
+StoredValues(a::AbstractArray) = StoredValues(a, to_vec(eachstoredindex(a)))
 Base.size(a::StoredValues) = size(a.storedindices)
 Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
 function Base.setindex!(a::StoredValues, value, I::Int)
