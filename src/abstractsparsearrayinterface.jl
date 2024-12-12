@@ -1,3 +1,7 @@
+# This is to bring `ArrayLayouts.zero!` into the namespace
+# since it is considered part of the sparse array interface.
+using ArrayLayouts: zero!
+
 # Minimal interface for `SparseArrayInterface`.
 isstored(a::AbstractArray, I::Int...) = true
 eachstoredindex(a::AbstractArray) = eachindex(a)
@@ -111,15 +115,31 @@ end
 end
 
 @interface ::AbstractSparseArrayInterface function Base.map!(
-  f, dest::AbstractArray, as::AbstractArray...
+  f, a_dest::AbstractArray, as::AbstractArray...
 )
-  # Check `f` preserves zeros.
-  # Define as `map_stored!`.
+  # TODO: Define a function `preserves_unstored(a_dest, f, as...)`
+  # to determine if a function preserves the stored values
+  # of the destination sparse array.
+  # The current code may be inefficient since it actually
+  # accesses an unstored element, which in the case of a
+  # sparse array of arrays can allocate an array.
+  # Sparse arrays could be expected to define a cheap
+  # unstored element allocator, for example
+  # `get_prototypical_unstored(a::AbstractArray)`.
+  I = first(eachindex(as...))
+  preserves_unstored = iszero(f(map(a -> getunstoredindex(a, I), as)...))
+  if !preserves_unstored
+    # Doesn't preserve unstored values, loop over all elements.
+    for I in eachindex(as...)
+      a_dest[I] = map(f, map(a -> a[I], as)...)
+    end
+    return a_dest
+  end
   # Define `eachstoredindex` promotion.
   for I in eachstoredindex(as...)
-    dest[I] = f(map(a -> a[I], as)...)
+    a_dest[I] = f(map(a -> a[I], as)...)
   end
-  return dest
+  return a_dest
 end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
@@ -175,6 +195,7 @@ function mul_indices(I1::CartesianIndex{2}, I2::CartesianIndex{2})
   return CartesianIndex(I1[1], I2[2])
 end
 
+using LinearAlgebra: mul!
 function default_mul!!(
   a_dest::AbstractMatrix,
   a1::AbstractMatrix,

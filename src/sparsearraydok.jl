@@ -63,3 +63,8 @@ end
 
 # Optional, but faster than the default.
 storedpairs(a::SparseArrayDOK) = pairs(storage(a))
+
+function ArrayLayouts.zero!(a::SparseArrayDOK)
+  empty!(storage(a))
+  return a
+end
