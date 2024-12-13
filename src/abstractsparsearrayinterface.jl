@@ -97,7 +97,10 @@ end
   a::AbstractArray{<:Any,N}, value, I::Vararg{Int,N}
 ) where {N}
   if !isstored(a, I...)
-    iszero(value) && return a
+    # Don't set the value if it is zero, but only check
+    # if it is zero if the elements are numbers since otherwise
+    # it may be nontrivial to check.
+    eltype(a) <: Number && iszero(value) && return a
     setunstoredindex!(a, value, I...)
     return a
   end
