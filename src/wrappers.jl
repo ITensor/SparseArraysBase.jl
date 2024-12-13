@@ -19,7 +19,9 @@ function eachstoredparentindex(a::SubArray)
   end
 end
 function storedvalues(a::SubArray)
-  return @view parent(a)[collect(eachstoredparentindex(a))]
+  # We use `StoredValues` rather than `@view`/`SubArray` so that
+  # it gets interpreted as a dense array.
+  return StoredValues(parent(a), collect(eachstoredparentindex(a)))
 end
 function isstored(a::SubArray, I::Int...)
   return isstored(parent(a), Base.reindex(parentindices(a), I)...)
