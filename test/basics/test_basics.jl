@@ -32,7 +32,7 @@ arrayts = (Array, JLArray)
   # TODO: We should be specializing these for dense/strided arrays,
   # probably we can have a trait for that. It could be based
   # on the `ArrayLayouts.MemoryLayout`.
-  @allowscalar @test storedvalues(a) == vec(a)
+  @allowscalar @test storedvalues(a) == a
   @allowscalar @test storedpairs(a) == collect(pairs(vec(a)))
   @allowscalar for I in eachindex(a)
     @test getstoredindex(a, I) == a[I]

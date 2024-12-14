@@ -1,19 +1,37 @@
+using Derive: Derive, @derive, @interface, AbstractArrayInterface
+
 # This is to bring `ArrayLayouts.zero!` into the namespace
 # since it is considered part of the sparse array interface.
 using ArrayLayouts: zero!
 
+function eachstoredindex end
+function getstoredindex end
+function getunstoredindex end
+function isstored end
+function setstoredindex! end
+function setunstoredindex! end
+function storedlength end
+function storedpairs end
+function storedvalues end
+
 # Minimal interface for `SparseArrayInterface`.
-isstored(a::AbstractArray, I::Int...) = true
-eachstoredindex(a::AbstractArray) = eachindex(a)
-getstoredindex(a::AbstractArray, I::Int...) = getindex(a, I...)
-function setstoredindex!(a::AbstractArray, value, I::Int...)
+# Fallbacks for dense/non-sparse arrays.
+@interface ::AbstractArrayInterface isstored(a::AbstractArray, I::Int...) = true
+@interface ::AbstractArrayInterface eachstoredindex(a::AbstractArray) = eachindex(a)
+@interface ::AbstractArrayInterface getstoredindex(a::AbstractArray, I::Int...) =
+  getindex(a, I...)
+@interface ::AbstractArrayInterface function setstoredindex!(
+  a::AbstractArray, value, I::Int...
+)
   setindex!(a, value, I...)
   return a
 end
 # TODO: Should this error by default if the value at the index
 # is stored? It could be disabled with something analogous
 # to `checkbounds`, like `checkstored`/`checkunstored`.
-function setunstoredindex!(a::AbstractArray, value, I::Int...)
+@interface ::AbstractArrayInterface function setunstoredindex!(
+  a::AbstractArray, value, I::Int...
+)
   setindex!(a, value, I...)
   return a
 end
@@ -36,11 +54,41 @@ end
 # Interface defaults.
 # TODO: Have a fallback that handles element types
 # that don't define `zero(::Type)`.
-getunstoredindex(a::AbstractArray, I::Int...) = zero(eltype(a))
+@interface ::AbstractArrayInterface getunstoredindex(a::AbstractArray, I::Int...) =
+  zero(eltype(a))
 
 # Derived interface.
-storedlength(a::AbstractArray) = length(storedvalues(a))
-storedpairs(a::AbstractArray) = map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+@interface ::AbstractArrayInterface storedlength(a::AbstractArray) = length(storedvalues(a))
+@interface ::AbstractArrayInterface storedpairs(a::AbstractArray) =
+  map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+
+@interface ::AbstractArrayInterface function eachstoredindex(as::AbstractArray...)
+  return eachindex(as...)
+end
+
+@interface ::AbstractArrayInterface storedvalues(a::AbstractArray) = a
+
+# Automatically derive the interface for all `AbstractArray` subtypes.
+# TODO: Define `SparseArrayInterfaceOps` derivable trait and rewrite this
+# as `@derive AbstractArray SparseArrayInterfaceOps`.
+@derive (T=AbstractArray,) begin
+  SparseArraysBase.eachstoredindex(::T)
+  SparseArraysBase.eachstoredindex(::T...)
+  SparseArraysBase.getstoredindex(::T, ::Int...)
+  SparseArraysBase.getunstoredindex(::T, ::Int...)
+  SparseArraysBase.isstored(::T, ::Int...)
+  SparseArraysBase.setstoredindex!(::T, ::Any, ::Int...)
+  SparseArraysBase.setunstoredindex!(::T, ::Any, ::Int...)
+  SparseArraysBase.storedlength(::T)
+  SparseArraysBase.storedpairs(::T)
+  SparseArraysBase.storedvalues(::T)
+end
+
+# TODO: Add `ndims` type parameter, like `Base.Broadcast.AbstractArrayStyle`.
+# TODO: This isn't used to define interface functions right now.
+# Currently, `@interface` expects an instance, probably it should take a
+# type instead so fallback functions can use abstract types.
+abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)
@@ -66,21 +114,13 @@ function Base.setindex!(a::StoredValues, value, I::Int)
   return setstoredindex!(a.array, value, a.storedindices[I])
 end
 
-storedvalues(a::AbstractArray) = StoredValues(a)
+@interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
 
-function eachstoredindex(a1, a2, a_rest...)
+@interface ::AbstractSparseArrayInterface function eachstoredindex(as::AbstractArray...)
   # TODO: Make this more customizable, say with a function
   # `combine/promote_storedindices(a1, a2)`.
-  return union(eachstoredindex.((a1, a2, a_rest...))...)
+  return union(eachstoredindex.(as)...)
 end
-
-using Derive: Derive, @derive, @interface, AbstractArrayInterface
-
-# TODO: Add `ndims` type parameter.
-# TODO: This isn't used to define interface functions right now.
-# Currently, `@interface` expects an instance, probably it should take a
-# type instead so fallback functions can use abstract types.
-abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
 # We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
 # indices and linear indices.
