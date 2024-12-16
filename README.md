@@ -32,10 +32,127 @@ julia> Pkg.add("SparseArraysBase")
 ## Examples
 
 ````julia
-using SparseArraysBase: SparseArraysBase
+using SparseArraysBase:
+  SparseArrayDOK,
+  SparseMatrixDOK,
+  SparseVectorDOK,
+  eachstoredindex,
+  getstoredindex,
+  getunstoredindex,
+  isstored,
+  setstoredindex!,
+  setunstoredindex!,
+  storedlength,
+  storedpairs,
+  storedvalues,
+  zero!
+using Test: @test, @test_throws
+
+a = SparseArrayDOK{Float64}(2, 2)
 ````
 
-Examples go here.
+AbstractArray interface:
+
+````julia
+@test iszero(a)
+@test iszero(sum(a))
+@test iszero(storedlength(a))
+
+a[1, 2] = 12
+@test a == [0 12; 0 0]
+@test a[1, 1] == 0
+@test a[2, 1] == 0
+@test a[1, 2] == 12
+@test a[2, 2] == 0
+````
+
+SparseArraysBase interface:
+
+````julia
+using Dictionaries: IndexError
+@test issetequal(eachstoredindex(a), [CartesianIndex(1, 2)])
+@test getstoredindex(a, 1, 2) == 12
+@test_throws IndexError getstoredindex(a, 1, 1)
+@test getunstoredindex(a, 1, 1) == 0
+@test getunstoredindex(a, 1, 2) == 0
+@test !isstored(a, 1, 1)
+@test isstored(a, 1, 2)
+@test setstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
+@test_throws IndexError setstoredindex!(copy(a), 21, 2, 1)
+@test setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
+@test storedlength(a) == 1
+@test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
+@test issetequal(storedvalues(a), [12])
+@test sum(a) == 12
+@test isreal(a)
+@test !iszero(a)
+@test mapreduce(x -> 2x, +, a) == 24
+````
+
+AbstractArray functionality:
+
+````julia
+b = a .+ 2 .* a'
+@test b isa SparseMatrixDOK{Float64}
+@test b == [0 12; 24 0]
+@test storedlength(b) == 2
+@test sum(b) == 36
+@test isreal(b)
+@test !iszero(b)
+@test mapreduce(x -> 2x, +, b) == 72
+
+b = permutedims(a, (2, 1))
+@test b isa SparseMatrixDOK{Float64}
+@test b[1, 1] == a[1, 1]
+@test b[2, 1] == a[1, 2]
+@test b[1, 2] == a[2, 1]
+@test b[2, 2] == a[2, 2]
+
+b = a * a'
+@test b isa SparseMatrixDOK{Float64}
+@test b == [144 0; 0 0]
+@test storedlength(b) == 1
+````
+
+Second column.
+
+````julia
+b = a[1:2, 2]
+@test b isa SparseVectorDOK{Float64}
+@test b == [12, 0]
+@test storedlength(b) == 1
+
+a = SparseArrayDOK{Float64}(2, 2)
+a .= 2
+for I in eachindex(a)
+  @test a[I] == 2
+end
+@test storedlength(a) == length(a)
+
+a = SparseArrayDOK{Float64}(2, 2)
+fill!(a, 2)
+for I in eachindex(a)
+  @test a[I] == 2
+end
+@test storedlength(a) == length(a)
+
+a = SparseArrayDOK{Float64}(2, 2)
+fill!(a, 0)
+@test iszero(a)
+@test iszero(storedlength(a))
+
+a = SparseArrayDOK{Float64}(2, 2)
+a[1, 2] = 12
+zero!(a)
+@test iszero(a)
+@test iszero(storedlength(a))
+
+a = SparseArrayDOK{Float64}(2, 2)
+a[1, 2] = 12
+b = zero(a)
+@test iszero(b)
+@test iszero(storedlength(b))
+````
 
 ---
 
