@@ -1,6 +1,7 @@
 [deps]
 Adapt = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+ArrayLayouts = "4c555306-a7a7-4459-81d9-ec55ddd5c99a"
 Derive = "a07dfc7f-7d04-4eb5-84cc-a97f051f655a"
 Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 JLArrays = "27aeb0d3-9eb9-45fb-866b-73c2ecf80fcb"

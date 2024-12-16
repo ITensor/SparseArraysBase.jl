@@ -1,3 +1,16 @@
+parentvalue_to_value(a::AbstractArray, value) = value
+value_to_parentvalue(a::AbstractArray, value) = value
+eachstoredparentindex(a::AbstractArray) = eachstoredindex(parent(a))
+storedparentvalues(a::AbstractArray) = storedvalues(parent(a))
+parentindex_to_index(a::AbstractArray, I::CartesianIndex) = error()
+function parentindex_to_index(a::AbstractArray, I::Int...)
+  return Tuple(parentindex_to_index(a, CartesianIndex(I)))
+end
+index_to_parentindex(a::AbstractArray, I::CartesianIndex) = error()
+function index_to_parentindex(a::AbstractArray, I::Int...)
+  return Tuple(index_to_parentindex(a, CartesianIndex(I)))
+end
+
 function cartesianindex_reverse(I::CartesianIndex)
   return CartesianIndex(reverse(Tuple(I)))
 end
@@ -7,115 +20,117 @@ tuple_oneto(n) = ntuple(identity, n)
 # https://github.com/jipolanco/StaticPermutations.jl?
 genperm(v, perm) = map(j -> v[j], perm)
 
-## TODO: Use this and something similar for `Dictionary` to make a faster
-## implementation of `storedvalues(::SubArray)`.
-## function valuesview(d::Dict, keys)
-##   return @view d.vals[[Base.ht_keyindex(d, key) for key in keys]]
-## end
+using LinearAlgebra: Adjoint
+function parentindex_to_index(a::Adjoint, I::CartesianIndex)
+  return cartesianindex_reverse(I)
+end
+function index_to_parentindex(a::Adjoint, I::CartesianIndex)
+  return cartesianindex_reverse(I)
+end
+function parentvalue_to_value(a::Adjoint, value)
+  return adjoint(value)
+end
+function value_to_parentvalue(a::Adjoint, value)
+  return adjoint(value)
+end
+
+perm(::PermutedDimsArray{<:Any,<:Any,p}) where {p} = p
+iperm(::PermutedDimsArray{<:Any,<:Any,<:Any,ip}) where {ip} = ip
+function index_to_parentindex(a::PermutedDimsArray, I::CartesianIndex)
+  return CartesianIndex(genperm(I, iperm(a)))
+end
+function parentindex_to_index(a::PermutedDimsArray, I::CartesianIndex)
+  return CartesianIndex(genperm(I, perm(a)))
+end
+
+using Base: ReshapedArray
+function parentindex_to_index(a::ReshapedArray, I::CartesianIndex)
+  return CartesianIndices(size(a))[LinearIndices(parent(a))[I]]
+end
+function index_to_parentindex(a::ReshapedArray, I::CartesianIndex)
+  return CartesianIndices(parent(a))[LinearIndices(size(a))[I]]
+end
 
 function eachstoredparentindex(a::SubArray)
   return filter(eachstoredindex(parent(a))) do I
     return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
   end
 end
-@interface ::AbstractSparseArrayInterface function storedvalues(a::SubArray)
+function index_to_parentindex(a::SubArray, I::CartesianIndex)
+  return CartesianIndex(Base.reindex(parentindices(a), Tuple(I)))
+end
+function parentindex_to_index(a::SubArray, I::CartesianIndex)
+  nonscalardims = filter(tuple_oneto(ndims(parent(a)))) do d
+    return !(parentindices(a)[d] isa Real)
+  end
+  return CartesianIndex(
+    map(nonscalardims) do d
+      return findfirst(==(I[d]), parentindices(a)[d])
+    end,
+  )
+end
+## TODO: Use this and something similar for `Dictionary` to make a faster
+## implementation of `storedvalues(::SubArray)`.
+## function valuesview(d::Dict, keys)
+##   return @view d.vals[[Base.ht_keyindex(d, key) for key in keys]]
+## end
+function storedparentvalues(a::SubArray)
   # We use `StoredValues` rather than `@view`/`SubArray` so that
   # it gets interpreted as a dense array.
   return StoredValues(parent(a), collect(eachstoredparentindex(a)))
 end
-@interface ::AbstractSparseArrayInterface function isstored(a::SubArray, I::Int...)
-  return isstored(parent(a), Base.reindex(parentindices(a), I)...)
+
+using LinearAlgebra: Transpose
+function parentindex_to_index(a::Transpose, I::CartesianIndex)
+  return cartesianindex_reverse(I)
 end
-@interface ::AbstractSparseArrayInterface function getstoredindex(a::SubArray, I::Int...)
-  return getstoredindex(parent(a), Base.reindex(parentindices(a), I)...)
+function index_to_parentindex(a::Transpose, I::CartesianIndex)
+  return cartesianindex_reverse(I)
 end
-@interface ::AbstractSparseArrayInterface function getunstoredindex(a::SubArray, I::Int...)
-  return getunstoredindex(parent(a), Base.reindex(parentindices(a), I)...)
+function parentvalue_to_value(a::Transpose, value)
+  return transpose(value)
 end
-@interface ::AbstractSparseArrayInterface function eachstoredindex(a::SubArray)
-  nonscalardims = filter(tuple_oneto(ndims(parent(a)))) do d
-    return !(parentindices(a)[d] isa Real)
-  end
-  return collect((
-    CartesianIndex(
-      map(nonscalardims) do d
-        return findfirst(==(I[d]), parentindices(a)[d])
-      end,
-    ) for I in eachstoredparentindex(a)
-  ))
+function value_to_parentvalue(a::Transpose, value)
+  return transpose(value)
 end
 
-perm(::PermutedDimsArray{<:Any,<:Any,p}) where {p} = p
-iperm(::PermutedDimsArray{<:Any,<:Any,<:Any,ip}) where {ip} = ip
-
-@interface ::AbstractSparseArrayInterface storedvalues(a::PermutedDimsArray) =
-  storedvalues(parent(a))
-@interface ::AbstractSparseArrayInterface function isstored(a::PermutedDimsArray, I::Int...)
-  return isstored(parent(a), genperm(I, iperm(a))...)
-end
-@interface ::AbstractSparseArrayInterface function getstoredindex(
-  a::PermutedDimsArray, I::Int...
-)
-  return getstoredindex(parent(a), genperm(I, iperm(a))...)
-end
-@interface ::AbstractSparseArrayInterface function getunstoredindex(
-  a::PermutedDimsArray, I::Int...
-)
-  return getunstoredindex(parent(a), genperm(I, iperm(a))...)
-end
-@interface ::AbstractSparseArrayInterface function setstoredindex!(
-  a::PermutedDimsArray, value, I::Int...
-)
-  # TODO: Should this be `iperm(a)`?
-  setstoredindex!(parent(a), value, genperm(I, perm(a))...)
-  return a
-end
-@interface ::AbstractSparseArrayInterface function setunstoredindex!(
-  a::PermutedDimsArray, value, I::Int...
-)
-  # TODO: Should this be `iperm(a)`?
-  setunstoredindex!(parent(a), value, genperm(I, perm(a))...)
-  return a
-end
-@interface ::AbstractSparseArrayInterface function eachstoredindex(a::PermutedDimsArray)
-  # TODO: Make lazy with `Iterators.map`.
-  return map(collect(eachstoredindex(parent(a)))) do I
-    return CartesianIndex(genperm(I, perm(a)))
-  end
-end
-
-for (type, func) in ((:Adjoint, :adjoint), (:Transpose, :transpose))
+# TODO: Turn these into `AbstractWrappedSparseArrayInterface` functions?
+for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose)
   @eval begin
-    using LinearAlgebra: $type
-    @interface ::AbstractSparseArrayInterface storedvalues(a::$type) =
-      storedvalues(parent(a))
-    @interface ::AbstractSparseArrayInterface function isstored(a::$type, i::Int, j::Int)
-      return isstored(parent(a), j, i)
+    @interface ::AbstractSparseArrayInterface storedvalues(a::$type) = storedparentvalues(a)
+    @interface ::AbstractSparseArrayInterface function isstored(a::$type, I::Int...)
+      return isstored(parent(a), index_to_parentindex(a, I...)...)
     end
     @interface ::AbstractSparseArrayInterface function eachstoredindex(a::$type)
       # TODO: Make lazy with `Iterators.map`.
-      return map(cartesianindex_reverse, collect(eachstoredindex(parent(a))))
+      return map(collect(eachstoredparentindex(a))) do I
+        return parentindex_to_index(a, I)
+      end
     end
-    @interface ::AbstractSparseArrayInterface function getstoredindex(
-      a::$type, i::Int, j::Int
-    )
-      return $func(getstoredindex(parent(a), j, i))
+    @interface ::AbstractSparseArrayInterface function getstoredindex(a::$type, I::Int...)
+      return parentvalue_to_value(
+        a, getstoredindex(parent(a), index_to_parentindex(a, I...)...)
+      )
     end
-    @interface ::AbstractSparseArrayInterface function getunstoredindex(
-      a::$type, i::Int, j::Int
-    )
-      return $func(getunstoredindex(parent(a), j, i))
+    @interface ::AbstractSparseArrayInterface function getunstoredindex(a::$type, I::Int...)
+      return parentvalue_to_value(
+        a, getunstoredindex(parent(a), index_to_parentindex(a, I...)...)
+      )
     end
     @interface ::AbstractSparseArrayInterface function setstoredindex!(
-      a::$type, value, i::Int, j::Int
+      a::$type, value, I::Int...
     )
-      setstoredindex!(parent(a), $func(value), j, i)
+      setstoredindex!(
+        parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...
+      )
       return a
     end
     @interface ::AbstractSparseArrayInterface function setunstoredindex!(
-      a::$type, value, i::Int, j::Int
+      a::$type, value, I::Int...
     )
-      setunstoredindex!(parent(a), $func(value), j, i)
+      setunstoredindex!(
+        parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...
+      )
       return a
     end
   end

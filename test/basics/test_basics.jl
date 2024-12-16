@@ -57,7 +57,6 @@ arrayts = (Array, JLArray)
   for I in ((1, 2), (CartesianIndex(1, 2),))
     b = copy(a)
     value = randn(elt)
-    @allowscalar setunstoredindex!(b, value, I...)
-    @allowscalar b[I...] == value
+    @test_throws ErrorException setunstoredindex!(b, value, I...)
   end
 end

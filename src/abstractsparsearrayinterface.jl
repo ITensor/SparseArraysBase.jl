@@ -14,6 +14,20 @@ function storedlength end
 function storedpairs end
 function storedvalues end
 
+# Generic functionality for converting to a
+# dense array, trying to preserve information
+# about the array (such as which device it is on).
+# TODO: Maybe call `densecopy`?
+# TODO: Make sure this actually preserves the device,
+# maybe use `TypeParameterAccessors.unwrap_array_type`.
+# TODO: Turn into an `@interface` function.
+function densearray(a::AbstractArray)
+  # TODO: `set_ndims(unwrap_array_type(a), ndims(a))(a)`
+  # Maybe define `densetype(a) = set_ndims(unwrap_array_type(a), ndims(a))`.
+  # Or could use `unspecify_parameters(unwrap_array_type(a))(a)`.
+  return Array(a)
+end
+
 # Minimal interface for `SparseArrayInterface`.
 # Fallbacks for dense/non-sparse arrays.
 @interface ::AbstractArrayInterface isstored(a::AbstractArray, I::Int...) = true
@@ -32,8 +46,8 @@ end
 @interface ::AbstractArrayInterface function setunstoredindex!(
   a::AbstractArray, value, I::Int...
 )
-  setindex!(a, value, I...)
-  return a
+  # TODO: Make this a `MethodError`?
+  return error("Not implemented.")
 end
 
 # TODO: Use `Base.to_indices`?
@@ -116,10 +130,17 @@ end
 
 @interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
 
-@interface ::AbstractSparseArrayInterface function eachstoredindex(as::AbstractArray...)
+@interface ::AbstractSparseArrayInterface function eachstoredindex(
+  a1::AbstractArray, a2::AbstractArray, a_rest::AbstractArray...
+)
   # TODO: Make this more customizable, say with a function
   # `combine/promote_storedindices(a1, a2)`.
-  return union(eachstoredindex.(as)...)
+  return union(eachstoredindex.((a1, a2, a_rest...))...)
+end
+
+@interface ::AbstractSparseArrayInterface function eachstoredindex(a::AbstractArray)
+  # TODO: Use `MethodError`?
+  return error("Not implemented.")
 end
 
 # We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
