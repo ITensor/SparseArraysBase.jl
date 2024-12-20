@@ -70,10 +70,16 @@ function eachstoredparentindex(a::SubArray)
     return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
   end
 end
-function index_to_parentindex(a::SubArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
+function index_to_parentindex(a::SubArray, I::CartesianIndex)
   return CartesianIndex(Base.reindex(parentindices(a), Tuple(I)))
 end
-function parentindex_to_index(a::SubArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
+function parentindex_to_index(a::SubArray, I::CartesianIndex)
   nonscalardims = filter(tuple_oneto(ndims(parent(a)))) do d
     return !(parentindices(a)[d] isa Real)
   end
