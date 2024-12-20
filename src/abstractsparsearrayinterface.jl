@@ -104,6 +104,27 @@ end
 # type instead so fallback functions can use abstract types.
 abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
+function Derive.combine_interface_rule(
+  interface1::AbstractSparseArrayInterface, interface2::AbstractSparseArrayInterface
+)
+  return error("Rule not defined.")
+end
+function Derive.combine_interface_rule(
+  interface1::Interface, interface2::Interface
+) where {Interface<:AbstractSparseArrayInterface}
+  return interface1
+end
+function Derive.combine_interface_rule(
+  interface1::AbstractSparseArrayInterface, interface2::AbstractArrayInterface
+)
+  return interface1
+end
+function Derive.combine_interface_rule(
+  interface1::AbstractArrayInterface, interface2::AbstractSparseArrayInterface
+)
+  return interface2
+end
+
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)
 
@@ -178,7 +199,46 @@ end
   return SparseArrayDOK{T}(size...)
 end
 
-@interface ::AbstractSparseArrayInterface function Base.map!(
+# Only map the stored values of the inputs.
+function map_stored! end
+
+@interface interface::AbstractArrayInterface function map_stored!(
+  f, a_dest::AbstractArray, as::AbstractArray...
+)
+  for I in eachstoredindex(as...)
+    a_dest[I] = f(map(a -> a[I], as)...)
+  end
+  return a_dest
+end
+
+# Only map all values, not just the stored ones.
+function map_all! end
+
+@interface interface::AbstractArrayInterface function map_all!(
+  f, a_dest::AbstractArray, as::AbstractArray...
+)
+  for I in eachindex(as...)
+    a_dest[I] = map(f, map(a -> a[I], as)...)
+  end
+  return a_dest
+end
+
+using ArrayLayouts: ArrayLayouts, zero!
+
+# `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`
+# and is useful for sparse array logic, since it can be used to empty
+# the sparse array storage.
+# We use a single function definition to minimize method ambiguities.
+@interface interface::AbstractSparseArrayInterface function ArrayLayouts.zero!(
+  a::AbstractArray
+)
+  # More generally, this codepath could be taking if `zero(eltype(a))`
+  # is defined and the elements are immutable.
+  f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
+  return @interface interface map_stored!(f, a, a)
+end
+
+@interface interface::AbstractSparseArrayInterface function Base.map!(
   f, a_dest::AbstractArray, as::AbstractArray...
 )
   # TODO: Define a function `preserves_unstored(a_dest, f, as...)`
@@ -194,15 +254,22 @@ end
   preserves_unstored = iszero(f(map(a -> getunstoredindex(a, I), as)...))
   if !preserves_unstored
     # Doesn't preserve unstored values, loop over all elements.
-    for I in eachindex(as...)
-      a_dest[I] = map(f, map(a -> a[I], as)...)
-    end
+    @interface interface map_all!(f, a_dest, as...)
     return a_dest
   end
-  # Define `eachstoredindex` promotion.
-  for I in eachstoredindex(as...)
-    a_dest[I] = f(map(a -> a[I], as)...)
-  end
+  # First zero out the destination.
+  # TODO: Make this more nuanced, skip when possible, for
+  # example if the sparsity of the destination is a subset of
+  # the sparsity of the sources, i.e.:
+  # ```julia
+  # if eachstoredindex(as...) ∉ eachstoredindex(a_dest)
+  #   zero!(a_dest)
+  # end
+  # ```
+  # This is the safest thing to do in general, for example
+  # if the destination is dense but the sources are sparse.
+  @interface interface zero!(a_dest)
+  @interface interface map_stored!(f, a_dest, as...)
   return a_dest
 end
 
