@@ -2,6 +2,10 @@ using Derive: Derive
 
 struct SparseArrayInterface <: AbstractSparseArrayInterface end
 
+# Fix ambiguity error.
+function Derive.combine_interface_rule(::SparseArrayInterface, ::SparseArrayInterface)
+  return SparseArrayInterface()
+end
 function Derive.combine_interface_rule(
   interface1::SparseArrayInterface, interface2::AbstractSparseArrayInterface
 )
