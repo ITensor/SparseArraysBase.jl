@@ -2,13 +2,27 @@ parentvalue_to_value(a::AbstractArray, value) = value
 value_to_parentvalue(a::AbstractArray, value) = value
 eachstoredparentindex(a::AbstractArray) = eachstoredindex(parent(a))
 storedparentvalues(a::AbstractArray) = storedvalues(parent(a))
-parentindex_to_index(a::AbstractArray, I::CartesianIndex) = error()
-function parentindex_to_index(a::AbstractArray, I::Int...)
+
+function parentindex_to_index(a::AbstractArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+  return throw(MethodError(parentindex_to_index, Tuple{typeof(a),typeof(I)}))
+end
+function parentindex_to_index(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
   return Tuple(parentindex_to_index(a, CartesianIndex(I)))
 end
-index_to_parentindex(a::AbstractArray, I::CartesianIndex) = error()
-function index_to_parentindex(a::AbstractArray, I::Int...)
+# Handle linear indexing.
+function parentindex_to_index(a::AbstractArray, I::Int)
+  return parentindex_to_index(a, CartesianIndices(parent(a))[I])
+end
+
+function index_to_parentindex(a::AbstractArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+  return throw(MethodError(index_to_parentindex, Tuple{typeof(a),typeof(I)}))
+end
+function index_to_parentindex(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
   return Tuple(index_to_parentindex(a, CartesianIndex(I)))
+end
+# Handle linear indexing.
+function index_to_parentindex(a::AbstractArray, I::Int)
+  return index_to_parentindex(a, CartesianIndices(a)[I])
 end
 
 function cartesianindex_reverse(I::CartesianIndex)
@@ -21,10 +35,10 @@ tuple_oneto(n) = ntuple(identity, n)
 genperm(v, perm) = map(j -> v[j], perm)
 
 using LinearAlgebra: Adjoint
-function parentindex_to_index(a::Adjoint, I::CartesianIndex)
+function parentindex_to_index(a::Adjoint, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
 end
-function index_to_parentindex(a::Adjoint, I::CartesianIndex)
+function index_to_parentindex(a::Adjoint, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
 end
 function parentvalue_to_value(a::Adjoint, value)
@@ -36,18 +50,18 @@ end
 
 perm(::PermutedDimsArray{<:Any,<:Any,p}) where {p} = p
 iperm(::PermutedDimsArray{<:Any,<:Any,<:Any,ip}) where {ip} = ip
-function index_to_parentindex(a::PermutedDimsArray, I::CartesianIndex)
+function index_to_parentindex(a::PermutedDimsArray{<:Any,N}, I::CartesianIndex{N}) where {N}
   return CartesianIndex(genperm(I, iperm(a)))
 end
-function parentindex_to_index(a::PermutedDimsArray, I::CartesianIndex)
+function parentindex_to_index(a::PermutedDimsArray{<:Any,N}, I::CartesianIndex{N}) where {N}
   return CartesianIndex(genperm(I, perm(a)))
 end
 
 using Base: ReshapedArray
-function parentindex_to_index(a::ReshapedArray, I::CartesianIndex)
+function parentindex_to_index(a::ReshapedArray{<:Any,N}, I::CartesianIndex{N}) where {N}
   return CartesianIndices(size(a))[LinearIndices(parent(a))[I]]
 end
-function index_to_parentindex(a::ReshapedArray, I::CartesianIndex)
+function index_to_parentindex(a::ReshapedArray{<:Any,N}, I::CartesianIndex{N}) where {N}
   return CartesianIndices(parent(a))[LinearIndices(size(a))[I]]
 end
 
@@ -56,9 +70,15 @@ function eachstoredparentindex(a::SubArray)
     return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
   end
 end
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
 function index_to_parentindex(a::SubArray, I::CartesianIndex)
   return CartesianIndex(Base.reindex(parentindices(a), Tuple(I)))
 end
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
 function parentindex_to_index(a::SubArray, I::CartesianIndex)
   nonscalardims = filter(tuple_oneto(ndims(parent(a)))) do d
     return !(parentindices(a)[d] isa Real)
@@ -81,10 +101,10 @@ function storedparentvalues(a::SubArray)
 end
 
 using LinearAlgebra: Transpose
-function parentindex_to_index(a::Transpose, I::CartesianIndex)
+function parentindex_to_index(a::Transpose, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
 end
-function index_to_parentindex(a::Transpose, I::CartesianIndex)
+function index_to_parentindex(a::Transpose, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
 end
 function parentvalue_to_value(a::Transpose, value)
