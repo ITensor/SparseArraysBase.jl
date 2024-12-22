@@ -58,10 +58,16 @@ function parentindex_to_index(a::PermutedDimsArray{<:Any,N}, I::CartesianIndex{N
 end
 
 using Base: ReshapedArray
-function parentindex_to_index(a::ReshapedArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
+function parentindex_to_index(a::ReshapedArray, I::CartesianIndex)
   return CartesianIndices(size(a))[LinearIndices(parent(a))[I]]
 end
-function index_to_parentindex(a::ReshapedArray{<:Any,N}, I::CartesianIndex{N}) where {N}
+# Don't constrain the number of dimensions of the array
+# and index since the parent array can have a different
+# number of dimensions than the `SubArray`.
+function index_to_parentindex(a::ReshapedArray, I::CartesianIndex)
   return CartesianIndices(parent(a))[LinearIndices(size(a))[I]]
 end
 
