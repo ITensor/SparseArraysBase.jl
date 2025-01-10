@@ -1,1 +1,1 @@
-- Updates for latest Derive.
+- Updates for latest DerivableInterfaces.

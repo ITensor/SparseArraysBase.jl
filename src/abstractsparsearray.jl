@@ -1,15 +1,15 @@
 abstract type AbstractSparseArray{T,N} <: AbstractArray{T,N} end
 
-using Derive: @array_aliases
+using DerivableInterfaces: @array_aliases
 # Define AbstractSparseVector, AnyAbstractSparseArray, etc.
 @array_aliases AbstractSparseArray
 
-using Derive: Derive
-function Derive.interface(::Type{<:AbstractSparseArray})
+using DerivableInterfaces: DerivableInterfaces
+function DerivableInterfaces.interface(::Type{<:AbstractSparseArray})
   return SparseArrayInterface()
 end
 
-using Derive: @derive
+using DerivableInterfaces: @derive
 
 # TODO: These need to be loaded since `AbstractArrayOps`
 # includes overloads of functions from these modules.
@@ -18,7 +18,7 @@ using Derive: @derive
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-# Derive `Base.getindex`, `Base.setindex!`, etc.
+# DerivableInterfaces `Base.getindex`, `Base.setindex!`, etc.
 # TODO: Define `AbstractMatrixOps` and overload for
 # `AnyAbstractSparseMatrix` and `AnyAbstractSparseVector`,
 # which is where matrix multiplication and factorizations

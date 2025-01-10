@@ -1,4 +1,4 @@
-using Derive: Derive, @derive, @interface, AbstractArrayInterface
+using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArrayInterface
 
 # This is to bring `ArrayLayouts.zero!` into the namespace
 # since it is considered part of the sparse array interface.
@@ -71,7 +71,7 @@ end
 @interface ::AbstractArrayInterface getunstoredindex(a::AbstractArray, I::Int...) =
   zero(eltype(a))
 
-# Derived interface.
+# DerivableInterfacesd interface.
 @interface ::AbstractArrayInterface storedlength(a::AbstractArray) = length(storedvalues(a))
 @interface ::AbstractArrayInterface storedpairs(a::AbstractArray) =
   map(I -> I => getstoredindex(a, I), eachstoredindex(a))
@@ -104,22 +104,22 @@ end
 # type instead so fallback functions can use abstract types.
 abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractSparseArrayInterface, interface2::AbstractSparseArrayInterface
 )
   return error("Rule not defined.")
 end
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::Interface, interface2::Interface
 ) where {Interface<:AbstractSparseArrayInterface}
   return interface1
 end
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractSparseArrayInterface, interface2::AbstractArrayInterface
 )
   return interface1
 end
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractArrayInterface, interface2::AbstractSparseArrayInterface
 )
   return interface2
