@@ -1,17 +1,19 @@
-using Derive: Derive
+using DerivableInterfaces: DerivableInterfaces
 
 struct SparseArrayInterface <: AbstractSparseArrayInterface end
 
 # Fix ambiguity error.
-function Derive.combine_interface_rule(::SparseArrayInterface, ::SparseArrayInterface)
+function DerivableInterfaces.combine_interface_rule(
+  ::SparseArrayInterface, ::SparseArrayInterface
+)
   return SparseArrayInterface()
 end
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::SparseArrayInterface, interface2::AbstractSparseArrayInterface
 )
   return interface1
 end
-function Derive.combine_interface_rule(
+function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractSparseArrayInterface, interface2::SparseArrayInterface
 )
   return interface2
@@ -23,4 +25,4 @@ end
 # version of `map`.
 # const sparse = SparseArrayInterface()
 
-Derive.interface(::Type{<:AbstractSparseArrayStyle}) = SparseArrayInterface()
+DerivableInterfaces.interface(::Type{<:AbstractSparseArrayStyle}) = SparseArrayInterface()

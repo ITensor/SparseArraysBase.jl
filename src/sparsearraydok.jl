@@ -10,9 +10,9 @@ struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   getunstoredindex::F
 end
 
-using Derive: Derive
-# This defines the destination type of various operations in Derive.jl.
-Derive.arraytype(::AbstractSparseArrayInterface, T::Type) = SparseArrayDOK{T}
+using DerivableInterfaces: DerivableInterfaces
+# This defines the destination type of various operations in DerivableInterfaces.jl.
+DerivableInterfaces.arraytype(::AbstractSparseArrayInterface, T::Type) = SparseArrayDOK{T}
 
 function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
   getunstoredindex = default_getunstoredindex
@@ -28,7 +28,7 @@ function SparseArrayDOK{T}(size::Int...) where {T}
   return SparseArrayDOK{T,length(size)}(size...)
 end
 
-using Derive: @array_aliases
+using DerivableInterfaces: @array_aliases
 # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
 @array_aliases SparseArrayDOK
 
