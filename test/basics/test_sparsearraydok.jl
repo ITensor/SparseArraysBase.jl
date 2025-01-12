@@ -168,4 +168,11 @@ arrayts = (Array,)
   @test storedlength(b) == 2
   @test b[1, 2] == 12
   @test b[4, 3] == 21
+
+  # Printing
+  # Not testing other element types since they change the
+  # spacing so it isn't easy to make the test general.
+  a = SparseArrayDOK{Float64}(2, 2)
+  a[1, 2] = 12
+  @test sprint(show, "text/plain", a) == "$(summary(a)):\n ⋅  $(eltype(a)(12))\n ⋅    ⋅"
 end
