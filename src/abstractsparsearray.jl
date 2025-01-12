@@ -51,4 +51,5 @@ end
 function getunstoredindex(a::ReplacedUnstoredSparseArray, I::Int...)
   return a.getunstoredindex(a, I...)
 end
+eachstoredindex(a::ReplacedUnstoredSparseArray) = eachstoredindex(parent(a))
 @derive ReplacedUnstoredSparseArray AbstractArrayOps
