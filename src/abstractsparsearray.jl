@@ -24,6 +24,9 @@ using LinearAlgebra: LinearAlgebra
 # which is where matrix multiplication and factorizations
 # should go.
 @derive AnyAbstractSparseArray AbstractArrayOps
+
+# This type alias is a temporary workaround since `@derive`
+# doesn't parse the `@MIME_str` macro properly at the moment.
 const MIMEtextplain = MIME"text/plain"
 @derive (T=AnyAbstractSparseArray,) begin
   Base.show(::IO, ::MIMEtextplain, ::T)
