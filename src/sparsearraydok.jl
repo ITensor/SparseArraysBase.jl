@@ -1,3 +1,4 @@
+using Accessors: @set
 using Dictionaries: Dictionary, IndexError, set!
 
 function default_getunstoredindex(a::AbstractArray, I::Int...)
@@ -8,6 +9,11 @@ struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   storage::Dictionary{CartesianIndex{N},T}
   size::NTuple{N,Int}
   getunstoredindex::F
+end
+
+function set_getunstoredindex(a::SparseArrayDOK, f)
+  @set a.getunstoredindex = f
+  return a
 end
 
 using DerivableInterfaces: DerivableInterfaces

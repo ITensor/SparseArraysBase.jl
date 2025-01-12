@@ -14,6 +14,10 @@ function storedlength end
 function storedpairs end
 function storedvalues end
 
+# Replace the function for accessing
+# unstored values.
+function set_getunstoredindex end
+
 # Generic functionality for converting to a
 # dense array, trying to preserve information
 # about the array (such as which device it is on).
@@ -375,4 +379,27 @@ struct SparseLayout <: AbstractSparseLayout end
 
 @interface ::AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
   return SparseLayout()
+end
+
+# Like `Char` but prints without quotes.
+struct UnquotedChar <: AbstractChar
+  char::Char
+end
+Base.show(io::IO, c::UnquotedChar) = print(io, c.char)
+Base.show(io::IO, ::MIME"text/plain", c::UnquotedChar) = show(io, c)
+
+function show_getunstoredindex(a::AbstractArray, I::Int...)
+  return UnquotedChar('⋅')
+end
+
+@interface ::AbstractSparseArrayInterface function Base.show(
+  io::IO, mime::MIME"text/plain", a::AbstractArray
+)
+  summary(io, a)
+  isempty(a) && return nothing
+  print(io, ":")
+  println(io)
+  a′ = ReplacedUnstoredSparseArray(a, show_getunstoredindex)
+  Base.print_array(io, a′)
+  return nothing
 end
