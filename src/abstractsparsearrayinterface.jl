@@ -388,7 +388,7 @@ end
 Base.show(io::IO, c::UnquotedChar) = print(io, c.char)
 Base.show(io::IO, ::MIME"text/plain", c::UnquotedChar) = show(io, c)
 
-function show_getunstoredindex(a::AbstractArray, I::Int...)
+function getunstoredindex_show(a::AbstractArray, I::Int...)
   return UnquotedChar('⋅')
 end
 
@@ -399,7 +399,7 @@ end
   isempty(a) && return nothing
   print(io, ":")
   println(io)
-  a′ = ReplacedUnstoredSparseArray(a, show_getunstoredindex)
+  a′ = ReplacedUnstoredSparseArray(a, getunstoredindex_show)
   Base.print_array(io, a′)
   return nothing
 end
