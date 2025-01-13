@@ -1,7 +1,6 @@
 module SparseArraysBase
 
-export SparseArraysBase,
-  SparseArrayDOK,
+export SparseArrayDOK,
   SparseMatrixDOK,
   SparseVectorDOK,
   eachstoredindex,
