@@ -161,3 +161,20 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
     end
   end
 end
+
+using LinearAlgebra: Diagonal
+@interface ::AbstractArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
+@interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
+  LinearAlgebra.diagind(D, IndexCartesian())
+@interface ::AbstractArrayInterface isstored(D::Diagonal, i::Int, j::Int) =
+  i == j && Base.checkbounds(Bool, D, i, j)
+@interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
+  return D.diag[i]
+end
+@interface ::AbstractArrayInterface function getunstoredindex(D::Diagonal, i::Int, j::Int)
+  return zero(eltype(D))
+end
+@interface ::AbstractArrayInterface function setstoredindex!(D::Diagonal, v, i::Int, j::Int)
+  D.diag[i] = v
+  return D
+end
