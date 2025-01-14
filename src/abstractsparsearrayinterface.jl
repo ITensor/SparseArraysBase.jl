@@ -358,7 +358,7 @@ function sparse_mul!(
   (mul!!)=(default_mul!!),
 )
   # TODO: Change to: `a_dest .*= β`
-  # once #19 is fixed.
+  # once https://github.com/ITensor/SparseArraysBase.jl/issues/19 is fixed.
   storedvalues(a_dest) .*= β
   β′ = one(Bool)
   for I1 in eachstoredindex(a1)
