@@ -357,6 +357,8 @@ function sparse_mul!(
   β::Number=false;
   (mul!!)=(default_mul!!),
 )
+  # TODO: Change to: `a_dest .*= β`
+  # once #19 is fixed.
   storedvalues(a_dest) .*= β
   β′ = one(Bool)
   for I1 in eachstoredindex(a1)
