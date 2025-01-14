@@ -357,7 +357,7 @@ function sparse_mul!(
   β::Number=false;
   (mul!!)=(default_mul!!),
 )
-  storage(a_dest) .*= β
+  storedvalues(a_dest) .*= β
   β′ = true
   for I1 in eachstoredindex(a1)
     for I2 in eachstoredindex(a2)
