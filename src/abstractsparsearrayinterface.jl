@@ -358,7 +358,7 @@ function sparse_mul!(
   (mul!!)=(default_mul!!),
 )
   storedvalues(a_dest) .*= β
-  β′ = true
+  β′ = one(Bool)
   for I1 in eachstoredindex(a1)
     for I2 in eachstoredindex(a2)
       I_dest = mul_indices(I1, I2)
