@@ -177,4 +177,42 @@ arrayts = (Array,)
     a[1, 2] = 12
     @test sprint(show, "text/plain", a) == "$(summary(a)):\n ⋅  $(eltype(a)(12))\n ⋅    ⋅"
   end
+
+  # Regression test for:
+  # https://github.com/ITensor/SparseArraysBase.jl/issues/19
+  a = SparseArrayDOK{elt}(2, 2)
+  a[1, 1] = 1
+  a .*= 2
+  @test a == [2 0; 0 0]
+  @test storedlength(a) == 1
+
+  # Test aliasing behavior.
+  a = SparseArrayDOK{elt}(2, 2)
+  a[1, 1] = 11
+  a[1, 2] = 12
+  a[2, 2] = 22
+  c1 = @view a[:, 1]
+  r1 = @view a[1, :]
+  r1 .= c1
+  @test c1 == [11, 0]
+  @test storedlength(c1) == 1
+  @test r1 == [11, 0]
+  @test storedlength(r1) == 2
+  @test a == [11 0; 0 22]
+  @test storedlength(a) == 3
+
+  # Test aliasing behavior.
+  a = SparseArrayDOK{elt}(2, 2)
+  a[1, 1] = 11
+  a[1, 2] = 12
+  a[2, 2] = 22
+  c1 = @view a[:, 1]
+  r1 = @view a[1, :]
+  c1 .= r1
+  @test c1 == [11, 12]
+  @test storedlength(c1) == 2
+  @test r1 == [11, 12]
+  @test storedlength(r1) == 2
+  @test a == [11 12; 12 22]
+  @test storedlength(a) == 4
 end

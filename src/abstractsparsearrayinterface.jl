@@ -359,9 +359,7 @@ function sparse_mul!(
   β::Number=false;
   (mul!!)=(default_mul!!),
 )
-  # TODO: Change to: `a_dest .*= β`
-  # once https://github.com/ITensor/SparseArraysBase.jl/issues/19 is fixed.
-  storedvalues(a_dest) .*= β
+  a_dest .*= β
   β′ = one(Bool)
   for I1 in eachstoredindex(a1)
     for I2 in eachstoredindex(a2)
