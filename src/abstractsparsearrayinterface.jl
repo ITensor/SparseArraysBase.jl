@@ -268,11 +268,11 @@ end
 )
   indices = if !preserves_unstored(f, a_dest, as...)
     eachindex(a_dest)
-  elseif any(a -> a_dest !== a, as)
-    as = map(a -> Base.unalias(a_dest, a), as)
-    @interface interface zero!(a_dest)
-    eachstoredindex(as...)
   else
+    if any(a -> a_dest !== a, as)
+      as = map(a -> Base.unalias(a_dest, a), as)
+      @interface interface zero!(a_dest)
+    end
     eachstoredindex(a_dest)
   end
   @interface interface map_indices!(indices, f, a_dest, as...)
