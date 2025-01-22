@@ -162,10 +162,20 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
   end
 end
 
-using LinearAlgebra: Diagonal
+using LinearAlgebra: LinearAlgebra, Diagonal
 @interface ::AbstractArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
+
+# compat with LTS:
+@static if VERSION ≥ v"1.11"
+  _diagind = LinearAlgebra.diagind
+else
+  function _diagind(x::Diagonal, ::IndexCartesian)
+    return view(CartesianIndices(x), LinearAlgebra.diagind(x))
+  end
+end
 @interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
-  LinearAlgebra.diagind(D, IndexCartesian())
+  _diagind(D, IndexCartesian())
+
 @interface ::AbstractArrayInterface isstored(D::Diagonal, i::Int, j::Int) =
   i == j && Base.checkbounds(Bool, D, i, j)
 @interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
