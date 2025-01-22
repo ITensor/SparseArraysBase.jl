@@ -162,7 +162,7 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
   end
 end
 
-using LinearAlgebra: Diagonal
+using LinearAlgebra: LinearAlgebra, Diagonal
 @interface ::AbstractArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
 
 # compat with LTS:
