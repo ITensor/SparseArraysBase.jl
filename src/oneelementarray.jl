@@ -131,9 +131,6 @@ function OneElementArray(value::T) where {T}
   return OneElementArray{T}(value)
 end
 
-function OneElementArray{T,0}(index::Tuple{}, axes::Tuple{}) where {T}
-  return OneElementArray{T,0}(one(T), (), ())
-end
 function OneElementArray{T,0}() where {T}
   return OneElementArray{T,0}((), ())
 end
