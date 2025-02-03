@@ -219,7 +219,7 @@ function oneelement(index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}) whe
 end
 
 function oneelement(value, index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
-  return OneElementArray(value, index, size)
+  return oneelement(value, index, Base.oneto.(size))
 end
 function oneelement(eltype::Type, index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
   return oneelement(one(eltype), index, size)
