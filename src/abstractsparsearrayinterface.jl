@@ -3,6 +3,7 @@ using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArr
 # This is to bring `ArrayLayouts.zero!` into the namespace
 # since it is considered part of the sparse array interface.
 using ArrayLayouts: zero!
+using Random: Random, AbstractRNG, default_rng
 
 function eachstoredindex end
 function getstoredindex end
@@ -30,6 +31,48 @@ function densearray(a::AbstractArray)
   # Maybe define `densetype(a) = set_ndims(unwrap_array_type(a), ndims(a))`.
   # Or could use `unspecify_parameters(unwrap_array_type(a))(a)`.
   return Array(a)
+end
+
+@doc """
+    sprand([rng], [T::Type], dims; density::Real) -> A::SparseArrayDOK{T}
+
+Create a random size `dims` sparse array in which the probability of any element being stored is independently given by `density`.
+The optional `rng` argument specifies a random number generator, see also `Random`.
+The optional `T` argument specifies the element type, which defaults to `Float64`.
+
+See also [`sprand!`](@ref).
+""" sprand
+
+function sprand(::Type{T}, dims::Dims; density::Real=0.5) where {T}
+  return sprand(default_rng(), T, dims; density)
+end
+sprand(dims::Dims; density::Real=0.5) = sprand(default_rng(), Float64, dims; density)
+function sprand(rng::AbstractRNG, dims::Dims; density::Real=0.5)
+  return sprand(rng, Float64, dims; density)
+end
+function sprand(rng::AbstractRNG, ::Type{T}, dims::Dims; density::Real=0.5) where {T}
+  A = SparseArrayDOK{T}(undef, dims)
+  sprand!(rng, A; density)
+  return A
+end
+
+@doc """
+    sprand!([rng], A::AbstractArray; density::Real=0.5) -> A
+
+Overwrite part of an array with random entries, where the probability of overwriting is independently given by `density`.
+The optional `rng` argument specifies a random number generator, see also `Random`.
+
+See also [`sprand`](@ref).
+""" sprand!
+
+sprand!(A::AbstractArray; density::Real=0.5) = sprand!(default_rng(), A; density)
+function sprand!(rng::AbstractRNG, A::AbstractArray; density::Real=0.5)
+  rand_inds = Random.randsubseq(rng, eachindex(A), density)
+  rand_entries = rand(rng, eltype(A), length(rand_inds))
+
+  for (I, v) in zip(rand_inds, rand_entries)
+    A[I] = v
+  end
 end
 
 # Minimal interface for `SparseArrayInterface`.
