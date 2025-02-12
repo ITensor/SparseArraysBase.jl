@@ -25,34 +25,11 @@ using LinearAlgebra: LinearAlgebra
 # should go.
 @derive AnyAbstractSparseArray AbstractArrayOps
 
-# This type alias is a temporary workaround since `@derive`
-# doesn't parse the `@MIME_str` macro properly at the moment.
-const MIMEtextplain = MIME"text/plain"
-@derive (T=AnyAbstractSparseArray,) begin
-  Base.show(::IO, ::MIMEtextplain, ::T)
+function Base.replace_in_print_matrix(
+  A::AnyAbstractSparseArray{<:Any,2}, i::Integer, j::Integer, s::AbstractString
+)
+  return isstored(A, CartesianIndex(i, j)) ? s : Base.replace_with_centered_mark(s)
 end
-
-# Wraps a sparse array but replaces the unstored values.
-# This is used in printing in order to customize printing
-# of zero/unstored values.
-struct ReplacedUnstoredSparseArray{T,N,F,Parent<:AbstractArray{T,N}} <:
-       AbstractSparseArray{T,N}
-  parent::Parent
-  getunstoredindex::F
-end
-Base.parent(a::ReplacedUnstoredSparseArray) = a.parent
-Base.size(a::ReplacedUnstoredSparseArray) = size(parent(a))
-function isstored(a::ReplacedUnstoredSparseArray, I::Int...)
-  return isstored(parent(a), I...)
-end
-function getstoredindex(a::ReplacedUnstoredSparseArray, I::Int...)
-  return getstoredindex(parent(a), I...)
-end
-function getunstoredindex(a::ReplacedUnstoredSparseArray, I::Int...)
-  return a.getunstoredindex(a, I...)
-end
-eachstoredindex(a::ReplacedUnstoredSparseArray) = eachstoredindex(parent(a))
-@derive ReplacedUnstoredSparseArray AbstractArrayOps
 
 # Special-purpose constructors
 # ----------------------------
