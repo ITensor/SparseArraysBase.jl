@@ -175,7 +175,8 @@ arrayts = (Array,)
     # spacing so it isn't easy to make the test general.
     a = SparseArrayDOK{elt}(2, 2)
     a[1, 2] = 12
-    @test sprint(show, "text/plain", a) == "$(summary(a)):\n ⋅  $(eltype(a)(12))\n ⋅    ⋅"
+    @test sprint(show, "text/plain", a) ==
+      "$(summary(a)):\n  ⋅   $(eltype(a)(12))\n  ⋅     ⋅ "
   end
 
   # Regression test for:

@@ -384,26 +384,3 @@ struct SparseLayout <: AbstractSparseLayout end
 @interface ::AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
   return SparseLayout()
 end
-
-# Like `Char` but prints without quotes.
-struct UnquotedChar <: AbstractChar
-  char::Char
-end
-Base.show(io::IO, c::UnquotedChar) = print(io, c.char)
-Base.show(io::IO, ::MIME"text/plain", c::UnquotedChar) = show(io, c)
-
-function getunstoredindex_show(a::AbstractArray, I::Int...)
-  return UnquotedChar('⋅')
-end
-
-@interface ::AbstractSparseArrayInterface function Base.show(
-  io::IO, mime::MIME"text/plain", a::AbstractArray
-)
-  summary(io, a)
-  isempty(a) && return nothing
-  print(io, ":")
-  println(io)
-  a′ = ReplacedUnstoredSparseArray(a, getunstoredindex_show)
-  Base.print_array(io, a′)
-  return nothing
-end
