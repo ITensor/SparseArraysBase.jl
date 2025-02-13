@@ -37,7 +37,7 @@ end
     spzeros([T::Type], dims) -> A::SparseArrayDOK{T}
 
 Create an empty size `dims` sparse array.
-The optional `T` argument specifies the element type, which defualts to `Float64`.
+The optional `T` argument specifies the element type, which defaults to `Float64`.
 """ spzeros
 
 spzeros(dims::Dims) = spzeros(Float64, dims)
@@ -49,6 +49,7 @@ spzeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
 Create a random size `dims` sparse array in which the probability of any element being stored is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
+The optional `rfn` argument can be used to control the type of random elements.
 
 See also [`sprand!`](@ref).
 """ sprand
@@ -71,6 +72,7 @@ end
 
 Overwrite part of an array with random entries, where the probability of overwriting is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
+The optional `rfn` argument can be used to control the type of random elements.
 
 See also [`sprand`](@ref).
 """ sprand!
