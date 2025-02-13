@@ -34,7 +34,14 @@ function densearray(a::AbstractArray)
 end
 
 @doc """
-    sprand([rng], [T::Type], dims; density::Real) -> A::SparseArrayDOK{T}
+    spzeros([T::Type], dims) -> A::SparseArrayDOK{T}
+
+Create an empty size `dims` sparse array.
+The optional `T` argument specifies the element type, which defualts to `Float64`.
+""" spzeros
+
+spzeros(dims::Dims) = spzeros(Float64, dims)
+spzeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
 
 Create a random size `dims` sparse array in which the probability of any element being stored is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
