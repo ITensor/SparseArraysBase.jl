@@ -48,7 +48,7 @@ using SparseArraysBase:
   zero!
 using Test: @test, @test_throws
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 ````
 
 AbstractArray interface:
@@ -122,32 +122,32 @@ b = a[1:2, 2]
 @test b == [12, 0]
 @test storedlength(b) == 1
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 a .= 2
 for I in eachindex(a)
   @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 fill!(a, 2)
 for I in eachindex(a)
   @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 fill!(a, 0)
 @test iszero(a)
 @test iszero(storedlength(a))
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 a[1, 2] = 12
 zero!(a)
 @test iszero(a)
 @test iszero(storedlength(a))
 
-a = SparseArrayDOK{Float64}(2, 2)
+a = SparseArrayDOK{Float64}(undef, 2, 2)
 a[1, 2] = 12
 b = zero(a)
 @test iszero(b)
