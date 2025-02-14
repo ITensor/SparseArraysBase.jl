@@ -17,8 +17,8 @@ jobs:
     strategy:
        matrix:
          repo:
-           - 'ITensor/BlockSparseArrays.jl'
-           - 'ITensor/DiagonalArrays.jl'
+           - '(ghuser = "ITensor", repo = "BlockSparseArrays")'
+           - '(ghuser = "ITensor", repo = "DiagonalArrays")'
     uses: "ITensor/ITensorActions/.github/workflows/IntegrationTest.yml@main"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
