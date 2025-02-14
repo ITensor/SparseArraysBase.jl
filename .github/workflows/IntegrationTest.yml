@@ -16,10 +16,10 @@ jobs:
     name: "IntegrationTest"
     strategy:
        matrix:
-         repo:
-           - 'ITensor/BlockSparseArrays.jl'
-           - 'ITensor/DiagonalArrays.jl'
+         pkg:
+           - 'BlockSparseArrays'
+           - 'DiagonalArrays'
     uses: "ITensor/ITensorActions/.github/workflows/IntegrationTest.yml@main"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
-      repo: "${{ matrix.repo }}"
+      pkg: "${{ matrix.pkg }}"
