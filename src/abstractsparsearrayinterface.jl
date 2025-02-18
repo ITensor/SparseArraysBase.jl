@@ -129,6 +129,24 @@ function DerivableInterfaces.combine_interface_rule(
   return interface2
 end
 
+# using ArrayLayouts getindex: this is a bit cumbersome because there already is a way to make that work focussed on types
+# but here we want to focus on interfaces.
+# eg: ArrayLayouts.@layoutgetindex ArrayType
+# TODO: decide if we need the interface approach,
+for (Tr, Tc) in Iterators.product(
+  Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
+)
+  Tr === Tc === :Integer && continue
+  @eval begin
+    @interface ::AbstractSparseArrayInterface function Base.getindex(
+      A::AbstractMatrix, kr::$Tr, jr::$Tc
+    )
+      Base.@inline # needed to make boundschecks work
+      return ArrayLayouts.layout_getindex(A, kr, jr)
+    end
+  end
+end
+
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)
 
