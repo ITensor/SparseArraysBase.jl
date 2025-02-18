@@ -305,7 +305,10 @@ end
 
 abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
 
-@derive AbstractSparseArrayStyle AbstractArrayStyleOps
+@derive (T=AbstractSparseArrayStyle,) begin
+  Base.similar(::Broadcast.Broadcasted{<:T}, ::Type, ::Tuple)
+  Base.copyto!(::AbstractArray, ::Broadcast.Broadcasted{<:T})
+end
 
 struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
 
