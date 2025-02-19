@@ -13,6 +13,7 @@ export SparseArrayDOK,
   storedpairs,
   storedvalues
 
+include("indexing.jl")
 include("abstractsparsearrayinterface.jl")
 include("sparsearrayinterface.jl")
 include("wrappers.jl")

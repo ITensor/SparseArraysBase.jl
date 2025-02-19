@@ -1,7 +1,5 @@
 using DerivableInterfaces: DerivableInterfaces
 
-struct SparseArrayInterface <: AbstractSparseArrayInterface end
-
 # Fix ambiguity error.
 function DerivableInterfaces.combine_interface_rule(
   ::SparseArrayInterface, ::SparseArrayInterface

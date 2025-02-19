@@ -4,16 +4,6 @@ using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArr
 # since it is considered part of the sparse array interface.
 using ArrayLayouts: zero!
 
-function eachstoredindex end
-function getstoredindex end
-function getunstoredindex end
-function isstored end
-function setstoredindex! end
-function setunstoredindex! end
-function storedlength end
-function storedpairs end
-function storedvalues end
-
 # Replace the function for accessing
 # unstored values.
 function set_getunstoredindex end
@@ -34,79 +24,23 @@ end
 
 # Minimal interface for `SparseArrayInterface`.
 # Fallbacks for dense/non-sparse arrays.
-@interface ::AbstractArrayInterface isstored(a::AbstractArray, I::Int...) = true
-@interface ::AbstractArrayInterface eachstoredindex(a::AbstractArray) = eachindex(a)
-@interface ::AbstractArrayInterface getstoredindex(a::AbstractArray, I::Int...) =
-  getindex(a, I...)
-@interface ::AbstractArrayInterface function setstoredindex!(
-  a::AbstractArray, value, I::Int...
-)
-  setindex!(a, value, I...)
-  return a
-end
-# TODO: Should this error by default if the value at the index
-# is stored? It could be disabled with something analogous
-# to `checkbounds`, like `checkstored`/`checkunstored`.
-@interface ::AbstractArrayInterface function setunstoredindex!(
-  a::AbstractArray, value, I::Int...
-)
-  # TODO: Make this a `MethodError`?
-  return error("Not implemented.")
-end
 
-# TODO: Use `Base.to_indices`?
-isstored(a::AbstractArray, I::CartesianIndex) = isstored(a, Tuple(I)...)
-# TODO: Use `Base.to_indices`?
-getstoredindex(a::AbstractArray, I::CartesianIndex) = getstoredindex(a, Tuple(I)...)
-# TODO: Use `Base.to_indices`?
-getunstoredindex(a::AbstractArray, I::CartesianIndex) = getunstoredindex(a, Tuple(I)...)
-# TODO: Use `Base.to_indices`?
-function setstoredindex!(a::AbstractArray, value, I::CartesianIndex)
-  return setstoredindex!(a, value, Tuple(I)...)
-end
-# TODO: Use `Base.to_indices`?
-function setunstoredindex!(a::AbstractArray, value, I::CartesianIndex)
-  return setunstoredindex!(a, value, Tuple(I)...)
-end
+"""
+    AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N}
 
-# Interface defaults.
-# TODO: Have a fallback that handles element types
-# that don't define `zero(::Type)`.
-@interface ::AbstractArrayInterface getunstoredindex(a::AbstractArray, I::Int...) =
-  zero(eltype(a))
+Abstract supertype for any interface associated with sparse array types.
+"""
+abstract type AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N} end
 
-# DerivableInterfacesd interface.
-@interface ::AbstractArrayInterface storedlength(a::AbstractArray) = length(storedvalues(a))
-@interface ::AbstractArrayInterface storedpairs(a::AbstractArray) =
-  map(I -> I => getstoredindex(a, I), eachstoredindex(a))
+"""
+    SparseArrayInterface{N} <: AbstractSparseArrayInterface{N}
 
-@interface ::AbstractArrayInterface function eachstoredindex(as::AbstractArray...)
-  return eachindex(as...)
-end
+Interface for array operations that are centered around sparse storage types, typically assuming
+fast `O(1)` random access/insertion, but slower sequential access.
+"""
+struct SparseArrayInterface <: AbstractSparseArrayInterface end
 
-@interface ::AbstractArrayInterface storedvalues(a::AbstractArray) = a
-
-# Automatically derive the interface for all `AbstractArray` subtypes.
-# TODO: Define `SparseArrayInterfaceOps` derivable trait and rewrite this
-# as `@derive AbstractArray SparseArrayInterfaceOps`.
-@derive (T=AbstractArray,) begin
-  SparseArraysBase.eachstoredindex(::T)
-  SparseArraysBase.eachstoredindex(::T...)
-  SparseArraysBase.getstoredindex(::T, ::Int...)
-  SparseArraysBase.getunstoredindex(::T, ::Int...)
-  SparseArraysBase.isstored(::T, ::Int...)
-  SparseArraysBase.setstoredindex!(::T, ::Any, ::Int...)
-  SparseArraysBase.setunstoredindex!(::T, ::Any, ::Int...)
-  SparseArraysBase.storedlength(::T)
-  SparseArraysBase.storedpairs(::T)
-  SparseArraysBase.storedvalues(::T)
-end
-
-# TODO: Add `ndims` type parameter, like `Base.Broadcast.AbstractArrayStyle`.
-# TODO: This isn't used to define interface functions right now.
-# Currently, `@interface` expects an instance, probably it should take a
-# type instead so fallback functions can use abstract types.
-abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
+# by default, this interface is stronger than other interfaces (is this fair?)
 
 function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractSparseArrayInterface, interface2::AbstractSparseArrayInterface
@@ -129,10 +63,88 @@ function DerivableInterfaces.combine_interface_rule(
   return interface2
 end
 
-# using ArrayLayouts getindex: this is a bit cumbersome because there already is a way to make that work focussed on types
-# but here we want to focus on interfaces.
-# eg: ArrayLayouts.@layoutgetindex ArrayType
-# TODO: decide if we need the interface approach,
+# getindex/setindex!
+# ------------------
+# canonical errors are moved to `isstored`, `getstoredindex` and `getunstoredindex`
+# so no errors at this level by defining both IndexLinear and IndexCartesian
+@interface ::AbstractSparseArrayInterface function Base.getindex(
+  A::AbstractArray{<:Any,N}, I::Vararg{Int,N}
+) where {N}
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
+  return @inbounds isstored(A, I...) ? getstoredindex(A, I...) : getunstoredindex(A, I...)
+end
+@interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractArray, I::Int)
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I)
+  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
+end
+# disambiguate vectors
+@interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractVector, I::Int)
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I)
+  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
+end
+
+@interface ::AbstractSparseArrayInterface function Base.setindex!(
+  A::AbstractArray{<:Any,N}, v, I::Vararg{Int,N}
+) where {N}
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I...)
+  return @inbounds if isstored(A, I...)
+    setstoredindex!(A, v, I...)
+  else
+    setunstoredindex!(A, v, I...)
+  end
+end
+@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractArray, I::Int)
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I)
+  return @inbounds if isstored(A, I)
+    setstoredindex!(A, v, I)
+  else
+    setunstoredindex!(A, v, I)
+  end
+end
+# disambiguate vectors
+@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractVector, I::Int)
+  @_propagate_inbounds_meta
+  @boundscheck checkbounds(A, I)
+  return @inbounds if isstored(A, I)
+    setstoredindex!(A, v, I)
+  else
+    setunstoredindex!(A, v, I)
+  end
+end
+
+# Indices
+# -------
+# required:
+@interface ::AbstractSparseArrayInterface eachstoredindex(::IndexStyle, A::AbstractArray) =
+  throw(MethodError(eachstoredindex, (style, A)))
+@interface ::AbstractSparseArrayInterface storedvalues(A::AbstractArray) =
+  throw(MethodError(storedvalues, A))
+
+# derived but may be specialized:
+@interface ::AbstractSparseArrayInterface function eachstoredindex(
+  style::IndexStyle, A::AbstractArray, B::AbstractArray...
+)
+  return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
+end
+
+@interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) =
+  length(storedvalues(A))
+@interface ::AbstractSparseArrayInterface storedpairs(A::AbstractArray) =
+  zip(eachstoredindex(A), storedvalues(A))
+
+#=
+All sparse array interfaces are mapped through layout_getindex. (is this too opinionated?)
+
+using ArrayLayouts getindex: this is a bit cumbersome because there already is a way to make that work focussed on types
+but here we want to focus on interfaces.
+eg: ArrayLayouts.@layoutgetindex ArrayType
+TODO: decide if we need the interface approach at all here
+=#
 for (Tr, Tc) in Iterators.product(
   Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
 )
@@ -172,45 +184,6 @@ function Base.setindex!(a::StoredValues, value, I::Int)
 end
 
 @interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
-
-@interface ::AbstractSparseArrayInterface function eachstoredindex(
-  a1::AbstractArray, a2::AbstractArray, a_rest::AbstractArray...
-)
-  # TODO: Make this more customizable, say with a function
-  # `combine/promote_storedindices(a1, a2)`.
-  return union(eachstoredindex.((a1, a2, a_rest...))...)
-end
-
-@interface ::AbstractSparseArrayInterface function eachstoredindex(a::AbstractArray)
-  # TODO: Use `MethodError`?
-  return error("Not implemented.")
-end
-
-# We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
-# indices and linear indices.
-@interface ::AbstractSparseArrayInterface function Base.getindex(
-  a::AbstractArray{<:Any,N}, I::Vararg{Int,N}
-) where {N}
-  !isstored(a, I...) && return getunstoredindex(a, I...)
-  return getstoredindex(a, I...)
-end
-
-# We restrict to `I::Vararg{Int,N}` to allow more general functions to handle trailing
-# indices and linear indices.
-@interface ::AbstractSparseArrayInterface function Base.setindex!(
-  a::AbstractArray{<:Any,N}, value, I::Vararg{Int,N}
-) where {N}
-  if !isstored(a, I...)
-    # Don't set the value if it is zero, but only check
-    # if it is zero if the elements are numbers since otherwise
-    # it may be nontrivial to check.
-    eltype(a) <: Number && iszero(value) && return a
-    setunstoredindex!(a, value, I...)
-    return a
-  end
-  setstoredindex!(a, value, I...)
-  return a
-end
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
 # is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
