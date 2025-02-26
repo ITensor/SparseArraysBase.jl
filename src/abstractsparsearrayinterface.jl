@@ -2,7 +2,6 @@ using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArr
 
 # This is to bring `ArrayLayouts.zero!` into the namespace
 # since it is considered part of the sparse array interface.
-using ArrayLayouts: zero!
 
 # Replace the function for accessing
 # unstored values.
@@ -38,7 +37,7 @@ abstract type AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N} end
 Interface for array operations that are centered around sparse storage types, typically assuming
 fast `O(1)` random access/insertion, but slower sequential access.
 """
-struct SparseArrayInterface <: AbstractSparseArrayInterface end
+struct SparseArrayInterface{N} <: AbstractSparseArrayInterface{N} end
 
 # by default, this interface is stronger than other interfaces (is this fair?)
 

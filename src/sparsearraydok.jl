@@ -18,7 +18,8 @@ end
 
 using DerivableInterfaces: DerivableInterfaces
 # This defines the destination type of various operations in DerivableInterfaces.jl.
-DerivableInterfaces.arraytype(::AbstractSparseArrayInterface, T::Type) = SparseArrayDOK{T}
+
+Base.similar(::AbstractSparseArrayInterface, T::Type, ax) = SparseArrayDOK{T}(undef, ax)
 
 function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
   getunstoredindex = default_getunstoredindex

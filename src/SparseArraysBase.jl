@@ -13,6 +13,8 @@ export SparseArrayDOK,
   storedpairs,
   storedvalues
 
+using DerivableInterfaces
+
 include("indexing.jl")
 include("abstractsparsearrayinterface.jl")
 include("sparsearrayinterface.jl")
