@@ -6,7 +6,7 @@ using DerivableInterfaces: @array_aliases
 
 using DerivableInterfaces: DerivableInterfaces
 function DerivableInterfaces.interface(::Type{A}) where {A<:AnyAbstractSparseArray}
-  return SparseArrayInterface{ndims(A)}()
+  return SparseArrayInterface()
 end
 
 using DerivableInterfaces: @derive

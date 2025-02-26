@@ -25,19 +25,19 @@ end
 # Fallbacks for dense/non-sparse arrays.
 
 """
-    AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N}
+    AbstractSparseArrayInterface <: AbstractArrayInterface
 
 Abstract supertype for any interface associated with sparse array types.
 """
-abstract type AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N} end
+abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
 
 """
-    SparseArrayInterface{N} <: AbstractSparseArrayInterface{N}
+    SparseArrayInterface <: AbstractSparseArrayInterface
 
 Interface for array operations that are centered around sparse storage types, typically assuming
 fast `O(1)` random access/insertion, but slower sequential access.
 """
-struct SparseArrayInterface{N} <: AbstractSparseArrayInterface{N} end
+struct SparseArrayInterface <: AbstractSparseArrayInterface end
 
 # by default, this interface is stronger than other interfaces (is this fair?)
 

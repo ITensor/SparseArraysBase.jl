@@ -164,7 +164,7 @@ end
 
 using LinearAlgebra: LinearAlgebra, Diagonal
 
-DerivableInterfaces.interface(::Diagonal) = SparseArrayInterface{2}()
+DerivableInterfaces.interface(::Diagonal) = SparseArrayInterface()
 
 @interface ::AbstractSparseArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
 
