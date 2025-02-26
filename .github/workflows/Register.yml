@@ -1,0 +1,17 @@
+name: Register Package
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - 'Project.toml'
+    branches:
+      - 'master'
+      - 'main'
+jobs:
+  Register:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    uses: "ITensor/ITensorActions/.github/workflows/Registrator.yml@main"
+    with:
+      localregistry: ITensor/ITensorRegistry

@@ -1,14 +1,60 @@
 using Accessors: @set
-using Dictionaries: Dictionary, IndexError, set!
+using Dictionaries: AbstractDictionary, Dictionary, IndexError, set!
 
 function default_getunstoredindex(a::AbstractArray, I::Int...)
   return zero(eltype(a))
 end
 
+const DOKStorage{T,N} = Dictionary{CartesianIndex{N},T}
+
 struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
-  storage::Dictionary{CartesianIndex{N},T}
+  storage::DOKStorage{T,N}
   size::NTuple{N,Int}
   getunstoredindex::F
+
+  # bare constructor
+  function SparseArrayDOK{T,N,F}(
+    ::UndefInitializer, size::Dims{N}, getunstoredindex::F
+  ) where {T,N,F}
+    storage = DOKStorage{T,N}()
+    return new{T,N,F}(storage, size, getunstoredindex)
+  end
+
+  # unchecked constructor from data
+  function SparseArrayDOK{T,N,F}(
+    storage::DOKStorage{T,N}, size::Dims{N}, getunstoredindex::F
+  ) where {T,N,F}
+    return new{T,N,F}(storage, size, getunstoredindex)
+  end
+end
+
+# undef constructors
+function SparseArrayDOK{T}(
+  ::UndefInitializer, dims::Dims, getunstoredindex=default_getunstoredindex
+) where {T}
+  all(≥(0), dims) || throw(ArgumentError("Invalid dimensions: $dims"))
+  N = length(dims)
+  F = typeof(getunstoredindex)
+  return SparseArrayDOK{T,N,F}(undef, dims, getunstoredindex)
+end
+function SparseArrayDOK{T}(::UndefInitializer, dims::Int...) where {T}
+  return SparseArrayDOK{T}(undef, dims)
+end
+
+# checked constructor from data: use `setindex!` to validate input
+# does not take ownership of `storage`!
+function SparseArrayDOK(
+  storage::Union{AbstractDictionary{I,T},AbstractDict{I,T}}, dims::Dims{N}, unstored...
+) where {N,I<:Union{Int,CartesianIndex{N}},T}
+  A = SparseArrayDOK{T}(undef, dims, unstored...)
+  for (i, v) in pairs(storage)
+    A[i] = v
+  end
+  return A
+end
+
+function SparseArrayDOK{T}(::UndefInitializer, axes::Tuple) where {T}
+  return SparseArrayDOK{T}(undef, Base.to_shape(axes))
 end
 
 function set_getunstoredindex(a::SparseArrayDOK, f)
@@ -16,28 +62,7 @@ function set_getunstoredindex(a::SparseArrayDOK, f)
   return a
 end
 
-using DerivableInterfaces: DerivableInterfaces
-# This defines the destination type of various operations in DerivableInterfaces.jl.
-
 Base.similar(::AbstractSparseArrayInterface, T::Type, ax) = SparseArrayDOK{T}(undef, ax)
-
-function SparseArrayDOK{T,N}(size::Vararg{Int,N}) where {T,N}
-  getunstoredindex = default_getunstoredindex
-  F = typeof(getunstoredindex)
-  return SparseArrayDOK{T,N,F}(Dictionary{CartesianIndex{N},T}(), size, getunstoredindex)
-end
-
-function SparseArrayDOK{T}(::UndefInitializer, size::Tuple{Vararg{Int}}) where {T}
-  return SparseArrayDOK{T,length(size)}(size...)
-end
-
-function SparseArrayDOK{T}(size::Int...) where {T}
-  return SparseArrayDOK{T,length(size)}(size...)
-end
-
-function SparseArrayDOK{T}(::UndefInitializer, axes::Tuple) where {T}
-  return SparseArrayDOK{T}(undef, Base.to_shape(axes))
-end
 
 using DerivableInterfaces: @array_aliases
 # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
