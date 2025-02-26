@@ -18,21 +18,19 @@ using LinearAlgebra: LinearAlgebra
 const MIMEtextplain = MIME"text/plain"
 
 @derive (T=AnyAbstractSparseArray,) begin
-  Base.getindex(::T, ::Any...)
   Base.getindex(::T, ::Int...)
-  Base.setindex!(::T, ::Any, ::Any...)
   Base.setindex!(::T, ::Any, ::Int...)
   Base.similar(::T, ::Type, ::Tuple{Vararg{Int}})
   Base.similar(::T, ::Type, ::Tuple{Base.OneTo,Vararg{Base.OneTo}})
-  Base.copy(::T)
-  Base.copy!(::AbstractArray, ::T)
-  Base.copyto!(::AbstractArray, ::T)
+  # Base.copy(::T)
+  # Base.copy!(::AbstractArray, ::T)
+  # Base.copyto!(::AbstractArray, ::T)
   Base.map(::Any, ::T...)
   Base.map!(::Any, ::AbstractArray, ::T...)
-  Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
-  Base.reduce(::Any, ::T...; kwargs...)
-  Base.all(::Function, ::T)
-  Base.all(::T)
+  # Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
+  # Base.reduce(::Any, ::T...; kwargs...)
+  # Base.all(::Function, ::T)
+  # Base.all(::T)
   Base.iszero(::T)
   Base.real(::T)
   Base.fill!(::T, ::Any)
@@ -44,7 +42,7 @@ const MIMEtextplain = MIME"text/plain"
   Base.cat(::T...; kwargs...)
   ArrayLayouts.MemoryLayout(::Type{<:T})
   LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
-  Base.show(::IO, ::MIMEtextplain, ::T)
+  # Base.show(::IO, ::MIMEtextplain, ::T)
 end
 
 function Base.replace_in_print_matrix(

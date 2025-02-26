@@ -104,11 +104,10 @@ to_vec(x::AbstractArray) = vec(x)
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
 # is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
-@interface ::AbstractSparseArrayInterface function Base.similar(
-  a::AbstractArray, T::Type, size::Tuple{Vararg{Int}}
-)
-  # TODO: Define `default_similartype` or something like that?
-  return SparseArrayDOK{T}(size...)
+@interface I::AbstractSparseArrayInterface function Base.similar(
+  ::AbstractArray, ::Type{T}, ax
+) where {T}
+  return similar(I, T, ax)
 end
 
 using ArrayLayouts: ArrayLayouts, zero!
@@ -117,13 +116,11 @@ using ArrayLayouts: ArrayLayouts, zero!
 # and is useful for sparse array logic, since it can be used to empty
 # the sparse array storage.
 # We use a single function definition to minimize method ambiguities.
-@interface interface::AbstractSparseArrayInterface function ArrayLayouts.zero!(
-  a::AbstractArray
+@interface interface::AbstractSparseArrayInterface function DerivableInterfaces.zero!(
+  A::AbstractArray
 )
-  # More generally, this codepath could be taking if `zero(eltype(a))`
-  # is defined and the elements are immutable.
-  f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
-  return @interface interface map_stored!(f, a, a)
+  storedvalues(A) .= zero!(storedvalues(A))
+  return A
 end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
@@ -150,23 +147,6 @@ end
   return output
 end
 
-abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
-
-@derive (T=AbstractSparseArrayStyle,) begin
-  Base.similar(::Broadcast.Broadcasted{<:T}, ::Type, ::Tuple)
-  Base.copyto!(::AbstractArray, ::Broadcast.Broadcasted{<:T})
-end
-
-struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
-
-SparseArrayStyle{M}(::Val{N}) where {M,N} = SparseArrayStyle{N}()
-
-DerivableInterfaces.interface(::Type{<:AbstractSparseArrayStyle}) = SparseArrayInterface()
-
-@interface ::AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
-  return SparseArrayStyle{ndims(type)}()
-end
-
 using ArrayLayouts: ArrayLayouts, MatMulMatAdd
 
 abstract type AbstractSparseLayout <: ArrayLayouts.MemoryLayout end
@@ -190,18 +170,19 @@ using LinearAlgebra: LinearAlgebra, mul!
 @interface ::AbstractSparseArrayInterface function LinearAlgebra.mul!(
   C::AbstractArray, A::AbstractArray, B::AbstractArray, α::Number, β::Number
 )
-  a_dest .*= β
+  C .*= β
   β′ = one(Bool)
-  for I1 in eachstoredindex(a1)
-    for I2 in eachstoredindex(a2)
-      I_dest = mul_indices(I1, I2)
-      if !isnothing(I_dest)
-        a_dest[I_dest] = mul!(a_dest[I_dest], a1[I1], a2[I2], α, β′)
-      end
+  for iA in eachstoredindex(A), iB in eachstoredindex(B)
+    iC = mul_indices(iA, iB)
+    if !isnothing(iC)
+      C[iC] = mul!!(C[iC], A[iA], B[iB], α, β′)
     end
   end
-  return a_dest
+  return C
 end
+
+mul!!(C, A, B, α, β) = mul!(C, A, B, α, β)
+mul!!(C::Number, A::Number, B::Number, α::Number, β::Number) = β * C + α * A * B
 
 function ArrayLayouts.materialize!(
   m::MatMulMatAdd{<:AbstractSparseLayout,<:AbstractSparseLayout,<:AbstractSparseLayout}

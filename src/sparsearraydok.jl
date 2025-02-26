@@ -35,6 +35,10 @@ function SparseArrayDOK{T}(size::Int...) where {T}
   return SparseArrayDOK{T,length(size)}(size...)
 end
 
+function SparseArrayDOK{T}(::UndefInitializer, axes::Tuple) where {T}
+  return SparseArrayDOK{T}(undef, Base.to_shape(axes))
+end
+
 using DerivableInterfaces: @array_aliases
 # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
 @array_aliases SparseArrayDOK
@@ -46,7 +50,7 @@ storedvalues(a::SparseArrayDOK) = values(storage(a))
 function isstored(a::SparseArrayDOK, I::Int...)
   return CartesianIndex(I) in keys(storage(a))
 end
-function eachstoredindex(a::SparseArrayDOK)
+function eachstoredindex(::IndexCartesian, a::SparseArrayDOK)
   return keys(storage(a))
 end
 function getstoredindex(a::SparseArrayDOK, I::Int...)
