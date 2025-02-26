@@ -163,7 +163,10 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
 end
 
 using LinearAlgebra: LinearAlgebra, Diagonal
-@interface ::AbstractArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
+
+DerivableInterfaces.interface(::Diagonal) = SparseArrayInterface{2}()
+
+@interface ::AbstractSparseArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
 
 # compat with LTS:
 @static if VERSION ≥ v"1.11"
@@ -173,18 +176,33 @@ else
     return view(CartesianIndices(x), LinearAlgebra.diagind(x))
   end
 end
-@interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
+@interface ::AbstractSparseArrayInterface eachstoredindex(D::Diagonal) =
   _diagind(D, IndexCartesian())
 
-@interface ::AbstractArrayInterface isstored(D::Diagonal, i::Int, j::Int) =
-  i == j && Base.checkbounds(Bool, D, i, j)
-@interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
-  return D.diag[i]
+@interface ::AbstractSparseArrayInterface function isstored(D::Diagonal, i::Int, j::Int)
+  @inline
+  @boundscheck checkbounds(D, i, j)
+  return i == j
 end
-@interface ::AbstractArrayInterface function getunstoredindex(D::Diagonal, i::Int, j::Int)
-  return zero(eltype(D))
+@interface ::AbstractSparseArrayInterface function getstoredindex(
+  D::Diagonal, i::Int, j::Int
+)
+  @inline
+  @boundscheck checkbounds(D, i, j)
+  return @inbounds D.diag[i]
 end
-@interface ::AbstractArrayInterface function setstoredindex!(D::Diagonal, v, i::Int, j::Int)
-  D.diag[i] = v
+# @interface ::AbstractSparseArrayInterface function getunstoredindex(
+#   D::Diagonal, i::Int, j::Int
+# )
+#   @inline
+#   @boundscheck checkbounds(D, i, j)
+#   return zero(eltype(D))
+# end
+@interface ::AbstractSparseArrayInterface function setstoredindex!(
+  D::Diagonal, v, i::Int, j::Int
+)
+  @inline
+  @boundscheck checkbounds(D, i, j)
+  @inbounds D.diag[i] = v
   return D
 end
