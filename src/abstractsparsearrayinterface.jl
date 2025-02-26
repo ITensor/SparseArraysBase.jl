@@ -325,32 +325,11 @@ function mul_indices(I1::CartesianIndex{2}, I2::CartesianIndex{2})
   return CartesianIndex(I1[1], I2[2])
 end
 
-using LinearAlgebra: mul!
-function default_mul!!(
-  a_dest::AbstractMatrix,
-  a1::AbstractMatrix,
-  a2::AbstractMatrix,
-  α::Number=true,
-  β::Number=false,
-)
-  mul!(a_dest, a1, a2, α, β)
-  return a_dest
-end
-
-function default_mul!!(
-  a_dest::Number, a1::Number, a2::Number, α::Number=true, β::Number=false
-)
-  return a1 * a2 * α + a_dest * β
-end
+using LinearAlgebra: LinearAlgebra, mul!
 
 # a1 * a2 * α + a_dest * β
-function sparse_mul!(
-  a_dest::AbstractArray,
-  a1::AbstractArray,
-  a2::AbstractArray,
-  α::Number=true,
-  β::Number=false;
-  (mul!!)=(default_mul!!),
+@interface ::AbstractSparseArrayInterface function LinearAlgebra.mul!(
+  C::AbstractArray, A::AbstractArray, B::AbstractArray, α::Number, β::Number
 )
   a_dest .*= β
   β′ = one(Bool)
@@ -358,7 +337,7 @@ function sparse_mul!(
     for I2 in eachstoredindex(a2)
       I_dest = mul_indices(I1, I2)
       if !isnothing(I_dest)
-        a_dest[I_dest] = mul!!(a_dest[I_dest], a1[I1], a2[I2], α, β′)
+        a_dest[I_dest] = mul!(a_dest[I_dest], a1[I1], a2[I2], α, β′)
       end
     end
   end
@@ -368,7 +347,7 @@ end
 function ArrayLayouts.materialize!(
   m::MatMulMatAdd{<:AbstractSparseLayout,<:AbstractSparseLayout,<:AbstractSparseLayout}
 )
-  sparse_mul!(m.C, m.A, m.B, m.α, m.β)
+  @interface SparseArrayInterface() mul!(m.C, m.A, m.B, m.α, m.β)
   return m.C
 end
 
