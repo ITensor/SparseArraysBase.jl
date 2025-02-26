@@ -19,7 +19,7 @@ using DerivableInterfaces
 include("abstractsparsearrayinterface.jl")
 include("indexing.jl")
 include("map.jl")
-include("sparsearrayinterface.jl")
+include("broadcast.jl")
 
 # types
 include("wrappers.jl")
