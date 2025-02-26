@@ -33,7 +33,7 @@ arrayts = (Array, JLArray)
   # probably we can have a trait for that. It could be based
   # on the `ArrayLayouts.MemoryLayout`.
   @allowscalar @test storedvalues(a) == a
-  @allowscalar @test storedpairs(a) == collect(pairs(vec(a)))
+  @allowscalar @test storedpairs(a) == pairs(a)
   @allowscalar for I in eachindex(a)
     @test getstoredindex(a, I) == a[I]
     @test iszero(getunstoredindex(a, I))
