@@ -15,9 +15,13 @@ export SparseArrayDOK,
 
 using DerivableInterfaces
 
-include("indexing.jl")
+# sparsearrayinterface
 include("abstractsparsearrayinterface.jl")
+include("indexing.jl")
+include("map.jl")
 include("sparsearrayinterface.jl")
+
+# types
 include("wrappers.jl")
 include("abstractsparsearray.jl")
 include("sparsearraydok.jl")
