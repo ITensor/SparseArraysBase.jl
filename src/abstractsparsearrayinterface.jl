@@ -21,9 +21,6 @@ function densearray(a::AbstractArray)
   return Array(a)
 end
 
-# Minimal interface for `SparseArrayInterface`.
-# Fallbacks for dense/non-sparse arrays.
-
 """
     AbstractSparseArrayInterface <: AbstractArrayInterface
 
@@ -62,100 +59,21 @@ function DerivableInterfaces.combine_interface_rule(
   return interface2
 end
 
-# getindex/setindex!
-# ------------------
-# canonical errors are moved to `isstored`, `getstoredindex` and `getunstoredindex`
-# so no errors at this level by defining both IndexLinear and IndexCartesian
-@interface ::AbstractSparseArrayInterface function Base.getindex(
-  A::AbstractArray{<:Any,N}, I::Vararg{Int,N}
-) where {N}
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
-  return @inbounds isstored(A, I...) ? getstoredindex(A, I...) : getunstoredindex(A, I...)
-end
-@interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractArray, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
-end
-# disambiguate vectors
-@interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractVector, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
-end
-
-@interface ::AbstractSparseArrayInterface function Base.setindex!(
-  A::AbstractArray{<:Any,N}, v, I::Vararg{Int,N}
-) where {N}
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I...)
-  return @inbounds if isstored(A, I...)
-    setstoredindex!(A, v, I...)
-  else
-    setunstoredindex!(A, v, I...)
-  end
-end
-@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractArray, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds if isstored(A, I)
-    setstoredindex!(A, v, I)
-  else
-    setunstoredindex!(A, v, I)
-  end
-end
-# disambiguate vectors
-@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractVector, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds if isstored(A, I)
-    setstoredindex!(A, v, I)
-  else
-    setunstoredindex!(A, v, I)
-  end
-end
-
-# Indices
-# -------
-# required:
-@interface ::AbstractSparseArrayInterface eachstoredindex(::IndexStyle, A::AbstractArray) =
-  throw(MethodError(eachstoredindex, (style, A)))
-@interface ::AbstractSparseArrayInterface storedvalues(A::AbstractArray) =
-  throw(MethodError(storedvalues, A))
-
-# derived but may be specialized:
-@interface ::AbstractSparseArrayInterface function eachstoredindex(
-  style::IndexStyle, A::AbstractArray, B::AbstractArray...
+# Fix ambiguity error.
+function DerivableInterfaces.combine_interface_rule(
+  ::SparseArrayInterface, ::SparseArrayInterface
 )
-  return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
+  return SparseArrayInterface()
 end
-
-@interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) =
-  length(storedvalues(A))
-@interface ::AbstractSparseArrayInterface storedpairs(A::AbstractArray) =
-  zip(eachstoredindex(A), storedvalues(A))
-
-#=
-All sparse array interfaces are mapped through layout_getindex. (is this too opinionated?)
-
-using ArrayLayouts getindex: this is a bit cumbersome because there already is a way to make that work focussed on types
-but here we want to focus on interfaces.
-eg: ArrayLayouts.@layoutgetindex ArrayType
-TODO: decide if we need the interface approach at all here
-=#
-for (Tr, Tc) in Iterators.product(
-  Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
+function DerivableInterfaces.combine_interface_rule(
+  interface1::SparseArrayInterface, interface2::AbstractSparseArrayInterface
 )
-  Tr === Tc === :Integer && continue
-  @eval begin
-    @interface ::AbstractSparseArrayInterface function Base.getindex(
-      A::AbstractMatrix, kr::$Tr, jr::$Tc
-    )
-      Base.@inline # needed to make boundschecks work
-      return ArrayLayouts.layout_getindex(A, kr, jr)
-    end
-  end
+  return interface1
+end
+function DerivableInterfaces.combine_interface_rule(
+  interface1::AbstractSparseArrayInterface, interface2::SparseArrayInterface
+)
+  return interface2
 end
 
 to_vec(x) = vec(collect(x))
@@ -171,18 +89,18 @@ to_vec(x::AbstractArray) = vec(x)
 # Most sparse arrays should overload `storedvalues` directly
 # and avoid this wrapper since it adds extra indirection to
 # access stored values.
-struct StoredValues{T,A<:AbstractArray{T},I} <: AbstractVector{T}
-  array::A
-  storedindices::I
-end
-StoredValues(a::AbstractArray) = StoredValues(a, to_vec(eachstoredindex(a)))
-Base.size(a::StoredValues) = size(a.storedindices)
-Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
-function Base.setindex!(a::StoredValues, value, I::Int)
-  return setstoredindex!(a.array, value, a.storedindices[I])
-end
-
-@interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
+# struct StoredValues{T,A<:AbstractArray{T},I} <: AbstractVector{T}
+#   array::A
+#   storedindices::I
+# end
+# StoredValues(a::AbstractArray) = StoredValues(a, to_vec(eachstoredindex(a)))
+# Base.size(a::StoredValues) = size(a.storedindices)
+# Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
+# function Base.setindex!(a::StoredValues, value, I::Int)
+#   return setstoredindex!(a.array, value, a.storedindices[I])
+# end
+#
+# @interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
 # is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
@@ -191,38 +109,6 @@ end
 )
   # TODO: Define `default_similartype` or something like that?
   return SparseArrayDOK{T}(size...)
-end
-
-# map over a specified subset of indices of the inputs.
-function map_indices! end
-
-@interface interface::AbstractArrayInterface function map_indices!(
-  indices, f, a_dest::AbstractArray, as::AbstractArray...
-)
-  for I in indices
-    a_dest[I] = f(map(a -> a[I], as)...)
-  end
-  return a_dest
-end
-
-# Only map the stored values of the inputs.
-function map_stored! end
-
-@interface interface::AbstractArrayInterface function map_stored!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  @interface interface map_indices!(eachstoredindex(as...), f, a_dest, as...)
-  return a_dest
-end
-
-# Only map all values, not just the stored ones.
-function map_all! end
-
-@interface interface::AbstractArrayInterface function map_all!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  @interface interface map_indices!(eachindex(as...), f, a_dest, as...)
-  return a_dest
 end
 
 using ArrayLayouts: ArrayLayouts, zero!
@@ -238,35 +124,6 @@ using ArrayLayouts: ArrayLayouts, zero!
   # is defined and the elements are immutable.
   f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
   return @interface interface map_stored!(f, a, a)
-end
-
-# Determines if a function preserves the stored values
-# of the destination sparse array.
-# The current code may be inefficient since it actually
-# accesses an unstored element, which in the case of a
-# sparse array of arrays can allocate an array.
-# Sparse arrays could be expected to define a cheap
-# unstored element allocator, for example
-# `get_prototypical_unstored(a::AbstractArray)`.
-function preserves_unstored(f, a_dest::AbstractArray, as::AbstractArray...)
-  I = first(eachindex(as...))
-  return iszero(f(map(a -> getunstoredindex(a, I), as)...))
-end
-
-@interface interface::AbstractSparseArrayInterface function Base.map!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  indices = if !preserves_unstored(f, a_dest, as...)
-    eachindex(a_dest)
-  elseif any(a -> a_dest !== a, as)
-    as = map(a -> Base.unalias(a_dest, a), as)
-    @interface interface zero!(a_dest)
-    eachstoredindex(as...)
-  else
-    eachstoredindex(a_dest)
-  end
-  @interface interface map_indices!(indices, f, a_dest, as...)
-  return a_dest
 end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
@@ -303,6 +160,8 @@ end
 struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
 
 SparseArrayStyle{M}(::Val{N}) where {M,N} = SparseArrayStyle{N}()
+
+DerivableInterfaces.interface(::Type{<:AbstractSparseArrayStyle}) = SparseArrayInterface()
 
 @interface ::AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
   return SparseArrayStyle{ndims(type)}()
