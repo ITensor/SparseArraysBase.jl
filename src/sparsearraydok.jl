@@ -7,6 +7,12 @@ end
 
 const DOKStorage{T,N} = Dictionary{CartesianIndex{N},T}
 
+"""
+    SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
+
+`N`-dimensional sparse Dictionary-of-keys (DOK) array with elements of type `T`,
+optionally with a function of type `F` to instantiate non-stored elements.
+"""
 struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   storage::DOKStorage{T,N}
   size::NTuple{N,Int}
@@ -28,8 +34,20 @@ struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   end
 end
 
-## constructors with T and N
-# -> make SparseMatrix{T}(undef, ...) work
+# Constructors
+# ------------
+"""
+    SparseArrayDOK{T}(undef, dims, unstored...)
+    SparseArrayDOK{T}(undef, dims...)
+    SparseArrayDOK{T,N}(undef, dims, unstored...)
+    SparseArrayDOK{T,N}(undef, dims...)
+
+Construct an uninitialized `N`-dimensional [`SparseArrayDOK`](@ref) containing
+elements of type `T`. `N` can either be supplied explicitly, or be determined by
+the length or number of `dims`.
+"""
+SparseArrayDOK{T,N}(::UndefInitializer, dims, unstored...)
+
 function SparseArrayDOK{T,N}(
   ::UndefInitializer, dims::Dims, getunstoredindex=default_getunstoredindex
 ) where {T,N}
@@ -38,33 +56,45 @@ function SparseArrayDOK{T,N}(
   F = typeof(getunstoredindex)
   return SparseArrayDOK{T,N,F}(undef, dims, getunstoredindex)
 end
-
-## constructors with T
 function SparseArrayDOK{T}(::UndefInitializer, dims::Dims{N}, unstored...) where {T,N}
   return SparseArrayDOK{T,N}(undef, dims, unstored...)
 end
-
 function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}) where {T,N}
   return SparseArrayDOK{T,N}(undef, dims)
 end
 
+"""
+    SparseArrayDOK(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
+    SparseArrayDOK{T}(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
+    SparseArrayDOK{T,N}(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
+
+Construct an `N`-dimensional [`SparseArrayDOK`](@ref) containing elements of type `T`. Both
+`T` and `N` can either be supplied explicitly or be determined by the `storage` and the
+length or number of `dims`.
+
+This constructor does not take ownership of the supplied storage, and will result in an
+independent container.
+"""
+SparseArrayDOK{T,N}(::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
+
+const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
 # checked constructor from data: use `setindex!` to validate/convert input
-function SparseArrayDOK{T}(
-  storage::Union{AbstractDictionary,AbstractDict}, dims::Dims, unstored...
-) where {T}
-  A = SparseArrayDOK{T}(undef, dims, unstored...)
+function SparseArrayDOK{T,N}(
+  storage::AbstractDictOrDictionary, dims::Dims, unstored...
+) where {T,N}
+  A = SparseArrayDOK{T,N}(undef, dims, unstored...)
   for (i, v) in pairs(storage)
     A[i] = v
   end
   return A
 end
-
-## constructors without type parameters
-function SparseArrayDOK(
-  storage::Union{AbstractDictionary,AbstractDict}, dims::Dims, unstored...
-)
-  T = valtype(storage)
-  return SparseArrayDOK{T}(storage, dims, unstored...)
+function SparseArrayDOK{T}(
+  storage::AbstractDictOrDictionary, dims::Dims, unstored...
+) where {T}
+  return SparseArrayDOK{T,length(dims)}(storage, dims, unstored...)
+end
+function SparseArrayDOK(storage::AbstractDictOrDictionary, dims::Dims, unstored...)
+  return SparseArrayDOK{valtype(storage)}(storage, dims, unstored...)
 end
 
 function set_getunstoredindex(a::SparseArrayDOK, f)
