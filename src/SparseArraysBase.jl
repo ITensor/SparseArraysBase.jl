@@ -12,6 +12,7 @@ export SparseArrayDOK,
   storedlength,
   storedpairs,
   storedvalues
+export spzeros, sprand, sprand!
 
 include("abstractsparsearrayinterface.jl")
 include("sparsearrayinterface.jl")

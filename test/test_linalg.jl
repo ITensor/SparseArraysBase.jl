@@ -5,17 +5,6 @@ using StableRNGs: StableRNG
 
 const rng = StableRNG(123)
 
-# TODO: add this to main package
-function sprand(rng::Random.AbstractRNG, ::Type{T}, sz::Base.Dims; p::Real=0.5) where {T}
-  A = SparseArrayDOK{T}(undef, sz)
-  for I in eachindex(A)
-    if rand(rng) < p
-      A[I] = rand(rng, T)
-    end
-  end
-  return A
-end
-
 @testset "mul!" begin
   T = Float64
   szA = (2, 2)
