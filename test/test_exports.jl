@@ -11,10 +11,13 @@ using Test: @test, @testset
     :OneElementVector,
     :eachstoredindex,
     :isstored,
-    :oneelementarray,
+    :oneelement,
     :storedlength,
     :storedpairs,
     :storedvalues,
+    :spzeros,
+    :sprand,
+    :sprand!,
   ]
   @test issetequal(names(SparseArraysBase), exports)
 end
