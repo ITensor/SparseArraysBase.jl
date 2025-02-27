@@ -8,7 +8,7 @@ export SparseArrayDOK,
   OneElementVector,
   eachstoredindex,
   isstored,
-  oneelementarray,
+  oneelement,
   storedlength,
   storedpairs,
   storedvalues
