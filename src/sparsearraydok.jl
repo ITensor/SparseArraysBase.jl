@@ -28,29 +28,43 @@ struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   end
 end
 
-# undef constructors
-function SparseArrayDOK{T}(
+## constructors with T and N
+# -> make SparseMatrix{T}(undef, ...) work
+function SparseArrayDOK{T,N}(
   ::UndefInitializer, dims::Dims, getunstoredindex=default_getunstoredindex
-) where {T}
-  all(≥(0), dims) || throw(ArgumentError("Invalid dimensions: $dims"))
-  N = length(dims)
+) where {T,N}
+  (length(dims) == N && all(≥(0), dims)) ||
+    throw(ArgumentError("Invalid dimensions: $dims"))
   F = typeof(getunstoredindex)
   return SparseArrayDOK{T,N,F}(undef, dims, getunstoredindex)
 end
-function SparseArrayDOK{T}(::UndefInitializer, dims::Int...) where {T}
-  return SparseArrayDOK{T}(undef, dims)
+
+## constructors with T
+function SparseArrayDOK{T}(::UndefInitializer, dims::Dims{N}, unstored...) where {T,N}
+  return SparseArrayDOK{T,N}(undef, dims, unstored...)
 end
 
-# checked constructor from data: use `setindex!` to validate input
-# does not take ownership of `storage`!
-function SparseArrayDOK(
-  storage::Union{AbstractDictionary{I,T},AbstractDict{I,T}}, dims::Dims{N}, unstored...
-) where {N,I<:Union{Int,CartesianIndex{N}},T}
+function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}) where {T,N}
+  return SparseArrayDOK{T,N}(undef, dims)
+end
+
+# checked constructor from data: use `setindex!` to validate/convert input
+function SparseArrayDOK{T}(
+  storage::Union{AbstractDictionary,AbstractDict}, dims::Dims, unstored...
+) where {T}
   A = SparseArrayDOK{T}(undef, dims, unstored...)
   for (i, v) in pairs(storage)
     A[i] = v
   end
   return A
+end
+
+## constructors without type parameters
+function SparseArrayDOK(
+  storage::Union{AbstractDictionary,AbstractDict}, dims::Dims, unstored...
+)
+  T = valtype(storage)
+  return SparseArrayDOK{T}(storage, dims, unstored...)
 end
 
 function set_getunstoredindex(a::SparseArrayDOK, f)
