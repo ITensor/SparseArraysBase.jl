@@ -12,12 +12,12 @@ using Test: @test, @testset
     :eachstoredindex,
     :isstored,
     :oneelement,
+    :sparserand,
+    :sparserand!,
+    :sparsezeros,
     :storedlength,
     :storedpairs,
     :storedvalues,
-    :sparsezeros,
-    :sparserand,
-    :sparserand!,
   ]
   @test issetequal(names(SparseArraysBase), exports)
 end

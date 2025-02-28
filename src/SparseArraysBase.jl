@@ -9,12 +9,12 @@ export SparseArrayDOK,
   eachstoredindex,
   isstored,
   oneelement,
+  sparserand,
+  sparserand!,
+  sparsezeros,
   storedlength,
   storedpairs,
-  storedvalues,
-  sparsezeros,
-  sparserand,
-  sparserand!
+  storedvalues
 
 include("abstractsparsearrayinterface.jl")
 include("sparsearrayinterface.jl")
