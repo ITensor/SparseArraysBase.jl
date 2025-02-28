@@ -69,13 +69,13 @@ spzeros(dims::Dims) = spzeros(Float64, dims)
 spzeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
 
 @doc """
-    sprand([rng], [T::Type], dims; density::Real=0.5, rand_function::Function=rand) -> A::SparseArrayDOK{T}
+    sprand([rng], [T::Type], dims; density::Real=0.5, randfun::Function=rand) -> A::SparseArrayDOK{T}
 
 Create a random size `dims` sparse array in which the probability of any element being stored is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
-The optional `rand_function` argument can be used to control the type of random elements, and should support
-the signature `rand_function(rng, T, N)` to generate `N` entries of type `T`.
+The optional `randfun` argument can be used to control the type of random elements, and should support
+the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
 
 
 See also [`sprand!`](@ref).
@@ -95,24 +95,24 @@ function sprand(rng::AbstractRNG, ::Type{T}, dims::Dims; kwargs...) where {T}
 end
 
 @doc """
-    sprand!([rng], A::AbstractArray; density::Real=0.5, rand_function::Function=rand) -> A
+    sprand!([rng], A::AbstractArray; density::Real=0.5, randfun::Function=rand) -> A
 
 Overwrite part of an array with random entries, where the probability of overwriting is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
-The optional `rand_function` argument can be used to control the type of random elements, and should support
-the signature `rand_function(rng, T, N)` to generate `N` entries of type `T`.
+The optional `randfun` argument can be used to control the type of random elements, and should support
+the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
 
 See also [`sprand`](@ref).
 """ sprand!
 
 sprand!(A::AbstractArray; kwargs...) = sprand!(default_rng(), A; kwargs...)
 function sprand!(
-  rng::AbstractRNG, A::AbstractArray; density::Real=0.5, rand_function::Function=Random.rand
+  rng::AbstractRNG, A::AbstractArray; density::Real=0.5, randfun::Function=Random.rand
 )
   ArrayLayouts.zero!(A)
   rand_inds = Random.randsubseq(rng, eachindex(A), density)
-  rand_entries = rand_function(rng, eltype(A), length(rand_inds))
-  for (I, v) in zip(rand_inds, rand_entries)
+  rand_entries = randfun(rng, eltype(A), length(rand_inds))
+  @inbounds for (I, v) in zip(rand_inds, rand_entries)
     A[I] = v
   end
 end
