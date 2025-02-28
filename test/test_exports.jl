@@ -15,9 +15,9 @@ using Test: @test, @testset
     :storedlength,
     :storedpairs,
     :storedvalues,
-    :spzeros,
-    :sprand,
-    :sprand!,
+    :sparsezeros,
+    :sparserand,
+    :sparserand!,
   ]
   @test issetequal(names(SparseArraysBase), exports)
 end

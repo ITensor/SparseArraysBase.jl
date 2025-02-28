@@ -1,4 +1,4 @@
-using SparseArraysBase: sprand
+using SparseArraysBase: sparserand
 using LinearAlgebra: mul!
 using StableRNGs: StableRNG
 
@@ -11,9 +11,9 @@ const rng = StableRNG(123)
   szC = (szA[1], szB[2])
 
   for density in 0.0:0.25:1
-    C = sprand(rng, T, szC; density)
-    A = sprand(rng, T, szA; density)
-    B = sprand(rng, T, szB; density)
+    C = sparserand(rng, T, szC; density)
+    A = sparserand(rng, T, szA; density)
+    B = sparserand(rng, T, szB; density)
 
     check1 = mul!(Array(C), Array(A), Array(B))
     @test mul!(copy(C), A, B) ≈ check1

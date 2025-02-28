@@ -59,17 +59,17 @@ eachstoredindex(a::ReplacedUnstoredSparseArray) = eachstoredindex(parent(a))
 using Random: Random, AbstractRNG, default_rng
 
 @doc """
-    spzeros([T::Type], dims) -> A::SparseArrayDOK{T}
+    sparsezeros([T::Type], dims) -> A::SparseArrayDOK{T}
 
 Create an empty size `dims` sparse array.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
-""" spzeros
+""" sparsezeros
 
-spzeros(dims::Dims) = spzeros(Float64, dims)
-spzeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
+sparsezeros(dims::Dims) = sparsezeros(Float64, dims)
+sparsezeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
 
 @doc """
-    sprand([rng], [T::Type], dims; density::Real=0.5, randfun::Function=rand) -> A::SparseArrayDOK{T}
+    sparserand([rng], [T::Type], dims; density::Real=0.5, randfun::Function=rand) -> A::SparseArrayDOK{T}
 
 Create a random size `dims` sparse array in which the probability of any element being stored is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
@@ -78,35 +78,35 @@ The optional `randfun` argument can be used to control the type of random elemen
 the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
 
 
-See also [`sprand!`](@ref).
-""" sprand
+See also [`sparserand!`](@ref).
+""" sparserand
 
-function sprand(::Type{T}, dims::Dims; kwargs...) where {T}
-  return sprand(default_rng(), T, dims; kwargs...)
+function sparserand(::Type{T}, dims::Dims; kwargs...) where {T}
+  return sparserand(default_rng(), T, dims; kwargs...)
 end
-sprand(dims::Dims; kwargs...) = sprand(default_rng(), Float64, dims; kwargs...)
-function sprand(rng::AbstractRNG, dims::Dims; kwargs...)
-  return sprand(rng, Float64, dims; kwargs...)
+sparserand(dims::Dims; kwargs...) = sparserand(default_rng(), Float64, dims; kwargs...)
+function sparserand(rng::AbstractRNG, dims::Dims; kwargs...)
+  return sparserand(rng, Float64, dims; kwargs...)
 end
-function sprand(rng::AbstractRNG, ::Type{T}, dims::Dims; kwargs...) where {T}
+function sparserand(rng::AbstractRNG, ::Type{T}, dims::Dims; kwargs...) where {T}
   A = SparseArrayDOK{T}(undef, dims)
-  sprand!(rng, A; kwargs...)
+  sparserand!(rng, A; kwargs...)
   return A
 end
 
 @doc """
-    sprand!([rng], A::AbstractArray; density::Real=0.5, randfun::Function=rand) -> A
+    sparserand!([rng], A::AbstractArray; density::Real=0.5, randfun::Function=rand) -> A
 
 Overwrite part of an array with random entries, where the probability of overwriting is independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
 The optional `randfun` argument can be used to control the type of random elements, and should support
 the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
 
-See also [`sprand`](@ref).
-""" sprand!
+See also [`sparserand`](@ref).
+""" sparserand!
 
-sprand!(A::AbstractArray; kwargs...) = sprand!(default_rng(), A; kwargs...)
-function sprand!(
+sparserand!(A::AbstractArray; kwargs...) = sparserand!(default_rng(), A; kwargs...)
+function sparserand!(
   rng::AbstractRNG, A::AbstractArray; density::Real=0.5, randfun::Function=Random.rand
 )
   ArrayLayouts.zero!(A)
