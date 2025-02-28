@@ -200,7 +200,7 @@ end
   a::AbstractArray, T::Type, size::Tuple{Vararg{Int}}
 )
   # TODO: Define `default_similartype` or something like that?
-  return SparseArrayDOK{T}(size...)
+  return SparseArrayDOK{T}(undef, size)
 end
 
 # map over a specified subset of indices of the inputs.

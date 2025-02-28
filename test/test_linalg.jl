@@ -1,20 +1,8 @@
-using SparseArraysBase: SparseArrayDOK
+using SparseArraysBase: sparserand
 using LinearAlgebra: mul!
-using Random: Random
 using StableRNGs: StableRNG
 
 const rng = StableRNG(123)
-
-# TODO: add this to main package
-function sprand(rng::Random.AbstractRNG, ::Type{T}, sz::Base.Dims; p::Real=0.5) where {T}
-  A = SparseArrayDOK{T}(undef, sz)
-  for I in eachindex(A)
-    if rand(rng) < p
-      A[I] = rand(rng, T)
-    end
-  end
-  return A
-end
 
 @testset "mul!" begin
   T = Float64
@@ -22,10 +10,10 @@ end
   szB = (2, 2)
   szC = (szA[1], szB[2])
 
-  for p in 0.0:0.25:1
-    C = sprand(rng, T, szC; p)
-    A = sprand(rng, T, szA; p)
-    B = sprand(rng, T, szB; p)
+  for density in 0.0:0.25:1
+    C = sparserand(rng, T, szC; density)
+    A = sparserand(rng, T, szA; density)
+    B = sparserand(rng, T, szB; density)
 
     check1 = mul!(Array(C), Array(A), Array(B))
     @test mul!(copy(C), A, B) ≈ check1
