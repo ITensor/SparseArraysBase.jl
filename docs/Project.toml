@@ -3,3 +3,9 @@ Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
 SparseArraysBase = "0d5efcca-f356-4864-8770-e1ed8d78f208"
+
+[compat]
+Dictionaries = "0.4.4"
+Documenter = "1.8.1"
+Literate = "2.20.1"
+SparseArraysBase = "0.3.0"
