@@ -102,6 +102,10 @@ end
   SparseArraysBase.storedvalues(::T)
 end
 
+function isstored(a::SubArray, I::Int...)
+  return isstored(parent(a), Base.reindex(parentindices(a), I)...)
+end
+
 # TODO: Add `ndims` type parameter, like `Base.Broadcast.AbstractArrayStyle`.
 # TODO: This isn't used to define interface functions right now.
 # Currently, `@interface` expects an instance, probably it should take a
