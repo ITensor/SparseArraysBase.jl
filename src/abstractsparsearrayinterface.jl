@@ -54,10 +54,6 @@ end
   return error("Not implemented.")
 end
 
-@interface ::AbstractArrayInterface function isstored(a::SubArray, I::Int...)
-  return isstored(parent(a), Base.reindex(parentindices(a), I)...)
-end
-
 # TODO: Use `Base.to_indices`?
 isstored(a::AbstractArray, I::CartesianIndex) = isstored(a, Tuple(I)...)
 # TODO: Use `Base.to_indices`?
@@ -104,10 +100,6 @@ end
   SparseArraysBase.storedlength(::T)
   SparseArraysBase.storedpairs(::T)
   SparseArraysBase.storedvalues(::T)
-end
-
-@derive (T=SubArray,) begin
-  SparseArraysBase.isstored(::T, ::Int...)
 end
 
 # TODO: Add `ndims` type parameter, like `Base.Broadcast.AbstractArrayStyle`.

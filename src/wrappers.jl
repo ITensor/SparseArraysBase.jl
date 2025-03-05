@@ -106,6 +106,10 @@ function storedparentvalues(a::SubArray)
   return StoredValues(parent(a), collect(eachstoredparentindex(a)))
 end
 
+@interface ::AbstractArrayInterface function isstored(a::SubArray, I::Int...)
+  return isstored(parent(a), index_to_parentindex(a, I...)...)
+end
+
 using LinearAlgebra: Transpose
 function parentindex_to_index(a::Transpose, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
