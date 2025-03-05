@@ -8,13 +8,13 @@ struct OneElementArray{T,N,I,A,F} <: AbstractSparseArray{T,N}
   value::T
   index::I
   axes::A
-  getunstoredfun::F
+  getunstored::F
   global @inline function _OneElementArray(
-    value::T, index::I, axes::A, getunstoredfun::F
+    value::T, index::I, axes::A, getunstored::F
   ) where {T,I,A,F}
     N = length(axes)
     @assert N == length(index)
-    return new{T,N,I,A,F}(value, index, axes, getunstoredfun)
+    return new{T,N,I,A,F}(value, index, axes, getunstored)
   end
 end
 
@@ -23,9 +23,9 @@ using DerivableInterfaces: @array_aliases
 @array_aliases OneElementArray
 
 function OneElementArray{T,N}(
-  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; getunstoredfun=getzero
+  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; getunstored=getzero
 ) where {T,N}
-  return _OneElementArray(convert(T, value), index, axes, getunstoredfun)
+  return _OneElementArray(convert(T, value), index, axes, getunstored)
 end
 
 function OneElementArray{<:Any,N}(
@@ -104,9 +104,9 @@ end
 
 # Fix ambiguity errors.
 function OneElementArray{T,0}(
-  value, index::Tuple{}, axes::Tuple{}; getunstoredfun=getzero
+  value, index::Tuple{}, axes::Tuple{}; getunstored=getzero
 ) where {T}
-  return _OneElementArray(convert(T, value), index, axes, getunstoredfun)
+  return _OneElementArray(convert(T, value), index, axes, getunstored)
 end
 function OneElementArray{<:Any,0}(
   value::T, index::Tuple{}, axes::Tuple{}; kwargs...
@@ -295,7 +295,7 @@ function getstoredindex(a::OneElementArray, I::Int...)
   return storedvalue(a)
 end
 function getunstoredindex(a::OneElementArray, I::Int...)
-  return a.getunstoredfun(a, I...)
+  return a.getunstored(a, I...)
 end
 function setstoredindex!(a::OneElementArray, value, I::Int...)
   return error("`OneElementArray` is immutable, you can't set elements.")

@@ -37,7 +37,7 @@ end
 # ----------------------------
 
 """
-    sparse(storage::Union{AbstractDict,AbstractDictionary}, dims...[; getunstoredfun])
+    sparse(storage::Union{AbstractDict,AbstractDictionary}, dims...[; getunstored])
 
 Construct an `N`-dimensional [`SparseArrayDOK`](@ref) containing elements of type `T`. Both
 `T` and `N` can either be supplied explicitly or be determined by the `storage` and the
@@ -64,7 +64,7 @@ end
 using Random: Random, AbstractRNG, default_rng
 
 @doc """
-    sparsezeros([T::Type], dims[; getunstoredfun]) -> A::SparseArrayDOK{T}
+    sparsezeros([T::Type], dims[; getunstored]) -> A::SparseArrayDOK{T}
 
 Create an empty size `dims` sparse array.
 The optional `T` argument specifies the element type, which defaults to `Float64`.

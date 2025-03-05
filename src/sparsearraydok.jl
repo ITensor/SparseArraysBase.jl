@@ -18,19 +18,19 @@ optionally with a function of type `F` to instantiate non-stored elements.
 struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   storage::DOKStorage{T,N}
   size::NTuple{N,Int}
-  getunstoredfun::F
+  getunstored::F
   global @inline function _SparseArrayDOK(
-    storage::DOKStorage{T,N}, size::Dims{N}, getunstoredfun::F
+    storage::DOKStorage{T,N}, size::Dims{N}, getunstored::F
   ) where {T,N,F}
-    return new{T,N,F}(storage, size, getunstoredfun)
+    return new{T,N,F}(storage, size, getunstored)
   end
 end
 
 # Constructors
 # ------------
 """
-    SparseArrayDOK{T}(undef, dims...[; getunstoredfun])
-    SparseArrayDOK{T,N}(undef, dims...[; getunstoredfun])
+    SparseArrayDOK{T}(undef, dims...[; getunstored])
+    SparseArrayDOK{T,N}(undef, dims...[; getunstored])
 
 Construct an uninitialized `N`-dimensional [`SparseArrayDOK`](@ref) containing
 elements of type `T`. `N` can either be supplied explicitly, or be determined by
@@ -39,12 +39,12 @@ the length or number of `dims`.
 SparseArrayDOK{T,N}(::UndefInitializer, dims; kwargs...)
 
 function SparseArrayDOK{T,N}(
-  ::UndefInitializer, dims::Dims; getunstoredfun=getzero
+  ::UndefInitializer, dims::Dims; getunstored=getzero
 ) where {T,N}
   (length(dims) == N && all(≥(0), dims)) ||
     throw(ArgumentError("Invalid dimensions: $dims"))
   storage = DOKStorage{T,N}()
-  return _SparseArrayDOK(storage, dims, getunstoredfun)
+  return _SparseArrayDOK(storage, dims, getunstored)
 end
 function SparseArrayDOK{T,N}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) where {T,N}
   return SparseArrayDOK{T,N}(undef, dims; kwargs...)
@@ -56,8 +56,8 @@ function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) w
   return SparseArrayDOK{T,N}(undef, dims; kwargs...)
 end
 
-function set_getunstoredfun(a::SparseArrayDOK, f)
-  @set a.getunstoredfun = f
+function set_getunstored(a::SparseArrayDOK, f)
+  @set a.getunstored = f
   return a
 end
 
@@ -83,7 +83,7 @@ function getstoredindex(a::SparseArrayDOK, I::Int...)
   return storage(a)[CartesianIndex(I)]
 end
 function getunstoredindex(a::SparseArrayDOK, I::Int...)
-  return a.getunstoredfun(a, I...)
+  return a.getunstored(a, I...)
 end
 function setstoredindex!(a::SparseArrayDOK, value, I::Int...)
   # TODO: Have a way to disable this check, analogous to `checkbounds`,
