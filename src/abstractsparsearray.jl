@@ -1,3 +1,5 @@
+using Dictionaries: AbstractDictionary
+
 abstract type AbstractSparseArray{T,N} <: AbstractArray{T,N} end
 
 using DerivableInterfaces: @array_aliases
@@ -33,17 +35,47 @@ end
 
 # Special-purpose constructors
 # ----------------------------
+
+"""
+    sparse(storage::Union{AbstractDict,AbstractDictionary}, dims...[; getunstoredfun])
+
+Construct an `N`-dimensional [`SparseArrayDOK`](@ref) containing elements of type `T`. Both
+`T` and `N` can either be supplied explicitly or be determined by the `storage` and the
+length or number of `dims`.
+
+This constructor does not take ownership of the supplied storage, and will result in an
+independent container.
+"""
+sparse(::Union{AbstractDict,AbstractDictionary}, dims...; kwargs...)
+
+const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
+# checked constructor from data: use `setindex!` to validate/convert input
+function sparse(storage::AbstractDictOrDictionary, dims::Dims; kwargs...)
+  A = SparseArrayDOK{eltype(storage)}(undef, dims; kwargs...)
+  for (i, v) in pairs(storage)
+    A[i] = v
+  end
+  return A
+end
+function sparse(storage::AbstractDictOrDictionary, dims::Int...; kwargs...)
+  return sparse(storage, dims; kwargs...)
+end
+
 using Random: Random, AbstractRNG, default_rng
 
 @doc """
-    sparsezeros([T::Type], dims) -> A::SparseArrayDOK{T}
+    sparsezeros([T::Type], dims[; getunstoredfun]) -> A::SparseArrayDOK{T}
 
 Create an empty size `dims` sparse array.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
 """ sparsezeros
 
-sparsezeros(dims::Dims) = sparsezeros(Float64, dims)
-sparsezeros(::Type{T}, dims::Dims) where {T} = SparseArrayDOK{T}(undef, dims)
+function sparsezeros(::Type{T}, dims::Dims; kwargs...) where {T}
+  return SparseArrayDOK{T}(undef, dims; kwargs...)
+end
+sparsezeros(::Type{T}, dims::Int...; kwargs...) where {T} = sparsezeros(T, dims; kwargs...)
+sparsezeros(dims::Dims; kwargs...) = sparsezeros(Float64, dims; kwargs...)
+sparsezeros(dims::Int...; kwargs...) = sparsezeros(Float64, dims; kwargs...)
 
 @doc """
     sparserand([rng], [T::Type], dims; density::Real=0.5, randfun::Function=rand) -> A::SparseArrayDOK{T}
@@ -61,14 +93,24 @@ See also [`sparserand!`](@ref).
 function sparserand(::Type{T}, dims::Dims; kwargs...) where {T}
   return sparserand(default_rng(), T, dims; kwargs...)
 end
+function sparserand(::Type{T}, dims::Int...; kwargs...) where {T}
+  return sparserand(T, dims; kwargs...)
+end
 sparserand(dims::Dims; kwargs...) = sparserand(default_rng(), Float64, dims; kwargs...)
+sparserand(dims::Int...; kwargs...) = sparserand(dims; kwargs...)
 function sparserand(rng::AbstractRNG, dims::Dims; kwargs...)
   return sparserand(rng, Float64, dims; kwargs...)
+end
+function sparserand(rng::AbstractRNG, dims::Int...; kwargs...)
+  return sparserand(rng, dims; kwargs...)
 end
 function sparserand(rng::AbstractRNG, ::Type{T}, dims::Dims; kwargs...) where {T}
   A = SparseArrayDOK{T}(undef, dims)
   sparserand!(rng, A; kwargs...)
   return A
+end
+function sparserand(rng::AbstractRNG, ::Type{T}, dims::Int...; kwargs...) where {T}
+  return sparserand(rng, T, dims; kwargs...)
 end
 
 @doc """
