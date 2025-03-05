@@ -51,7 +51,7 @@ sparse(::Union{AbstractDict,AbstractDictionary}, dims...; kwargs...)
 const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
 # checked constructor from data: use `setindex!` to validate/convert input
 function sparse(storage::AbstractDictOrDictionary, dims::Dims; kwargs...)
-  A = SparseArrayDOK{eltype(storage)}(undef, dims; kwargs...)
+  A = SparseArrayDOK{valtype(storage)}(undef, dims; kwargs...)
   for (i, v) in pairs(storage)
     A[i] = v
   end

@@ -4,15 +4,20 @@ using JLArrays: JLArray, @allowscalar
 using SparseArraysBase:
   SparseArraysBase,
   SparseArrayDOK,
+  SparseMatrixDOK,
   eachstoredindex,
   getstoredindex,
   getunstoredindex,
   isstored,
   setstoredindex!,
   setunstoredindex!,
+  sparse,
+  sparserand,
+  sparsezeros,
   storedlength,
   storedpairs,
   storedvalues
+using StableRNGs: StableRNG
 using Test: @test, @testset
 
 elts = (Float32, Float64, Complex{Float32}, Complex{Float64})
@@ -216,4 +221,53 @@ arrayts = (Array,)
   @test storedlength(r1) == 2
   @test a == [11 12; 12 22]
   @test storedlength(a) == 4
+
+  d = Dict([CartesianIndex(1, 2) => elt(12), CartesianIndex(2, 1) => elt(21)])
+  for a in (
+    sparse(d, 2, 2),
+    sparse(d, 2, 2; getunstored=Returns(zero(elt))),
+    sparse(d, (2, 2)),
+    sparse(d, (2, 2); getunstored=Returns(zero(elt))),
+  )
+    @test !iszero(a)
+    @test iszero(a[1, 1])
+    @test a[2, 1] == elt(21)
+    @test a[1, 2] == elt(12)
+    @test iszero(a[2, 2])
+    @test size(a) == (2, 2)
+    @test storedlength(a) == 2
+    @test eltype(a) === elt
+    @test a isa SparseMatrixDOK{elt}
+  end
+
+  for (a, elt′) in (
+    (sparsezeros(elt, 2, 2), elt),
+    (sparsezeros(elt, 2, 2; getunstored=Returns(zero(elt))), elt),
+    (sparsezeros(elt, (2, 2)), elt),
+    (sparsezeros(elt, (2, 2); getunstored=Returns(zero(elt))), elt),
+    (sparsezeros(2, 2), Float64),
+    (sparsezeros(2, 2; getunstored=Returns(zero(Float64))), Float64),
+    (sparsezeros((2, 2)), Float64),
+    (sparsezeros((2, 2); getunstored=Returns(zero(Float64))), Float64),
+  )
+    @test iszero(a)
+    @test size(a) == (2, 2)
+    @test storedlength(a) == 0
+    @test eltype(a) === elt′
+    @test a isa SparseMatrixDOK{elt′}
+  end
+
+  rng = StableRNG(123)
+  for (a, elt′) in (
+    (sparserand(rng, elt, 20, 20; density=0.5), elt),
+    (sparserand(rng, elt, (20, 20); density=0.5), elt),
+    (sparserand(rng, 20, 20; density=0.5), Float64),
+    (sparserand(rng, (20, 20); density=0.5), Float64),
+  )
+    @test !iszero(a)
+    @test size(a) == (20, 20)
+    @test !iszero(storedlength(a))
+    @test eltype(a) === elt′
+    @test a isa SparseMatrixDOK{elt′}
+  end
 end
