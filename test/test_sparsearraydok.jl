@@ -1,5 +1,6 @@
 using Adapt: adapt
 using ArrayLayouts: zero!
+using Dictionaries: Dictionary
 using JLArrays: JLArray, @allowscalar
 using SparseArraysBase:
   SparseArraysBase,
@@ -222,22 +223,29 @@ arrayts = (Array,)
   @test a == [11 12; 12 22]
   @test storedlength(a) == 4
 
-  d = Dict([CartesianIndex(1, 2) => elt(12), CartesianIndex(2, 1) => elt(21)])
-  for a in (
-    sparse(d, 2, 2),
-    sparse(d, 2, 2; getunstored=Returns(zero(elt))),
-    sparse(d, (2, 2)),
-    sparse(d, (2, 2); getunstored=Returns(zero(elt))),
+  for d in (
+    Dict([CartesianIndex(1, 2) => elt(12), CartesianIndex(2, 1) => elt(21)]),
+    Dictionary([CartesianIndex(1, 2), CartesianIndex(2, 1)], [elt(12), elt(21)]),
   )
-    @test !iszero(a)
-    @test iszero(a[1, 1])
-    @test a[2, 1] == elt(21)
-    @test a[1, 2] == elt(12)
-    @test iszero(a[2, 2])
-    @test size(a) == (2, 2)
-    @test storedlength(a) == 2
-    @test eltype(a) === elt
-    @test a isa SparseMatrixDOK{elt}
+    for a in (
+      sparse(d, 2, 2),
+      sparse(d, 2, 2; getunstored=Returns(zero(elt))),
+      sparse(d, (2, 2)),
+      sparse(d, (2, 2); getunstored=Returns(zero(elt))),
+      # Determine the size automatically.
+      sparse(d),
+      sparse(d; getunstored=Returns(zero(elt))),
+    )
+      @test !iszero(a)
+      @test iszero(a[1, 1])
+      @test a[2, 1] == elt(21)
+      @test a[1, 2] == elt(12)
+      @test iszero(a[2, 2])
+      @test size(a) == (2, 2)
+      @test storedlength(a) == 2
+      @test eltype(a) === elt
+      @test a isa SparseMatrixDOK{elt}
+    end
   end
 
   for (a, elt′) in (

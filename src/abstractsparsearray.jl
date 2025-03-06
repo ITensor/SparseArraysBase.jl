@@ -41,7 +41,8 @@ end
 
 Construct an `N`-dimensional [`SparseArrayDOK`](@ref) containing elements of type `T`. Both
 `T` and `N` can either be supplied explicitly or be determined by the `storage` and the
-length or number of `dims`.
+length or number of `dims`. If `dims` aren't specified, the size will be determined automatically
+from the input indices.
 
 This constructor does not take ownership of the supplied storage, and will result in an
 independent container.
@@ -58,6 +59,14 @@ function sparse(storage::AbstractDictOrDictionary, dims::Dims; kwargs...)
   return A
 end
 function sparse(storage::AbstractDictOrDictionary, dims::Int...; kwargs...)
+  return sparse(storage, dims; kwargs...)
+end
+# Determine the size automatically.
+function sparse(storage::AbstractDictOrDictionary; kwargs...)
+  dims = ntuple(Returns(0), length(keytype(storage)))
+  for I in keys(storage)
+    dims = map(max, dims, Tuple(I))
+  end
   return sparse(storage, dims; kwargs...)
 end
 
