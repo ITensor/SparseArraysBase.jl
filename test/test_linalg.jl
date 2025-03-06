@@ -1,6 +1,7 @@
 using SparseArraysBase: sparserand
 using LinearAlgebra: mul!
 using StableRNGs: StableRNG
+using Test: @test, @testset
 
 const rng = StableRNG(123)
 

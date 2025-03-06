@@ -1,11 +1,13 @@
 using Accessors: @set
-using Dictionaries: AbstractDictionary, Dictionary, IndexError, set!
+using Dictionaries: Dictionary, IndexError, set!
 
-function default_getunstoredindex(a::AbstractArray, I::Int...)
+function getzero(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
   return zero(eltype(a))
 end
 
 const DOKStorage{T,N} = Dictionary{CartesianIndex{N},T}
+
+function _SparseArrayDOK end
 
 """
     SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
@@ -16,89 +18,46 @@ optionally with a function of type `F` to instantiate non-stored elements.
 struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
   storage::DOKStorage{T,N}
   size::NTuple{N,Int}
-  getunstoredindex::F
-
-  # bare constructor
-  function SparseArrayDOK{T,N,F}(
-    ::UndefInitializer, size::Dims{N}, getunstoredindex::F
+  getunstored::F
+  global @inline function _SparseArrayDOK(
+    storage::DOKStorage{T,N}, size::Dims{N}, getunstored::F
   ) where {T,N,F}
-    storage = DOKStorage{T,N}()
-    return new{T,N,F}(storage, size, getunstoredindex)
-  end
-
-  # unchecked constructor from data
-  function SparseArrayDOK{T,N,F}(
-    storage::DOKStorage{T,N}, size::Dims{N}, getunstoredindex::F
-  ) where {T,N,F}
-    return new{T,N,F}(storage, size, getunstoredindex)
+    return new{T,N,F}(storage, size, getunstored)
   end
 end
 
 # Constructors
 # ------------
 """
-    SparseArrayDOK{T}(undef, dims, unstored...)
-    SparseArrayDOK{T}(undef, dims...)
-    SparseArrayDOK{T,N}(undef, dims, unstored...)
-    SparseArrayDOK{T,N}(undef, dims...)
+    SparseArrayDOK{T}(undef, dims...[; getunstored])
+    SparseArrayDOK{T,N}(undef, dims...[; getunstored])
 
 Construct an uninitialized `N`-dimensional [`SparseArrayDOK`](@ref) containing
 elements of type `T`. `N` can either be supplied explicitly, or be determined by
 the length or number of `dims`.
 """
-SparseArrayDOK{T,N}(::UndefInitializer, dims, unstored...)
+SparseArrayDOK{T,N}(::UndefInitializer, dims; kwargs...)
 
 function SparseArrayDOK{T,N}(
-  ::UndefInitializer, dims::Dims, getunstoredindex=default_getunstoredindex
+  ::UndefInitializer, dims::Dims; getunstored=getzero
 ) where {T,N}
   (length(dims) == N && all(≥(0), dims)) ||
     throw(ArgumentError("Invalid dimensions: $dims"))
-  F = typeof(getunstoredindex)
-  return SparseArrayDOK{T,N,F}(undef, dims, getunstoredindex)
+  storage = DOKStorage{T,N}()
+  return _SparseArrayDOK(storage, dims, getunstored)
 end
-function SparseArrayDOK{T}(::UndefInitializer, dims::Dims{N}, unstored...) where {T,N}
-  return SparseArrayDOK{T,N}(undef, dims, unstored...)
+function SparseArrayDOK{T,N}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) where {T,N}
+  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
 end
-function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}) where {T,N}
-  return SparseArrayDOK{T,N}(undef, dims)
+function SparseArrayDOK{T}(::UndefInitializer, dims::Dims{N}; kwargs...) where {T,N}
+  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
 end
-
-"""
-    SparseArrayDOK(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
-    SparseArrayDOK{T}(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
-    SparseArrayDOK{T,N}(storage::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
-
-Construct an `N`-dimensional [`SparseArrayDOK`](@ref) containing elements of type `T`. Both
-`T` and `N` can either be supplied explicitly or be determined by the `storage` and the
-length or number of `dims`.
-
-This constructor does not take ownership of the supplied storage, and will result in an
-independent container.
-"""
-SparseArrayDOK{T,N}(::Union{AbstractDict,AbstractDictionary}, dims, unstored...)
-
-const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
-# checked constructor from data: use `setindex!` to validate/convert input
-function SparseArrayDOK{T,N}(
-  storage::AbstractDictOrDictionary, dims::Dims, unstored...
-) where {T,N}
-  A = SparseArrayDOK{T,N}(undef, dims, unstored...)
-  for (i, v) in pairs(storage)
-    A[i] = v
-  end
-  return A
-end
-function SparseArrayDOK{T}(
-  storage::AbstractDictOrDictionary, dims::Dims, unstored...
-) where {T}
-  return SparseArrayDOK{T,length(dims)}(storage, dims, unstored...)
-end
-function SparseArrayDOK(storage::AbstractDictOrDictionary, dims::Dims, unstored...)
-  return SparseArrayDOK{valtype(storage)}(storage, dims, unstored...)
+function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) where {T,N}
+  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
 end
 
-function set_getunstoredindex(a::SparseArrayDOK, f)
-  @set a.getunstoredindex = f
+function set_getunstored(a::SparseArrayDOK, f)
+  @set a.getunstored = f
   return a
 end
 
@@ -124,7 +83,7 @@ function getstoredindex(a::SparseArrayDOK, I::Int...)
   return storage(a)[CartesianIndex(I)]
 end
 function getunstoredindex(a::SparseArrayDOK, I::Int...)
-  return a.getunstoredindex(a, I...)
+  return a.getunstored(a, I...)
 end
 function setstoredindex!(a::SparseArrayDOK, value, I::Int...)
   # TODO: Have a way to disable this check, analogous to `checkbounds`,

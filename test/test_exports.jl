@@ -12,6 +12,7 @@ using Test: @test, @testset
     :eachstoredindex,
     :isstored,
     :oneelement,
+    :sparse,
     :sparserand,
     :sparserand!,
     :sparsezeros,
