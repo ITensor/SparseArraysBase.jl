@@ -11,7 +11,7 @@ using SparseArraysBase:
   storedlength,
   storedpairs,
   storedvalues
-using Test: @test, @testset
+using Test: @test, @test_throws, @testset
 
 elts = (Float32, Float64, Complex{Float32}, Complex{Float64})
 arrayts = (Array, JLArray)
@@ -41,6 +41,15 @@ arrayts = (Array, JLArray)
   @allowscalar for I in eachindex(IndexCartesian(), a)
     @test getstoredindex(a, I) == a[I]
     @test iszero(getunstoredindex(a, I))
+  end
+
+  n = 2
+  a = @view dev(randn(elt, n, n))[1:2, 1]
+  @test storedlength(a) == length(a)
+  for indexstyle in (IndexLinear(), IndexCartesian())
+    for I in eachindex(indexstyle, a)
+      @test isstored(a, I)
+    end
   end
 
   a = dev(randn(elt, n, n))

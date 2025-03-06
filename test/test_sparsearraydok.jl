@@ -56,6 +56,33 @@ arrayts = (Array,)
   @test b == [0 24; 0 0]
   @test storedlength(b) == 1
 
+  # isstored
+  a = SparseArrayDOK{elt}(undef, 4, 4)
+  a[2, 3] = 23
+  for I in CartesianIndices(a)
+    if I == CartesianIndex(2, 3)
+      @test isstored(a, I)
+      @test isstored(a, Tuple(I)...)
+    else
+      @test !isstored(a, I)
+      @test !isstored(a, Tuple(I)...)
+    end
+  end
+
+  # isstored SubArray
+  a′ = SparseArrayDOK{elt}(undef, 4, 4)
+  a′[2, 3] = 23
+  a = @view a′[2:3, 2:3]
+  for I in CartesianIndices(a)
+    if I == CartesianIndex(1, 2)
+      @test isstored(a, I)
+      @test isstored(a, Tuple(I)...)
+    else
+      @test !isstored(a, I)
+      @test !isstored(a, Tuple(I)...)
+    end
+  end
+
   a = SparseArrayDOK{elt}(undef, 3, 3, 3)
   a[1, 2, 3] = 123
   b = permutedims(a, (2, 3, 1))
