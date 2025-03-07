@@ -28,9 +28,9 @@ using LinearAlgebra: LinearAlgebra
 @derive AnyAbstractSparseArray AbstractArrayOps
 
 function Base.replace_in_print_matrix(
-  A::AnyAbstractSparseArray{<:Any,2}, i::Integer, j::Integer, s::AbstractString
+  a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
 )
-  return isstored(A, CartesianIndex(i, j)) ? s : Base.replace_with_centered_mark(s)
+  return isstored(a, i, j) ? s : Base.replace_with_centered_mark(s)
 end
 
 # Special-purpose constructors

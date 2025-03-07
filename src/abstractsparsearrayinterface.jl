@@ -34,7 +34,17 @@ end
 
 # Minimal interface for `SparseArrayInterface`.
 # Fallbacks for dense/non-sparse arrays.
-@interface ::AbstractArrayInterface isstored(a::AbstractArray, I::Int...) = true
+@interface ::AbstractArrayInterface function isstored(
+  a::AbstractArray{<:Any,N}, I::Vararg{Int,N}
+) where {N}
+  @boundscheck checkbounds(a, I...)
+  return true
+end
+@interface ::AbstractArrayInterface function isstored(a::AbstractArray, I::Int...)
+  @boundscheck checkbounds(a, I...)
+  I′ = ntuple(i -> I[i], ndims(a))
+  return isstored(a, I′...)
+end
 @interface ::AbstractArrayInterface eachstoredindex(a::AbstractArray) = eachindex(a)
 @interface ::AbstractArrayInterface getstoredindex(a::AbstractArray, I::Int...) =
   getindex(a, I...)

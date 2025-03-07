@@ -73,7 +73,7 @@ storage(a::SparseArrayDOK) = a.storage
 Base.size(a::SparseArrayDOK) = a.size
 
 storedvalues(a::SparseArrayDOK) = values(storage(a))
-function isstored(a::SparseArrayDOK, I::Int...)
+function isstored(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
   return CartesianIndex(I) in keys(storage(a))
 end
 function eachstoredindex(a::SparseArrayDOK)
