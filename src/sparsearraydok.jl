@@ -1,4 +1,5 @@
 using Accessors: @set
+using DerivableInterfaces: @interface, interface
 using Dictionaries: Dictionary, IndexError, set!
 
 function getzero(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
