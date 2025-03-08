@@ -26,6 +26,9 @@ arrayts = (Array, JLArray)
   for indexstyle in (IndexLinear(), IndexCartesian())
     for I in eachindex(indexstyle, a)
       @test isstored(a, I)
+      if indexstyle == IndexCartesian()
+        @test isstored(a, Tuple(I)..., 1)
+      end
     end
   end
   @test eachstoredindex(a) == eachindex(a)

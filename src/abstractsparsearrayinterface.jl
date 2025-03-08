@@ -1,3 +1,4 @@
+using Base: @_propagate_inbounds_meta
 using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArrayInterface
 
 # This is to bring `ArrayLayouts.zero!` into the namespace
@@ -37,13 +38,19 @@ end
 @interface ::AbstractArrayInterface function isstored(
   a::AbstractArray{<:Any,N}, I::Vararg{Int,N}
 ) where {N}
+  @_propagate_inbounds_meta
   @boundscheck checkbounds(a, I...)
   return true
 end
-@interface ::AbstractArrayInterface function isstored(a::AbstractArray, I::Int...)
+@interface interface::AbstractArrayInterface function isstored(a::AbstractArray, I::Int)
+  @_propagate_inbounds_meta
+  return @interface interface isstored(a, Tuple(CartesianIndices(a)[I])...)
+end
+@interface interface::AbstractArrayInterface function isstored(a::AbstractArray, I::Int...)
+  @_propagate_inbounds_meta
   @boundscheck checkbounds(a, I...)
   I′ = ntuple(i -> I[i], ndims(a))
-  return isstored(a, I′...)
+  return @inbounds @interface interface isstored(a, I′...)
 end
 @interface ::AbstractArrayInterface eachstoredindex(a::AbstractArray) = eachindex(a)
 @interface ::AbstractArrayInterface getstoredindex(a::AbstractArray, I::Int...) =
@@ -161,6 +168,12 @@ Base.size(a::StoredValues) = size(a.storedindices)
 Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
 function Base.setindex!(a::StoredValues, value, I::Int)
   return setstoredindex!(a.array, value, a.storedindices[I])
+end
+
+@interface ::AbstractSparseArrayInterface function isstored(
+  a::AbstractArray{<:Any,N}, I::Vararg{Int,N}
+) where {N}
+  return CartesianIndex(I) in eachstoredindex(a)
 end
 
 @interface ::AbstractSparseArrayInterface storedvalues(a::AbstractArray) = StoredValues(a)
