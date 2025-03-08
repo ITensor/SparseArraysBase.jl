@@ -210,6 +210,10 @@ arrayts = (Array,)
     a[1, 2] = 12
     @test sprint(show, "text/plain", a) ==
       "$(summary(a)):\n  ⋅   $(eltype(a)(12))\n  ⋅     ⋅ "
+
+    a = SparseArrayDOK{elt}(undef, 2)
+    a[1] = 1
+    @test sprint(show, "text/plain", a) == "$(summary(a)):\n $(eltype(a)(1))\n  ⋅ "
   end
 
   # Regression test for:

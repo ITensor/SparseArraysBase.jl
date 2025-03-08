@@ -1,4 +1,5 @@
 using Accessors: @set
+using DerivableInterfaces: @interface, interface
 using Dictionaries: Dictionary, IndexError, set!
 
 function getzero(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
@@ -74,7 +75,7 @@ Base.size(a::SparseArrayDOK) = a.size
 
 storedvalues(a::SparseArrayDOK) = values(storage(a))
 function isstored(a::SparseArrayDOK, I::Int...)
-  return CartesianIndex(I) in keys(storage(a))
+  return @interface interface(a) isstored(a, I...)
 end
 function eachstoredindex(a::SparseArrayDOK)
   return keys(storage(a))
