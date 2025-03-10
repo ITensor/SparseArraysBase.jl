@@ -27,6 +27,14 @@ using LinearAlgebra: LinearAlgebra
 # should go.
 @derive AnyAbstractSparseArray AbstractArrayOps
 
+using DerivableInterfaces.Concatenate: concatenate
+# We overload `Base._cat` instead of `Base.cat` since it
+# is friendlier for invalidations/compile times, see
+# https://github.com/ITensor/SparseArraysBase.jl/issues/25.
+function Base._cat(dims, a::AnyAbstractSparseArray...)
+  return concatenate(dims, a...)
+end
+
 function Base.replace_in_print_matrix(
   a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
 )
