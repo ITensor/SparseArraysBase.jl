@@ -106,10 +106,6 @@ function storedparentvalues(a::SubArray)
   return StoredValues(parent(a), collect(eachstoredparentindex(a)))
 end
 
-@interface ::AbstractArrayInterface function isstored(a::SubArray, I::Int...)
-  return isstored(parent(a), index_to_parentindex(a, I...)...)
-end
-
 using LinearAlgebra: Transpose
 function parentindex_to_index(a::Transpose, I::CartesianIndex{2})
   return cartesianindex_reverse(I)
@@ -124,13 +120,30 @@ function value_to_parentvalue(a::Transpose, value)
   return transpose(value)
 end
 
+function isstored_wrapped(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
+  return isstored(parent(a), index_to_parentindex(a, I...)...)
+end
+
+function isstored(a::Adjoint, I::Vararg{Int,2})
+  return isstored_wrapped(a, I...)
+end
+function isstored(a::PermutedDimsArray{<:Any,N}, I::Vararg{Int,N}) where {N}
+  return isstored_wrapped(a, I...)
+end
+function isstored(a::ReshapedArray{<:Any,N}, I::Vararg{Int,N}) where {N}
+  return isstored_wrapped(a, I...)
+end
+function isstored(a::SubArray{<:Any,N}, I::Vararg{Int,N}) where {N}
+  return isstored_wrapped(a, I...)
+end
+function isstored(a::Transpose, I::Vararg{Int,2})
+  return isstored_wrapped(a, I...)
+end
+
 # TODO: Turn these into `AbstractWrappedSparseArrayInterface` functions?
 for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose)
   @eval begin
     @interface ::AbstractSparseArrayInterface storedvalues(a::$type) = storedparentvalues(a)
-    @interface ::AbstractSparseArrayInterface function isstored(a::$type, I::Int...)
-      return isstored(parent(a), index_to_parentindex(a, I...)...)
-    end
     @interface ::AbstractSparseArrayInterface function eachstoredindex(a::$type)
       # TODO: Make lazy with `Iterators.map`.
       return map(collect(eachstoredparentindex(a))) do I
@@ -180,8 +193,9 @@ end
 @interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
   _diagind(D, IndexCartesian())
 
-@interface ::AbstractArrayInterface isstored(D::Diagonal, i::Int, j::Int) =
-  i == j && Base.checkbounds(Bool, D, i, j)
+function isstored(D::Diagonal, i::Int, j::Int)
+  return i == j && checkbounds(Bool, D, i, j)
+end
 @interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
   return D.diag[i]
 end
