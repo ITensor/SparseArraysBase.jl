@@ -1,9 +1,6 @@
 using Base: @_propagate_inbounds_meta
-using DerivableInterfaces: DerivableInterfaces, @derive, @interface, AbstractArrayInterface
-
-# This is to bring `ArrayLayouts.zero!` into the namespace
-# since it is considered part of the sparse array interface.
-using ArrayLayouts: zero!
+using DerivableInterfaces:
+  DerivableInterfaces, @derive, @interface, AbstractArrayInterface, zero!
 
 function eachstoredindex end
 function getstoredindex end
@@ -256,13 +253,13 @@ function map_all! end
   return a_dest
 end
 
-using ArrayLayouts: ArrayLayouts, zero!
+using DerivableInterfaces: DerivableInterfaces, zero!
 
 # `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`
 # and is useful for sparse array logic, since it can be used to empty
 # the sparse array storage.
 # We use a single function definition to minimize method ambiguities.
-@interface interface::AbstractSparseArrayInterface function ArrayLayouts.zero!(
+@interface interface::AbstractSparseArrayInterface function DerivableInterfaces.zero!(
   a::AbstractArray
 )
   # More generally, this codepath could be taking if `zero(eltype(a))`

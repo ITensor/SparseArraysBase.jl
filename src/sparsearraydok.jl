@@ -1,5 +1,5 @@
 using Accessors: @set
-using DerivableInterfaces: @interface, interface
+using DerivableInterfaces: DerivableInterfaces, @interface, interface, zero!
 using Dictionaries: Dictionary, IndexError, set!
 
 function getzero(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
@@ -102,7 +102,11 @@ end
 # Optional, but faster than the default.
 storedpairs(a::SparseArrayDOK) = pairs(storage(a))
 
-function ArrayLayouts.zero!(a::SparseArrayDOK)
+# TODO: Also handle wrappers.
+function DerivableInterfaces.zero!(a::SparseArrayDOK)
   empty!(storage(a))
   return a
+end
+function ArrayLayouts.zero!(a::SparseArrayDOK)
+  return zero!(a)
 end
