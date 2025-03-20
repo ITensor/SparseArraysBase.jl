@@ -9,7 +9,7 @@
 
 # ## Support
 #
-# <img src="docs/src/assets/CCQ.png" width="20%" alt="Flatiron Center for Computational Quantum Physics logo.">
+# {CCQ_LOGO}
 #
 # SparseArraysBase.jl is supported by the Flatiron Institute, a division of the Simons Foundation.
 
