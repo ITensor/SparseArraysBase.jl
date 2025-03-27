@@ -12,9 +12,9 @@ makedocs(;
   authors="ITensor developers <support@itensor.org> and contributors",
   sitename="SparseArraysBase.jl",
   format=Documenter.HTML(;
-    canonical="https://ITensor.github.io/SparseArraysBase.jl",
+    canonical="https://itensor.github.io/SparseArraysBase.jl",
     edit_link="main",
-    assets=String[],
+    assets=["assets/favicon.ico", "assets/extras.css"],
   ),
   pages=["Home" => "index.md", "Reference" => "reference.md"],
 )
