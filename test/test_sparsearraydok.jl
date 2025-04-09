@@ -33,14 +33,18 @@ arrayts = (Array,)
   a[1, 2] = 12
   @test a isa SparseArrayDOK{elt,2}
   @test size(a) == (2, 2)
+  @test a[1] == 0
   @test a[1, 1] == 0
   @test a[1, 1, 1] == 0
+  @test a[3] == 12
   @test a[1, 2] == 12
   @test a[1, 2, 1] == 12
   @test storedlength(a) == 1
+  @test_throws BoundsError a[5]
+  @test_throws BoundsError a[1, 3]
 
   a = SparseArrayDOK{elt}(undef, 2, 2)
-  a[1, 2] = 12
+  a[3] = 12
   for b in (similar(a, Float32, (3, 3)), similar(a, Float32, Base.OneTo.((3, 3))))
     @test b isa SparseArrayDOK{Float32,2}
     @test b == zeros(Float32, 3, 3)
@@ -59,13 +63,15 @@ arrayts = (Array,)
   # isstored
   a = SparseArrayDOK{elt}(undef, 4, 4)
   a[2, 3] = 23
-  for I in CartesianIndices(a)
+  for (I, i) in zip(CartesianIndices(a), LinearIndices(a))
     if I == CartesianIndex(2, 3)
       @test isstored(a, I)
       @test isstored(a, Tuple(I)...)
+      @test isstored(a, i)
     else
       @test !isstored(a, I)
       @test !isstored(a, Tuple(I)...)
+      @test !isstored(a, i)
     end
   end
 
@@ -83,12 +89,21 @@ arrayts = (Array,)
     end
   end
 
+  # vector
+  a = SparseArrayDOK{elt}(undef, 2)
+  a[2] = 12
+  @test b[1] == 0
+  @test a[2] == 12
+  @test storedlength(a) == 1
+
   a = SparseArrayDOK{elt}(undef, 3, 3, 3)
   a[1, 2, 3] = 123
   b = permutedims(a, (2, 3, 1))
   @test b isa SparseArrayDOK{elt,3}
   @test b[2, 3, 1] == 123
   @test storedlength(b) == 1
+  @test b[1] == 0
+  @test b[LinearIndices(b)[2, 3, 1]] == 123
 
   a = SparseArrayDOK{elt}(undef, 2, 2)
   a[1, 2] = 12
