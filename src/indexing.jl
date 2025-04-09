@@ -289,9 +289,7 @@ end
 # required:
 @interface ::AbstractSparseArrayInterface eachstoredindex(
   style::IndexStyle, A::AbstractArray
-) = throw(MethodError(eachstoredindex, (style, A)))
-@interface ::AbstractSparseArrayInterface storedvalues(A::AbstractArray) =
-  throw(MethodError(storedvalues, A))
+) = throw(MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)}))
 
 # derived but may be specialized:
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
@@ -299,6 +297,8 @@ end
 )
   return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
 end
+
+@interface ::AbstractSparseArrayInterface storedvalues(A::AbstractArray) = StoredValues(A)
 
 # default implementation is a bit tricky here: we don't know if this is the "canonical"
 # implementation, so we check this and otherwise map back to `_isstored` to canonicalize the
