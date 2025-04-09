@@ -79,9 +79,9 @@ struct StoredValues{T,A<:AbstractArray{T},I} <: AbstractVector{T}
 end
 StoredValues(a::AbstractArray) = StoredValues(a, to_vec(eachstoredindex(a)))
 Base.size(a::StoredValues) = size(a.storedindices)
-Base.getindex(a::StoredValues, I::Int) = getstoredindex(a.array, a.storedindices[I])
-function Base.setindex!(a::StoredValues, value, I::Int)
-  return setstoredindex!(a.array, value, a.storedindices[I])
+@inline Base.getindex(a::StoredValues, I::Int) = getindex(a.array, a.storedindices[I])
+@inline function Base.setindex!(a::StoredValues, value, I::Int)
+  return setindex!(a.array, value, a.storedindices[I])
 end
 
 # TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
