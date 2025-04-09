@@ -25,7 +25,7 @@ function index_to_parentindex(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where
 end
 # Handle linear indexing.
 function index_to_parentindex(a::AbstractArray, I::Int)
-  return index_to_parentindex(a, CartesianIndices(a)[I])
+  return LinearIndices(parent(a))[index_to_parentindex(a, CartesianIndices(a)[I])]
 end
 
 function cartesianindex_reverse(I::CartesianIndex)
