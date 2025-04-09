@@ -1,6 +1,6 @@
 parentvalue_to_value(a::AbstractArray, value) = value
 value_to_parentvalue(a::AbstractArray, value) = value
-eachstoredparentindex(a::AbstractArray) = eachstoredparentindex(IndexStyle(a), a)
+eachstoredparentindex(a::AbstractArray) = eachstoredindex(parent(a))
 function eachstoredparentindex(style::IndexStyle, a::AbstractArray)
   return eachstoredindex(style, parent(a))
 end
@@ -147,13 +147,14 @@ end
 for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose)
   @eval begin
     @interface ::AbstractSparseArrayInterface storedvalues(a::$type) = storedparentvalues(a)
+    @interface ::AbstractSparseArrayInterface function eachstoredindex(a::$type)
+      return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(a))
+    end
     @interface ::AbstractSparseArrayInterface function eachstoredindex(
       style::IndexStyle, a::$type
     )
       # TODO: Make lazy with `Iterators.map`.
-      return map(eachstoredparentindex(style, a)) do I
-        return parentindex_to_index(a, I)
-      end
+      return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(style, a))
     end
     @interface ::AbstractSparseArrayInterface function getstoredindex(a::$type, I::Int...)
       return parentvalue_to_value(
