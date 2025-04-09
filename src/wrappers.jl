@@ -74,6 +74,11 @@ function index_to_parentindex(a::ReshapedArray, I::CartesianIndex)
   return CartesianIndices(parent(a))[LinearIndices(size(a))[I]]
 end
 
+function eachstoredparentindex(a::SubArray)
+  return filter(eachstoredindex(parent(a))) do I
+    return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
+  end
+end
 function eachstoredparentindex(style::IndexStyle, a::SubArray)
   return filter(eachstoredindex(style, parent(a))) do I
     return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
