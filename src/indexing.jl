@@ -266,7 +266,9 @@ end
     setunstoredindex!(A, v, I...)
   end
 end
-@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractArray, I::Int)
+@interface ::AbstractSparseArrayInterface function Base.setindex!(
+  A::AbstractArray, v, I::Int
+)
   @_propagate_inbounds_meta
   @boundscheck checkbounds(A, I)
   return @inbounds if isstored(A, I)
@@ -276,7 +278,9 @@ end
   end
 end
 # disambiguate vectors
-@interface ::AbstractSparseArrayInterface function Base.setindex!(A::AbstractVector, I::Int)
+@interface ::AbstractSparseArrayInterface function Base.setindex!(
+  A::AbstractVector, v, I::Int
+)
   @_propagate_inbounds_meta
   @boundscheck checkbounds(A, I)
   return @inbounds if isstored(A, I)
