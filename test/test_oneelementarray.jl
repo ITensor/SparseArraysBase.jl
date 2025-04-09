@@ -35,8 +35,8 @@ elts = (Float32, Float64, Complex{Float32}, Complex{Float64})
     @test a[2, 2] === zero(Bool)
     @test storedlength(a) == 1
     @test collect(eachstoredindex(a)) == [CartesianIndex(1, 2)]
-    @test storedpairs(a) == [CartesianIndex(1, 2) => 1]
-    @test storedvalues(a) == [1]
+    @test collect(storedpairs(a)) == [CartesianIndex(1, 2) => 1]
+    @test collect(storedvalues(a)) == [1]
   end
 
   for a in (OneElementArray(1, 2), OneElementVector(1, 2))
@@ -47,8 +47,8 @@ elts = (Float32, Float64, Complex{Float32}, Complex{Float64})
     @test a[2] === zero(Bool)
     @test storedlength(a) == 1
     @test collect(eachstoredindex(a)) == [CartesianIndex(1)]
-    @test storedpairs(a) == [CartesianIndex(1) => 1]
-    @test storedvalues(a) == [1]
+    @test collect(storedpairs(a)) == [CartesianIndex(1) => 1]
+    @test collect(storedvalues(a)) == [1]
   end
 
   a = OneElementArray()
