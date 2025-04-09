@@ -74,28 +74,36 @@ storage(a::SparseArrayDOK) = a.storage
 Base.size(a::SparseArrayDOK) = a.size
 
 storedvalues(a::SparseArrayDOK) = values(storage(a))
-function isstored(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
-  return @interface interface(a) isstored(a, I...)
+@inline function isstored(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
+  @boundscheck checkbounds(a, I...)
+  return haskey(storage(a), CartesianIndex(I))
 end
-function eachstoredindex(a::SparseArrayDOK)
+function eachstoredindex(::IndexCartesian, a::SparseArrayDOK)
   return keys(storage(a))
 end
-function getstoredindex(a::SparseArrayDOK, I::Int...)
+@inline function getstoredindex(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
+  @boundscheck checkbounds(a, I...)
   return storage(a)[CartesianIndex(I)]
 end
-function getunstoredindex(a::SparseArrayDOK, I::Int...)
+@inline function getunstoredindex(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
+  @boundscheck checkbounds(a, I...)
   return a.getunstored(a, I...)
 end
-function setstoredindex!(a::SparseArrayDOK, value, I::Int...)
-  # TODO: Have a way to disable this check, analogous to `checkbounds`,
-  # since this is already checked in `setindex!`.
-  isstored(a, I...) || throw(IndexError("key $(CartesianIndex(I)) not found"))
+@inline function setstoredindex!(
+  a::SparseArrayDOK{<:Any,N}, value, I::Vararg{Int,N}
+) where {N}
+  # `isstored` includes a boundscheck as well
+  @boundscheck isstored(a, I...) ||
+    throw(IndexError(lazy"key $(CartesianIndex(I...)) not found"))
   # TODO: If `iszero(value)`, unstore the index.
   storage(a)[CartesianIndex(I)] = value
   return a
 end
-function setunstoredindex!(a::SparseArrayDOK, value, I::Int...)
-  set!(storage(a), CartesianIndex(I), value)
+@inline function setunstoredindex!(
+  a::SparseArrayDOK{<:Any,N}, value, I::Vararg{Int,N}
+) where {N}
+  @boundscheck checkbounds(a, I...)
+  insert!(storage(a), CartesianIndex(I), value)
   return a
 end
 
