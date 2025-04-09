@@ -322,6 +322,51 @@ end
   return _isstored(style, A, Base.to_indices(A, I)...)
 end
 
+@interface ::AbstractSparseArrayInterface function getunstoredindex(
+  A::AbstractArray, I::Int...
+)
+  @_propagate_inbounds_meta
+  style = IndexStyle(A)
+
+  # canonical linear indexing
+  if style == IndexLinear() && length(I) == 1
+    @boundscheck checkbounds(A, I...)
+    return zero(eltype(A))
+  end
+
+  # canonical cartesian indexing
+  if style == IndexCartesian() && length(I) == ndims(A)
+    @boundscheck checkbounds(A, I...)
+    return zero(eltype(A))
+  end
+
+  # non-canonical indexing
+  return _getunstoredindex(style, A, Base.to_indices(A, I)...)
+end
+
+# make sure we don't call AbstractArrayInterface defaults
+@interface ::AbstractSparseArrayInterface function getstoredindex(
+  A::AbstractArray, I::Int...
+)
+  @_propagate_inbounds_meta
+  style = IndexStyle(A)
+  error_if_canonical_getstoredindex(style, A, I...)
+  return _getstoredindex(style, A, Base.to_indices(A, I)...)
+end
+
+for f! in (:setstoredindex!, :setunstoredindex!)
+  _f! = Symbol(:_, f!)
+  error_if_canonical_setstoredindex = Symbol(:error_if_canonical_, f!)
+  @eval begin
+    @interface ::AbstractSparseArrayInterface function $f!(A::AbstractArray, v, I::Int...)
+      @_propagate_inbounds_meta
+      style = IndexStyle(A)
+      $error_if_canonical_setstoredindex(style, A, I...)
+      return $_f!(style, A, v, Base.to_indices(A, I)...)
+    end
+  end
+end
+
 @interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) =
   length(storedvalues(A))
 @interface ::AbstractSparseArrayInterface storedpairs(A::AbstractArray) =
