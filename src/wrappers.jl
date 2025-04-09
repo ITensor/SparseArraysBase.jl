@@ -1,6 +1,9 @@
 parentvalue_to_value(a::AbstractArray, value) = value
 value_to_parentvalue(a::AbstractArray, value) = value
-eachstoredparentindex(a::AbstractArray) = eachstoredindex(parent(a))
+eachstoredparentindex(a::AbstractArray) = eachstoredparentindex(IndexStyle(a), a)
+function eachstoredparentindex(style::IndexStyle, a::AbstractArray)
+  return eachstoredindex(style, parent(a))
+end
 storedparentvalues(a::AbstractArray) = storedvalues(parent(a))
 
 function parentindex_to_index(a::AbstractArray{<:Any,N}, I::CartesianIndex{N}) where {N}
@@ -71,8 +74,8 @@ function index_to_parentindex(a::ReshapedArray, I::CartesianIndex)
   return CartesianIndices(parent(a))[LinearIndices(size(a))[I]]
 end
 
-function eachstoredparentindex(a::SubArray)
-  return filter(eachstoredindex(parent(a))) do I
+function eachstoredparentindex(style::IndexStyle, a::SubArray)
+  return filter(eachstoredindex(style, parent(a))) do I
     return all(d -> I[d] ∈ parentindices(a)[d], 1:ndims(parent(a)))
   end
 end
@@ -144,9 +147,11 @@ end
 for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose)
   @eval begin
     @interface ::AbstractSparseArrayInterface storedvalues(a::$type) = storedparentvalues(a)
-    @interface ::AbstractSparseArrayInterface function eachstoredindex(a::$type)
+    @interface ::AbstractSparseArrayInterface function eachstoredindex(
+      style::IndexStyle, a::$type
+    )
       # TODO: Make lazy with `Iterators.map`.
-      return map(collect(eachstoredparentindex(a))) do I
+      return map(eachstoredparentindex(style, a)) do I
         return parentindex_to_index(a, I)
       end
     end
@@ -193,7 +198,7 @@ end
 @interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
   _diagind(D, IndexCartesian())
 
-function isstored(D::Diagonal, i::Int, j::Int)
+@interface ::AbstractArrayInterface function isstored(D::Diagonal, i::Int, j::Int)
   return i == j && checkbounds(Bool, D, i, j)
 end
 @interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
