@@ -205,21 +205,26 @@ end
 
 # AbstractArrayInterface fallback definitions
 # -------------------------------------------
-@interface ::AbstractArrayInterface isstored(A::AbstractArray, i::Int, I::Int...) = (
-  @inline; @boundscheck checkbounds(A, i, I...); true
-)
+@interface ::AbstractArrayInterface function isstored(A::AbstractArray, i::Int, I::Int...)
+  @inline
+  @boundscheck checkbounds(A, i, I...)
+  return true
+end
 
 @interface ::AbstractArrayInterface function getunstoredindex(A::AbstractArray, I::Int...)
   @inline
   @boundscheck checkbounds(A, I...)
   return zero(eltype(A))
 end
-@interface ::AbstractArrayInterface getstoredindex(A::AbstractArray, I::Int...) = (
-  @inline; getindex(A, I...)
-)
-@interface ::AbstractArrayInterface setstoredindex!(A::AbstractArray, v, I::Int...) = (
-  @inline; setindex!(A, v, I...)
-)
+@interface ::AbstractArrayInterface function getstoredindex(A::AbstractArray, I::Int...)
+  @inline
+  return getindex(A, I...)
+end
+
+@interface ::AbstractArrayInterface function setstoredindex!(A::AbstractArray, v, I::Int...)
+  @inline
+  return setindex!(A, v, I...)
+end
 @interface ::AbstractArrayInterface setunstoredindex!(A::AbstractArray, v, I::Int...) =
   error("setunstoredindex! for $(typeof(A)) is not supported")
 
