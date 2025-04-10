@@ -18,7 +18,8 @@ Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A
 """
     getunstoredindex(A::AbstractArray, I...) -> eltype(A)
 
-Obtain `getindex(A, I...)` with the guarantee that there is no stored entry at that location.
+Obtain the value that would be returned by `getindex(A, I...)` when there is no stored entry
+at that location.
 By default, this takes an explicit copy of the `getindex` implementation to mimick a newly
 instantiated object.
 
