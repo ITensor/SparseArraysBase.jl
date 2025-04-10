@@ -70,8 +70,8 @@ For multiple arrays, the iterable contains all indices where at least one input 
 The type of indices can be controlled through `style`, which will default to a compatible style for all
 inputs.
 
-The order of the iterable is not fixed, but for a single input it may be assumed to be compatible
-with [`storedvalues`](@ref).
+The order of the iterable is not guaranteed to be fixed or sorted, and should not be assumed
+to be the same as [`storedvalues`](@ref).
 
 See also [`storedvalues`](@ref), [`storedpairs`](@ref) and [`storedlength`](@ref).
 """
@@ -90,7 +90,8 @@ function storedlength end
 An iterable over all stored indices and their corresponding stored values.
 The indices are compatible with `IndexStyle(A)`.
 
-The order of the iterable is not fixed, but is compatible with [`eachstoredindex`](@ref).
+The order of the iterable is not guaranteed to be fixed or sorted.
+See also [`eachstoredindex`](@ref) and [`storedvalues`](@ref).
 """
 function storedpairs end
 
@@ -99,7 +100,8 @@ function storedpairs end
 
 An iterable over all stored values.
 
-The order of the iterable is not fixed, but is compatible with [`eachstoredindex`](@ref).
+The order of the iterable is not guaranteed to be fixed or sorted, and should not be assumed
+to be the same as [`eachstoredindex`](@ref).
 """
 function storedvalues end
 
@@ -379,8 +381,9 @@ end
 
 @interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) =
   length(storedvalues(A))
-@interface ::AbstractSparseArrayInterface storedpairs(A::AbstractArray) =
-  Iterators.map(=>, eachstoredindex(A), storedvalues(A))
+@interface ::AbstractSparseArrayInterface function storedpairs(A::AbstractArray)
+  return Iterators.map(I -> (I => A[I]), eachstoredindex(A))
+end
 
 #=
 All sparse array interfaces are mapped through layout_getindex. (is this too opinionated?)
