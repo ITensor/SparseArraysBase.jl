@@ -86,7 +86,7 @@ using Dictionaries: IndexError
 @test isstored(a, 1, 2)
 @test setstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
 @test_throws IndexError setstoredindex!(copy(a), 21, 2, 1)
-@test setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
+@test_throws IndexError setunstoredindex!(copy(a), 21, 1, 2) == [0 21; 0 0]
 @test storedlength(a) == 1
 @test issetequal(storedpairs(a), [CartesianIndex(1, 2) => 12])
 @test issetequal(storedvalues(a), [12])
