@@ -12,8 +12,9 @@ Obtain `getindex(A, I...)` with the guarantee that there is a stored entry at th
 
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline getstoredindex(A::AbstractArray, I...) =
-  @interface interface(A) getstoredindex(A, I...)
+@inline getstoredindex(A::AbstractArray, I...) = @interface interface(A) getstoredindex(
+  A, I...
+)
 
 """
     getunstoredindex(A::AbstractArray, I...) -> eltype(A)
@@ -25,8 +26,9 @@ instantiated object.
 
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline getunstoredindex(A::AbstractArray, I...) =
-  @interface interface(A) getunstoredindex(A, I...)
+@inline getunstoredindex(A::AbstractArray, I...) = @interface interface(A) getunstoredindex(
+  A, I...
+)
 
 """
     isstored(A::AbstractArray, I...) -> Bool
@@ -46,8 +48,9 @@ Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A
 
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline setstoredindex!(A::AbstractArray, v, I...) =
-  @interface interface(A) setstoredindex!(A, v, I...)
+@inline setstoredindex!(A::AbstractArray, v, I...) = @interface interface(A) setstoredindex!(
+  A, v, I...
+)
 
 """
     setunstoredindex!(A::AbstractArray, v, I...) -> A
@@ -56,8 +59,9 @@ Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(
 
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline setunstoredindex!(A::AbstractArray, v, I...) =
-  @interface interface(A) setunstoredindex!(A, v, I...)
+@inline setunstoredindex!(A::AbstractArray, v, I...) = @interface interface(A) setunstoredindex!(
+  A, v, I...
+)
 
 # Indices interface
 # -----------------
@@ -150,14 +154,16 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
     end
 
     # errors
-    $_f(::IndexStyle, A::AbstractArray, I...) =
-      error("`$f` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported")
+    $_f(::IndexStyle, A::AbstractArray, I...) = error(
+      "`$f` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+    )
 
-    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) =
-      throw(Base.CanonicalIndexError("$($f)", typeof(A)))
-    $error_if_canonical(
-      ::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}
-    ) where {N} = throw(Base.CanonicalIndexError("$($f)", typeof(A)))
+    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
+      Base.CanonicalIndexError("$($f)", typeof(A))
+    )
+    $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}) where {N} = throw(
+      Base.CanonicalIndexError("$($f)", typeof(A))
+    )
     $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
   end
 end
@@ -193,14 +199,16 @@ for f! in (:setunstoredindex!, :setstoredindex!)
     end
 
     # errors
-    $_f!(::IndexStyle, A::AbstractArray, I...) =
-      error("`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported")
+    $_f!(::IndexStyle, A::AbstractArray, I...) = error(
+      "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+    )
 
-    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) =
-      throw(Base.CanonicalIndexError("$($(string(f!)))", typeof(A)))
-    $error_if_canonical(
-      ::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}
-    ) where {N} = throw(Base.CanonicalIndexError("$($f!)", typeof(A)))
+    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
+      Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
+    )
+    $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}) where {N} = throw(
+      Base.CanonicalIndexError("$($f!)", typeof(A))
+    )
     $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
   end
 end
@@ -227,14 +235,16 @@ end
   @inline
   return setindex!(A, v, I...)
 end
-@interface ::AbstractArrayInterface setunstoredindex!(A::AbstractArray, v, I::Int...) =
-  error("setunstoredindex! for $(typeof(A)) is not supported")
+@interface ::AbstractArrayInterface setunstoredindex!(A::AbstractArray, v, I::Int...) = error(
+  "setunstoredindex! for $(typeof(A)) is not supported"
+)
 
-@interface ::AbstractArrayInterface eachstoredindex(A::AbstractArray, B::AbstractArray...) =
-  eachstoredindex(IndexStyle(A, B...), A, B...)
-@interface ::AbstractArrayInterface eachstoredindex(
-  style::IndexStyle, A::AbstractArray, B::AbstractArray...
-) = eachindex(style, A, B...)
+@interface ::AbstractArrayInterface eachstoredindex(A::AbstractArray, B::AbstractArray...) = eachstoredindex(
+  IndexStyle(A, B...), A, B...
+)
+@interface ::AbstractArrayInterface eachstoredindex(style::IndexStyle, A::AbstractArray, B::AbstractArray...) = eachindex(
+  style, A, B...
+)
 
 @interface ::AbstractArrayInterface storedvalues(A::AbstractArray) = values(A)
 @interface ::AbstractArrayInterface storedpairs(A::AbstractArray) = pairs(A)
@@ -299,9 +309,9 @@ end
 end
 
 # required:
-@interface ::AbstractSparseArrayInterface eachstoredindex(
-  style::IndexStyle, A::AbstractArray
-) = throw(MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)}))
+@interface ::AbstractSparseArrayInterface eachstoredindex(style::IndexStyle, A::AbstractArray) = throw(
+  MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)})
+)
 
 # derived but may be specialized:
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
@@ -379,8 +389,9 @@ for f! in (:setstoredindex!, :setunstoredindex!)
   end
 end
 
-@interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) =
-  length(storedvalues(A))
+@interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) = length(
+  storedvalues(A)
+)
 @interface ::AbstractSparseArrayInterface function storedpairs(A::AbstractArray)
   return Iterators.map(I -> (I => A[I]), eachstoredindex(A))
 end
