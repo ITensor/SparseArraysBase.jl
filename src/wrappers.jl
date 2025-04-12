@@ -201,8 +201,9 @@ else
     return view(CartesianIndices(x), LinearAlgebra.diagind(x))
   end
 end
-@interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) =
-  _diagind(D, IndexCartesian())
+@interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) = _diagind(
+  D, IndexCartesian()
+)
 
 @interface ::AbstractArrayInterface function isstored(D::Diagonal, i::Int, j::Int)
   return i == j && checkbounds(Bool, D, i, j)
