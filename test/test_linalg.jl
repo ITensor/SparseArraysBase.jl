@@ -24,4 +24,21 @@ const rng = StableRNG(123)
     check2 = mul!(Array(C), Array(A), Array(B), α, β)
     @test mul!(copy(C), A, B, α, β) ≈ check2
   end
+
+  # test empty matrix
+  szA = (2, 0)
+  szB = (0, 2)
+  szC = (szA[1], szB[2])
+  density = 0.1
+  C = sparserand(rng, T, szC; density)
+  A = sparserand(rng, T, szA; density)
+  B = sparserand(rng, T, szB; density)
+
+  check1 = mul!(Array(C), Array(A), Array(B))
+  @test mul!(copy(C), A, B) ≈ check1
+
+  α = rand(rng, T)
+  β = rand(rng, T)
+  check2 = mul!(Array(C), Array(A), Array(B), α, β)
+  @test mul!(copy(C), A, B, α, β) ≈ check2
 end
