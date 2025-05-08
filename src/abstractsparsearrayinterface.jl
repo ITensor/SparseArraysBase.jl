@@ -156,6 +156,7 @@ end
 @interface interface::AbstractSparseArrayInterface function Base.map!(
   f, a_dest::AbstractArray, as::AbstractArray...
 )
+  isempty(a_dest) && return a_dest # special case to avoid trying to access empty array
   indices = if !preserves_unstored(f, a_dest, as...)
     eachindex(a_dest)
   elseif any(a -> a_dest !== a, as)
