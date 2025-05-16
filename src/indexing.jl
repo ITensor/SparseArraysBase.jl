@@ -155,7 +155,7 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
 
     # errors
     $_f(::IndexStyle, A::AbstractArray, I...) = error(
-      "`$f` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+      "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
     )
 
     $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
