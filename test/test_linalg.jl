@@ -16,13 +16,22 @@ const rng = StableRNG(123)
     A = sparserand(rng, T, szA; density)
     B = sparserand(rng, T, szB; density)
 
-    check1 = mul!(Array(C), Array(A), Array(B))
-    @test mul!(copy(C), A, B) ≈ check1
+    check = mul!(Array(C), Array(A), Array(B))
+    @test mul!(copy(C), A, B) ≈ check
+
+    check = mul!(Array(C), Array(A)', Array(B))
+    @test mul!(copy(C), A', B) ≈ check
+
+    check = mul!(Array(C), Array(A), Array(B)')
+    @test mul!(copy(C), A, B') ≈ check
+
+    check = mul!(Array(C), Array(A)', Array(B)')
+    @test mul!(copy(C), A', B') ≈ check
 
     α = rand(rng, T)
     β = rand(rng, T)
-    check2 = mul!(Array(C), Array(A), Array(B), α, β)
-    @test mul!(copy(C), A, B, α, β) ≈ check2
+    check = mul!(Array(C), Array(A), Array(B), α, β)
+    @test mul!(copy(C), A, B, α, β) ≈ check
   end
 
   # test empty matrix

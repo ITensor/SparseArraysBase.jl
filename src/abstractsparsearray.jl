@@ -152,3 +152,43 @@ function sparserand!(
     A[I] = v
   end
 end
+
+# Catch some cases that aren't getting caught by the current
+# DerivableInterfaces.jl logic.
+# TODO: Make this more systematic once DerivableInterfaces.jl
+# is rewritten.
+using ArrayLayouts: ArrayLayouts, MemoryLayout
+using LinearAlgebra: LinearAlgebra, Adjoint
+function ArrayLayouts.MemoryLayout(::Type{Transpose{T,P}}) where {T,P<:AbstractSparseMatrix}
+  return MemoryLayout(P)
+end
+function ArrayLayouts.MemoryLayout(::Type{Adjoint{T,P}}) where {T,P<:AbstractSparseMatrix}
+  return MemoryLayout(P)
+end
+function LinearAlgebra.mul!(
+  dest::AbstractMatrix,
+  A::Adjoint{<:Any,<:AbstractSparseMatrix},
+  B::AbstractSparseMatrix,
+  α::Number,
+  β::Number,
+)
+  return ArrayLayouts.mul!(dest, A, B, α, β)
+end
+function LinearAlgebra.mul!(
+  dest::AbstractMatrix,
+  A::AbstractSparseMatrix,
+  B::Adjoint{<:Any,<:AbstractSparseMatrix},
+  α::Number,
+  β::Number,
+)
+  return ArrayLayouts.mul!(dest, A, B, α, β)
+end
+function LinearAlgebra.mul!(
+  dest::AbstractMatrix,
+  A::Adjoint{<:Any,<:AbstractSparseMatrix},
+  B::Adjoint{<:Any,<:AbstractSparseMatrix},
+  α::Number,
+  β::Number,
+)
+  return ArrayLayouts.mul!(dest, A, B, α, β)
+end
