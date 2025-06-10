@@ -19,7 +19,7 @@ using SparseArraysBase:
   storedpairs,
   storedvalues
 using StableRNGs: StableRNG
-using Test: @test, @testset
+using Test: @test, @test_throws, @testset
 
 elts = (Float32, Float64, Complex{Float32}, Complex{Float64})
 # arrayts = (Array, JLArray)
