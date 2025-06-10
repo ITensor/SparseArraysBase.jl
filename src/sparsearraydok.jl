@@ -64,7 +64,9 @@ end
 
 using DerivableInterfaces: DerivableInterfaces
 # This defines the destination type of various operations in DerivableInterfaces.jl.
-DerivableInterfaces.arraytype(::AbstractSparseArrayInterface, T::Type) = SparseArrayDOK{T}
+function Base.similar(::AbstractSparseArrayInterface, T::Type, ax::Tuple)
+  return similar(SparseArrayDOK{T}, ax)
+end
 
 using DerivableInterfaces: @array_aliases
 # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.

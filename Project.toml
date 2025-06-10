@@ -1,7 +1,7 @@
 name = "SparseArraysBase"
 uuid = "0d5efcca-f356-4864-8770-e1ed8d78f208"
 authors = ["ITensor developers <support@itensor.org> and contributors"]
-version = "0.5.9"
+version = "0.5.10"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
@@ -17,7 +17,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Accessors = "0.1.41"
 Aqua = "0.8.9"
 ArrayLayouts = "1.11.0"
-DerivableInterfaces = "0.4"
+DerivableInterfaces = "0.5"
 Dictionaries = "0.4.3"
 FillArrays = "1.13.0"
 LinearAlgebra = "1.10"

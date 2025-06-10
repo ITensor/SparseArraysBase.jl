@@ -1,8 +1,16 @@
 using DerivableInterfaces: DerivableInterfaces
 
-struct SparseArrayInterface <: AbstractSparseArrayInterface end
+struct SparseArrayInterface{N} <: AbstractSparseArrayInterface{N} end
+SparseArrayInterface() = SparseArrayInterface{Any}()
+SparseArrayInterface(::Val{N}) where {N} = SparseArrayInterface{N}()
+SparseArrayInterface{M}(::Val{N}) where {M,N} = SparseArrayInterface{N}()
 
 # Fix ambiguity error.
+function DerivableInterfaces.combine_interface_rule(
+  ::SparseArrayInterface{N}, ::SparseArrayInterface{N}
+) where {N}
+  return SparseArrayInterface{N}()
+end
 function DerivableInterfaces.combine_interface_rule(
   ::SparseArrayInterface, ::SparseArrayInterface
 )

@@ -37,7 +37,7 @@ end
 # TODO: This isn't used to define interface functions right now.
 # Currently, `@interface` expects an instance, probably it should take a
 # type instead so fallback functions can use abstract types.
-abstract type AbstractSparseArrayInterface <: AbstractArrayInterface end
+abstract type AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N} end
 
 function DerivableInterfaces.combine_interface_rule(
   interface1::AbstractSparseArrayInterface, interface2::AbstractSparseArrayInterface
