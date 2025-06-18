@@ -35,6 +35,26 @@ function Base._cat(dims, a::AnyAbstractSparseArray...)
   return concatenate(dims, a...)
 end
 
+function map_stored(f, a::AnyAbstractSparseArray)
+  kvs = storedpairs(a)
+  # `collect` to convert to `Vector`, since otherwise
+  # if it stays as `Dictionary` we might hit issues like
+  # https://github.com/andyferris/Dictionaries.jl/issues/163.
+  ks = collect(first.(kvs))
+  vs = collect(last.(kvs))
+  vs′ = map(f, vs)
+  a′ = zero!(similar(a, eltype(vs′)))
+  for (k, v′) in zip(ks, vs′)
+    a′[k] = v′
+  end
+  return a′
+end
+
+using Adapt: adapt
+function Base.print_array(io::IO, a::AnyAbstractSparseArray)
+  a′ = map_stored(adapt(Array), a)
+  return @invoke Base.print_array(io::typeof(io), a′::AbstractArray{<:Any,ndims(a)})
+end
 function Base.replace_in_print_matrix(
   a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
 )
