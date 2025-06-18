@@ -256,7 +256,11 @@ function sparse_mul!(
     for I2 in eachstoredindex(a2)
       I_dest = mul_indices(I1, I2)
       if !isnothing(I_dest)
-        a_dest[I_dest] = mul!!(a_dest[I_dest], a1[I1], a2[I2], α, β′)
+        if isstored(a_dest, I_dest)
+          a_dest[I_dest] = mul!!(a_dest[I_dest], a1[I1], a2[I2], α, β′)
+        else
+          a_dest[I_dest] = a1[I1] * a2[I2] * α
+        end
       end
     end
   end
