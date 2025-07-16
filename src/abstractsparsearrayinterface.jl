@@ -153,22 +153,22 @@ function preserves_unstored(f, a_dest::AbstractArray, as::AbstractArray...)
   return iszero(f(map(a -> getunstoredindex(a, I), as)...))
 end
 
-@interface interface::AbstractSparseArrayInterface function Base.map!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  isempty(a_dest) && return a_dest # special case to avoid trying to access empty array
-  indices = if !preserves_unstored(f, a_dest, as...)
-    eachindex(a_dest)
-  elseif any(a -> a_dest !== a, as)
-    as = map(a -> Base.unalias(a_dest, a), as)
-    @interface interface zero!(a_dest)
-    eachstoredindex(as...)
-  else
-    eachstoredindex(a_dest)
-  end
-  @interface interface map_indices!(indices, f, a_dest, as...)
-  return a_dest
-end
+# @interface interface::AbstractSparseArrayInterface function Base.map!(
+#   f, a_dest::AbstractArray, as::AbstractArray...
+# )
+#   isempty(a_dest) && return a_dest # special case to avoid trying to access empty array
+#   indices = if !preserves_unstored(f, a_dest, as...)
+#     eachindex(a_dest)
+#   elseif any(a -> a_dest !== a, as)
+#     as = map(a -> Base.unalias(a_dest, a), as)
+#     @interface interface zero!(a_dest)
+#     eachstoredindex(as...)
+#   else
+#     eachstoredindex(a_dest)
+#   end
+#   @interface interface map_indices!(indices, f, a_dest, as...)
+#   return a_dest
+# end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
 function reduce_init(f, op, as...)
