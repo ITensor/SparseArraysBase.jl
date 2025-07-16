@@ -45,16 +45,14 @@ end
 const _WEAK_FUNCTIONS = (:+, :-)
 for f in _WEAK_FUNCTIONS
   @eval begin
-    ZeroPreserving(::typeof($f), ::AbstractArray, ::AbstractArray...) = WeakPreserving()
-    ZeroPreserving(::typeof($f), ::Type, ::Type...) = WeakPreserving()
+    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = WeakPreserving()
   end
 end
 
 const _STRONG_FUNCTIONS = (:*,)
 for f in _STRONG_FUNCTIONS
   @eval begin
-    ZeroPreserving(::typeof($f), ::AbstractArray, ::AbstractArray...) = StrongPreserving()
-    ZeroPreserving(::typeof($f), ::Type, ::Type...) = StrongPreserving()
+    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = StrongPreserving()
   end
 end
 
