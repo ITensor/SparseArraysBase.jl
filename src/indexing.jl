@@ -308,10 +308,18 @@ end
   end
 end
 
-# required:
-@interface ::AbstractSparseArrayInterface eachstoredindex(style::IndexStyle, A::AbstractArray) = throw(
-  MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)})
-)
+# required: one implementation for canonical index style
+@interface ::AbstractSparseArrayInterface function eachstoredindex(style::IndexStyle, A::AbstractArray)
+  if style == IndexStyle(A)
+    throw(MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)}))
+  elseif style == IndexCartesian()
+    return map(Base.Fix1(Base.getindex, CartesianIndices(A)), eachindex(A))
+  elseif style == IndexLinear()
+    return map(Base.Fix1(Base.getindex, LinearIndices(A)), eachindex(A))
+  else
+    throw(ArgumentError(lazy"unknown index style $style"))
+  end
+end
 
 # derived but may be specialized:
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
