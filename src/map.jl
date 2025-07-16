@@ -20,6 +20,14 @@ struct StrongPreserving <: ZeroPreserving end
 struct WeakPreserving <: ZeroPreserving end
 struct NonPreserving <: ZeroPreserving end
 
+# Backport: remove in 1.12
+@static if !isdefined(Base, :haszero)
+  _haszero(T::Type) = false
+  _haszero(::Type{<:Number}) = true
+else
+  _haszero = Base.haszero
+end
+
 # warning: cannot automatically detect WeakPreserving since this would mean checking all values
 function ZeroPreserving(f, A::AbstractArray, Bs::AbstractArray...)
   return ZeroPreserving(f, eltype(A), eltype.(Bs)...)
@@ -27,7 +35,11 @@ end
 # TODO: the following might not properly specialize on the types
 # TODO: non-concrete element types
 function ZeroPreserving(f, T::Type, Ts::Type...)
-  return iszero(f(zero(T), zero.(Ts)...)) ? WeakPreserving() : NonPreserving()
+  if all(_haszero, (T, Ts...))
+    return iszero(f(zero(T), zero.(Ts)...)) ? WeakPreserving() : NonPreserving()
+  else
+    return NonPreserving()
+  end
 end
 
 const _WEAK_FUNCTIONS = (:+, :-)
