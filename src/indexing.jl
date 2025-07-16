@@ -309,7 +309,9 @@ end
 end
 
 # required: one implementation for canonical index style
-@interface ::AbstractSparseArrayInterface function eachstoredindex(style::IndexStyle, A::AbstractArray)
+@interface ::AbstractSparseArrayInterface function eachstoredindex(
+  style::IndexStyle, A::AbstractArray
+)
   if style == IndexStyle(A)
     throw(MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)}))
   elseif style == IndexCartesian()

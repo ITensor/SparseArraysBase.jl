@@ -109,9 +109,9 @@ end
 
 # Derived functions
 # -----------------
-@interface I::AbstractSparseArrayInterface Base.copyto!(
-  C::AbstractArray, A::AbstractArray
-) = @interface I map!(identity, C, A)
+@interface I::AbstractSparseArrayInterface Base.copyto!(C::AbstractArray, A::AbstractArray) = @interface I map!(
+  identity, C, A
+)
 
 # Utility functions
 # -----------------
