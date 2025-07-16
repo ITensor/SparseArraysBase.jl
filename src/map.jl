@@ -1,7 +1,7 @@
 # zero-preserving Traits
 # ----------------------
 """
-    abstract type ZeroPreserving end
+    abstract type ZeroPreserving <: Function end
 
 Holy Trait to indicate how a function interacts with abstract zero values:
 
@@ -15,10 +15,17 @@ To attempt to automatically determine this, either `ZeroPreserving(f, A::Abstrac
 !!! warning
     incorrectly registering a function to be zero-preserving will lead to silently wrong results.
 """
-abstract type ZeroPreserving end
-struct StrongPreserving <: ZeroPreserving end
-struct WeakPreserving <: ZeroPreserving end
-struct NonPreserving <: ZeroPreserving end
+abstract type ZeroPreserving <: Function end
+
+struct StrongPreserving{F} <: ZeroPreserving
+  f::F
+end
+struct WeakPreserving{F} <: ZeroPreserving
+  f::F
+end
+struct NonPreserving{F} <: ZeroPreserving
+  f::F
+end
 
 # Backport: remove in 1.12
 @static if !isdefined(Base, :haszero)
@@ -36,23 +43,25 @@ end
 # TODO: non-concrete element types
 function ZeroPreserving(f, T::Type, Ts::Type...)
   if all(_haszero, (T, Ts...))
-    return iszero(f(zero(T), zero.(Ts)...)) ? WeakPreserving() : NonPreserving()
+    return iszero(f(zero(T), zero.(Ts)...)) ? WeakPreserving(f) : NonPreserving(f)
   else
-    return NonPreserving()
+    return NonPreserving(f)
   end
 end
 
 const _WEAK_FUNCTIONS = (:+, :-)
 for f in _WEAK_FUNCTIONS
   @eval begin
-    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = WeakPreserving()
+    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = WeakPreserving($f)
   end
 end
 
 const _STRONG_FUNCTIONS = (:*,)
 for f in _STRONG_FUNCTIONS
   @eval begin
-    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = StrongPreserving()
+    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = StrongPreserving(
+      $f
+    )
   end
 end
 
@@ -61,47 +70,48 @@ end
 @interface I::AbstractSparseArrayInterface function Base.map(
   f, A::AbstractArray, Bs::AbstractArray...
 )
-  T = Base.Broadcast.combine_eltypes(f, (A, Bs...))
+  f_pres = ZeroPreserving(f, A, Bs...)
+  return @interface I map(f_pres, A, Bs...)
+end
+@interface I::AbstractSparseArrayInterface function Base.map(
+  f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray...
+)
+  T = Base.Broadcast.combine_eltypes(f.f, (A, Bs...))
   C = similar(I, T, size(A))
   return @interface I map!(f, C, A, Bs...)
 end
 
-@interface ::AbstractSparseArrayInterface function Base.map!(
+@interface I::AbstractSparseArrayInterface function Base.map!(
   f, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
 )
-  return _map!(f, ZeroPreserving(f, A, Bs...), C, A, Bs...)
+  f_pres = ZeroPreserving(f, A, Bs...)
+  return @interface I map!(f_pres, C, A, Bs...)
 end
 
-function _map!(
-  f, ::StrongPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
+@interface ::AbstractSparseArrayInterface function Base.map!(
+  f::ZeroPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
 )
   checkshape(C, A, Bs...)
-  style = IndexStyle(C, A, Bs...)
   unaliased = map(Base.Fix1(Base.unalias, C), (A, Bs...))
-  zero!(C)
-  for I in intersect(eachstoredindex.(Ref(style), unaliased)...)
-    @inbounds C[I] = f(ith_all(I, unaliased)...)
+
+  if f isa StrongPreserving
+    style = IndexStyle(C, unaliased...)
+    inds = intersect(eachstoredindex.(Ref(style), unaliased)...)
+    zero!(C)
+  elseif f isa WeakPreserving
+    style = IndexStyle(C, unaliased...)
+    inds = union(eachstoredindex.(Ref(style), unaliased)...)
+    zero!(C)
+  elseif f isa NonPreserving
+    inds = eachindex(C, unaliased...)
+  else
+    error(lazy"unknown zero-preserving type $(typeof(f))")
   end
-  return C
-end
-function _map!(
-  f, ::WeakPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
-)
-  checkshape(C, A, Bs...)
-  style = IndexStyle(C, A, Bs...)
-  unaliased = map(Base.Fix1(Base.unalias, C), (A, Bs...))
-  zero!(C)
-  for I in union(eachstoredindex.(Ref(style), unaliased)...)
-    @inbounds C[I] = f(ith_all(I, unaliased)...)
+
+  @inbounds for I in inds
+    C[I] = f.f(ith_all(I, unaliased)...)
   end
-  return C
-end
-function _map!(f, ::NonPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...)
-  checkshape(C, A, Bs...)
-  unaliased = map(Base.Fix1(Base.unalias, C), (A, Bs...))
-  for I in eachindex(C, A, Bs...)
-    @inbounds C[I] = f(ith_all(I, unaliased)...)
-  end
+
   return C
 end
 
