@@ -287,7 +287,7 @@ storedindex(a::OneElementArray) = getfield(a, :index)
 function isstored(a::OneElementArray, I::Int...)
   return I == storedindex(a)
 end
-function eachstoredindex(a::OneElementArray)
+function eachstoredindex(::IndexCartesian, a::OneElementArray)
   return Fill(CartesianIndex(storedindex(a)), 1)
 end
 
