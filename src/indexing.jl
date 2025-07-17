@@ -308,18 +308,25 @@ end
   end
 end
 
+@noinline function error_if_canonical_eachstoredindex(style::IndexStyle, A::AbstractArray)
+  style === IndexStyle(A) && throw(Base.CanonicalIndexError("eachstoredindex", typeof(A)))
+  return nothing
+end
+
 # required: one implementation for canonical index style
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
   style::IndexStyle, A::AbstractArray
 )
-  if style == IndexStyle(A)
-    throw(MethodError(eachstoredindex, Tuple{typeof(style),typeof(A)}))
-  elseif style == IndexCartesian()
-    return map(Base.Fix1(Base.getindex, CartesianIndices(A)), eachindex(A))
-  elseif style == IndexLinear()
-    return map(Base.Fix1(Base.getindex, LinearIndices(A)), eachindex(A))
+  error_if_canonical_eachstoredindex(style, A)
+  inds = eachstoredindex(A)
+  if style === IndexCartesian()
+    eltype(inds) === CartesianIndex{ndims(A)} && return inds
+    return map(Base.Fix1(Base.getindex, CartesianIndices(A)), inds)
+  elseif style === IndexLinear()
+    eltype(inds) === Int && return inds
+    return map(Base.Fix1(Base.getindex, LinearIndices(A)), inds)
   else
-    throw(ArgumentError(lazy"unknown index style $style"))
+    error(lazy"unkown index style $style")
   end
 end
 
