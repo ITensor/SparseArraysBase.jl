@@ -104,7 +104,10 @@ using DerivableInterfaces: DerivableInterfaces, zero!
   # More generally, this codepath could be taking if `zero(eltype(a))`
   # is defined and the elements are immutable.
   f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
-  return @interface interface map_stored!(f, a, a)
+  @inbounds for I in eachstoredindex(a)
+    a[I] = f(a[I])
+  end
+  return a
 end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
