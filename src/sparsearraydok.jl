@@ -87,9 +87,10 @@ end
   @boundscheck checkbounds(a, I...)
   return storage(a)[CartesianIndex(I)]
 end
+@inline getunstoredindex_function(a::SparseArrayDOK) = a.getunstored
 @inline function getunstoredindex(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
   @boundscheck checkbounds(a, I...)
-  return a.getunstored(a, I...)
+  return getunstoredindex_function(a)(a, I...)
 end
 @inline function setstoredindex!(
   a::SparseArrayDOK{<:Any,N}, value, I::Vararg{Int,N}

@@ -4,13 +4,18 @@ using DerivableInterfaces:
 
 function eachstoredindex end
 function getstoredindex end
-function getunstoredindex end
+function getunstoredindex_function end
 function isstored end
 function setstoredindex! end
 function setunstoredindex! end
 function storedlength end
 function storedpairs end
 function storedvalues end
+
+@inline function getunstoredindex(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
+  @boundscheck checkbounds(a, I...)
+  return getunstoredindex_function(a)(a, I...)
+end
 
 # Replace the function for accessing
 # unstored values.
@@ -90,7 +95,7 @@ end
   a::AbstractArray, T::Type, size::Tuple{Vararg{Int}}
 )
   # TODO: Define `default_similartype` or something like that?
-  return SparseArrayDOK{T}(undef, size)
+  return SparseArrayDOK{T}(undef, size; getunstored=getunstoredindex_function(a))
 end
 
 # map over a specified subset of indices of the inputs.
