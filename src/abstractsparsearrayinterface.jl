@@ -92,39 +92,6 @@ end
   # TODO: Define `default_similartype` or something like that?
   return SparseArrayDOK{T}(undef, size)
 end
-
-# map over a specified subset of indices of the inputs.
-function map_indices! end
-
-@interface interface::AbstractArrayInterface function map_indices!(
-  indices, f, a_dest::AbstractArray, as::AbstractArray...
-)
-  for I in indices
-    a_dest[I] = f(map(a -> a[I], as)...)
-  end
-  return a_dest
-end
-
-# Only map the stored values of the inputs.
-function map_stored! end
-
-@interface interface::AbstractArrayInterface function map_stored!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  @interface interface map_indices!(eachstoredindex(as...), f, a_dest, as...)
-  return a_dest
-end
-
-# Only map all values, not just the stored ones.
-function map_all! end
-
-@interface interface::AbstractArrayInterface function map_all!(
-  f, a_dest::AbstractArray, as::AbstractArray...
-)
-  @interface interface map_indices!(eachindex(as...), f, a_dest, as...)
-  return a_dest
-end
-
 using DerivableInterfaces: DerivableInterfaces, zero!
 
 # `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`
@@ -139,36 +106,6 @@ using DerivableInterfaces: DerivableInterfaces, zero!
   f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
   return @interface interface map_stored!(f, a, a)
 end
-
-# Determines if a function preserves the stored values
-# of the destination sparse array.
-# The current code may be inefficient since it actually
-# accesses an unstored element, which in the case of a
-# sparse array of arrays can allocate an array.
-# Sparse arrays could be expected to define a cheap
-# unstored element allocator, for example
-# `get_prototypical_unstored(a::AbstractArray)`.
-function preserves_unstored(f, a_dest::AbstractArray, as::AbstractArray...)
-  I = first(eachindex(as...))
-  return iszero(f(map(a -> getunstoredindex(a, I), as)...))
-end
-
-# @interface interface::AbstractSparseArrayInterface function Base.map!(
-#   f, a_dest::AbstractArray, as::AbstractArray...
-# )
-#   isempty(a_dest) && return a_dest # special case to avoid trying to access empty array
-#   indices = if !preserves_unstored(f, a_dest, as...)
-#     eachindex(a_dest)
-#   elseif any(a -> a_dest !== a, as)
-#     as = map(a -> Base.unalias(a_dest, a), as)
-#     @interface interface zero!(a_dest)
-#     eachstoredindex(as...)
-#   else
-#     eachstoredindex(a_dest)
-#   end
-#   @interface interface map_indices!(indices, f, a_dest, as...)
-#   return a_dest
-# end
 
 # `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
 function reduce_init(f, op, as...)

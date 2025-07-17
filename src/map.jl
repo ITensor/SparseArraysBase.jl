@@ -121,6 +121,26 @@ end
   identity, C, A
 )
 
+# Only map the stored values of the inputs.
+function map_stored! end
+
+@interface interface::AbstractArrayInterface function map_stored!(
+  f, a_dest::AbstractArray, as::AbstractArray...
+)
+  @interface interface map!(WeakPreserving(f), a_dest, as...)
+  return a_dest
+end
+
+# Only map all values, not just the stored ones.
+function map_all! end
+
+@interface interface::AbstractArrayInterface function map_all!(
+  f, a_dest::AbstractArray, as::AbstractArray...
+)
+  @interface interface map!(NonPreserving(f), a_dest, as...)
+  return a_dest
+end
+
 # Utility functions
 # -----------------
 # shape check similar to checkbounds
