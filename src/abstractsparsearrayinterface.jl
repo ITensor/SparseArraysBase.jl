@@ -26,15 +26,13 @@ unstored(a::AbstractArray) = Zeros{eltype(a)}(axes(a))
 function unstoredsimilar(a::AbstractArray, T::Type, ax::Tuple)
   return Zeros{T}(ax)
 end
-function unstoredsimilar(a::AbstractArray, T::Type)
-  return unstoredsimilar(a, T, axes(a))
-end
 function unstoredsimilar(a::AbstractArray, ax::Tuple)
   return unstoredsimilar(a, eltype(a), ax)
 end
-function unstoredsimilar(a::AbstractArray)
-  return unstoredsimilar(a, eltype(a), axes(a))
+function unstoredsimilar(a::AbstractArray, T::Type)
+  return AbstractArray{T}(a)
 end
+unstoredsimilar(a::AbstractArray) = a
 
 # Generic functionality for converting to a
 # dense array, trying to preserve information
@@ -104,23 +102,6 @@ Base.size(a::StoredValues) = size(a.storedindices)
   return setindex!(a.array, value, a.storedindices[I])
 end
 
-@interface ::AbstractSparseArrayInterface function Base.similar(
-  a::AbstractArray, T::Type, ax::Tuple
-)
-  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
-end
-# Fix ambiguity error with DerivableInterfaces.jl.
-@interface ::AbstractSparseArrayInterface function Base.similar(
-  a::AbstractArray, T::Type, ax::Tuple{Int,Vararg{Int}}
-)
-  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
-end
-# Fix ambiguity error with DerivableInterfaces.jl.
-@interface ::AbstractSparseArrayInterface function Base.similar(
-  a::AbstractArray, T::Type, ax::Tuple{Base.OneTo,Vararg{Base.OneTo}}
-)
-  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
-end
 using DerivableInterfaces: DerivableInterfaces, zero!
 
 # `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`

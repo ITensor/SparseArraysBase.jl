@@ -11,6 +11,38 @@ function DerivableInterfaces.interface(::Type{<:AbstractSparseArray})
   return SparseArrayInterface()
 end
 
+function Base.copy(a::AnyAbstractSparseArray)
+  return copyto!(similar(a), a)
+end
+
+function Base.similar(a::AnyAbstractSparseArray)
+  return SparseArrayDOK(Unstored(unstored(a)))
+end
+function Base.similar(a::AnyAbstractSparseArray, T::Type)
+  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T)))
+end
+function Base.similar(a::AnyAbstractSparseArray, ax::Tuple)
+  return similar(a, eltype(a), ax)
+end
+function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
+  return similar_sparsearray(a, T, ax)
+end
+# Fix ambiguity error.
+function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Int,Vararg{Int}})
+  return similar_sparsearray(a, T, ax)
+end
+# Fix ambiguity error.
+function Base.similar(
+  a::AnyAbstractSparseArray,
+  T::Type,
+  ax::Tuple{Union{Integer,Base.OneTo},Vararg{Union{Integer,Base.OneTo}}},
+)
+  return similar_sparsearray(a, T, ax)
+end
+function similar_sparsearray(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
+  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
+end
+
 using DerivableInterfaces: @derive
 
 # TODO: These need to be loaded since `AbstractArrayOps`
@@ -25,9 +57,6 @@ using LinearAlgebra: LinearAlgebra
   Base.getindex(::T, ::Int...)
   Base.setindex!(::T, ::Any, ::Any...)
   Base.setindex!(::T, ::Any, ::Int...)
-  Base.similar(::T, ::Type, ::Tuple{Vararg{Int}})
-  Base.similar(::T, ::Type, ::Tuple{Base.OneTo,Vararg{Base.OneTo}})
-  Base.copy(::T)
   Base.copy!(::AbstractArray, ::T)
   Base.copyto!(::AbstractArray, ::T)
   Base.map(::Any, ::T...)
