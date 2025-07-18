@@ -4,17 +4,15 @@ function _OneElementArray end
 
 # Like [`FillArrays.OneElement`](https://github.com/JuliaArrays/FillArrays.jl)
 # and [`OneHotArrays.OneHotArray`](https://github.com/FluxML/OneHotArrays.jl).
-struct OneElementArray{T,N,I,A,F} <: AbstractSparseArray{T,N}
+struct OneElementArray{T,N,I,Unstored<:AbstractArray{T,N}} <: AbstractSparseArray{T,N}
   value::T
   index::I
-  axes::A
-  getunstored::F
+  unstored::Unstored
   global @inline function _OneElementArray(
-    value::T, index::I, axes::A, getunstored::F
-  ) where {T,I,A,F}
-    N = length(axes)
+    value::T, index::I, unstored::Unstored
+  ) where {T,N,I,Unstored<:AbstractArray{T,N}}
     @assert N == length(index)
-    return new{T,N,I,A,F}(value, index, axes, getunstored)
+    return new{T,N,I,Unstored}(value, index, unstored)
   end
 end
 
@@ -23,263 +21,238 @@ using DerivableInterfaces: @array_aliases
 @array_aliases OneElementArray
 
 function OneElementArray{T,N}(
-  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; getunstored=getzero
+  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {T,N}
-  return _OneElementArray(convert(T, value), index, axes, getunstored)
+  return _OneElementArray(convert(T, value), index, Zeros{T}(axes))
 end
 
 function OneElementArray{<:Any,N}(
-  value::T, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  value::T, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, axes; kwargs...)
+  return OneElementArray{T,N}(value, index, axes)
 end
 function OneElementArray(
-  value::T, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  value::T, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, axes; kwargs...)
+  return OneElementArray{T,N}(value, index, axes)
 end
 
 function OneElementArray{T,N}(
-  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {T,N}
-  return OneElementArray{T,N}(one(T), index, axes; kwargs...)
+  return OneElementArray{T,N}(one(T), index, axes)
 end
 function OneElementArray{<:Any,N}(
-  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {N}
-  return OneElementArray{Bool,N}(index, axes; kwargs...)
+  return OneElementArray{Bool,N}(index, axes)
 end
 function OneElementArray{T}(
-  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {T,N}
-  return OneElementArray{T,N}(index, axes; kwargs...)
+  return OneElementArray{T,N}(index, axes)
 end
-function OneElementArray(
-  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
-) where {N}
-  return OneElementArray{Bool,N}(index, axes; kwargs...)
+function OneElementArray(index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}) where {N}
+  return OneElementArray{Bool,N}(index, axes)
 end
 
 function OneElementArray{T,N}(
-  value, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
+  value, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}
 ) where {T,N}
-  return OneElementArray{T,N}(value, last.(ax_ind), first.(ax_ind); kwargs...)
+  return OneElementArray{T,N}(value, last.(ax_ind), first.(ax_ind))
 end
 function OneElementArray{<:Any,N}(
-  value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
+  value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}
 ) where {T,N}
-  return OneElementArray{T,N}(value, ax_ind...; kwargs...)
+  return OneElementArray{T,N}(value, ax_ind...)
 end
 function OneElementArray{T}(
-  value, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
+  value, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}
 ) where {T,N}
-  return OneElementArray{T,N}(value, ax_ind...; kwargs...)
+  return OneElementArray{T,N}(value, ax_ind...)
 end
 function OneElementArray(
-  value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
+  value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}
 ) where {T,N}
-  return OneElementArray{T,N}(value, ax_ind...; kwargs...)
+  return OneElementArray{T,N}(value, ax_ind...)
 end
 
-function OneElementArray{T,N}(
-  ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
-) where {T,N}
-  return OneElementArray{T,N}(last.(ax_ind), first.(ax_ind); kwargs...)
+function OneElementArray{T,N}(ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}) where {T,N}
+  return OneElementArray{T,N}(last.(ax_ind), first.(ax_ind))
 end
-function OneElementArray{<:Any,N}(
-  ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
-) where {N}
-  return OneElementArray{Bool,N}(ax_ind...; kwargs...)
+function OneElementArray{<:Any,N}(ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}) where {N}
+  return OneElementArray{Bool,N}(ax_ind...)
 end
-function OneElementArray{T}(
-  ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
-) where {T,N}
+function OneElementArray{T}(ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}) where {T,N}
   return OneElementArray{T,N}(ax_ind...)
 end
-function OneElementArray(
-  ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}; kwargs...
-) where {N}
-  return OneElementArray{Bool,N}(ax_ind...; kwargs...)
+function OneElementArray(ax_ind::Vararg{Pair{<:AbstractUnitRange,Int},N}) where {N}
+  return OneElementArray{Bool,N}(ax_ind...)
 end
 
 # Fix ambiguity errors.
-function OneElementArray{T,0}(
-  value, index::Tuple{}, axes::Tuple{}; getunstored=getzero
-) where {T}
-  return _OneElementArray(convert(T, value), index, axes, getunstored)
+function OneElementArray{T,0}(value, index::Tuple{}, axes::Tuple{}) where {T}
+  return _OneElementArray(convert(T, value), index, Zeros{T}(axes))
 end
-function OneElementArray{<:Any,0}(
-  value::T, index::Tuple{}, axes::Tuple{}; kwargs...
-) where {T}
-  return OneElementArray{T,0}(value, index, axes; kwargs...)
+function OneElementArray{<:Any,0}(value::T, index::Tuple{}, axes::Tuple{}) where {T}
+  return OneElementArray{T,0}(value, index, axes)
 end
-function OneElementArray{T}(value, index::Tuple{}, axes::Tuple{}; kwargs...) where {T}
-  return OneElementArray{T,0}(value, index, axes; kwargs...)
+function OneElementArray{T}(value, index::Tuple{}, axes::Tuple{}) where {T}
+  return OneElementArray{T,0}(value, index, axes)
 end
-function OneElementArray(value::T, index::Tuple{}, axes::Tuple{}; kwargs...) where {T}
-  return OneElementArray{T,0}(value, index, axes; kwargs...)
+function OneElementArray(value::T, index::Tuple{}, axes::Tuple{}) where {T}
+  return OneElementArray{T,0}(value, index, axes)
 end
 
 # Fix ambiguity errors.
-function OneElementArray{T,0}(index::Tuple{}, axes::Tuple{}; kwargs...) where {T}
-  return OneElementArray{T,0}(one(T), index, axes; kwargs...)
+function OneElementArray{T,0}(index::Tuple{}, axes::Tuple{}) where {T}
+  return OneElementArray{T,0}(one(T), index, axes)
 end
-function OneElementArray{<:Any,0}(index::Tuple{}, axes::Tuple{}; kwargs...)
-  return OneElementArray{Bool,0}(index, axes; kwargs...)
+function OneElementArray{<:Any,0}(index::Tuple{}, axes::Tuple{})
+  return OneElementArray{Bool,0}(index, axes)
 end
-function OneElementArray{T}(index::Tuple{}, axes::Tuple{}; kwargs...) where {T}
-  return OneElementArray{T,0}(index, axes; kwargs...)
+function OneElementArray{T}(index::Tuple{}, axes::Tuple{}) where {T}
+  return OneElementArray{T,0}(index, axes)
 end
-function OneElementArray(index::Tuple{}, axes::Tuple{}; kwargs...)
-  return OneElementArray{Bool,0}(value, index, axes; kwargs...)
-end
-
-function OneElementArray{T,0}(value; kwargs...) where {T}
-  return OneElementArray{T,0}(value, (), (); kwargs...)
-end
-function OneElementArray{<:Any,0}(value::T; kwargs...) where {T}
-  return OneElementArray{T,0}(value; kwargs...)
-end
-function OneElementArray{T}(value; kwargs...) where {T}
-  return OneElementArray{T,0}(value; kwargs...)
-end
-function OneElementArray(value::T; kwargs...) where {T}
-  return OneElementArray{T}(value; kwargs...)
+function OneElementArray(index::Tuple{}, axes::Tuple{})
+  return OneElementArray{Bool,0}(value, index, axes)
 end
 
-function OneElementArray{T,0}(; kwargs...) where {T}
-  return OneElementArray{T,0}((), (); kwargs...)
+function OneElementArray{T,0}(value) where {T}
+  return OneElementArray{T,0}(value, (), ())
 end
-function OneElementArray{<:Any,0}(; kwargs...)
-  return OneElementArray{Bool,0}(value; kwargs...)
+function OneElementArray{<:Any,0}(value::T) where {T}
+  return OneElementArray{T,0}(value)
 end
-function OneElementArray{T}(; kwargs...) where {T}
-  return OneElementArray{T,0}(; kwargs...)
+function OneElementArray{T}(value) where {T}
+  return OneElementArray{T,0}(value)
 end
-function OneElementArray(; kwargs...)
-  return OneElementArray{Bool}(; kwargs...)
+function OneElementArray(value::T) where {T}
+  return OneElementArray{T}(value)
+end
+
+function OneElementArray{T,0}() where {T}
+  return OneElementArray{T,0}((), ())
+end
+function OneElementArray{<:Any,0}()
+  return OneElementArray{Bool,0}(value)
+end
+function OneElementArray{T}() where {T}
+  return OneElementArray{T,0}()
+end
+function OneElementArray()
+  return OneElementArray{Bool}()
 end
 
 function OneElementArray{T,N}(
-  value, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
+  value, index::NTuple{N,Int}, size::NTuple{N,Integer}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, Base.oneto.(size); kwargs...)
+  return OneElementArray{T,N}(value, index, Base.oneto.(size))
 end
 function OneElementArray{<:Any,N}(
-  value::T, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
+  value::T, index::NTuple{N,Int}, size::NTuple{N,Integer}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, size; kwargs...)
+  return OneElementArray{T,N}(value, index, size)
 end
 function OneElementArray{T}(
-  value, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
+  value, index::NTuple{N,Int}, size::NTuple{N,Integer}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, size; kwargs...)
+  return OneElementArray{T,N}(value, index, size)
 end
 function OneElementArray(
-  value::T, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
+  value::T, index::NTuple{N,Int}, size::NTuple{N,Integer}
 ) where {T,N}
-  return OneElementArray{T,N}(value, index, Base.oneto.(size); kwargs...)
+  return OneElementArray{T,N}(value, index, Base.oneto.(size))
 end
 
-function OneElementArray{T,N}(
-  index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
-) where {T,N}
-  return OneElementArray{T,N}(one(T), index, size; kwargs...)
+function OneElementArray{T,N}(index::NTuple{N,Int}, size::NTuple{N,Integer}) where {T,N}
+  return OneElementArray{T,N}(one(T), index, size)
 end
-function OneElementArray{<:Any,N}(
-  index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
-) where {N}
-  return OneElementArray{Bool,N}(index, size; kwargs...)
+function OneElementArray{<:Any,N}(index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
+  return OneElementArray{Bool,N}(index, size)
 end
-function OneElementArray{T}(
-  index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
-) where {T,N}
-  return OneElementArray{T,N}(index, size; kwargs...)
+function OneElementArray{T}(index::NTuple{N,Int}, size::NTuple{N,Integer}) where {T,N}
+  return OneElementArray{T,N}(index, size)
 end
-function OneElementArray(index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...) where {N}
-  return OneElementArray{Bool,N}(index, size; kwargs...)
+function OneElementArray(index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
+  return OneElementArray{Bool,N}(index, size)
 end
 
-function OneElementVector{T}(value, index::Int, length::Integer; kwargs...) where {T}
-  return OneElementVector{T}(value, (index,), (length,); kwargs...)
+function OneElementVector{T}(value, index::Int, length::Integer) where {T}
+  return OneElementVector{T}(value, (index,), (length,))
 end
-function OneElementVector(value::T, index::Int, length::Integer; kwargs...) where {T}
-  return OneElementVector{T}(value, index, length; kwargs...)
+function OneElementVector(value::T, index::Int, length::Integer) where {T}
+  return OneElementVector{T}(value, index, length)
 end
-function OneElementArray{T}(value, index::Int, length::Integer; kwargs...) where {T}
-  return OneElementVector{T}(value, index, length; kwargs...)
+function OneElementArray{T}(value, index::Int, length::Integer) where {T}
+  return OneElementVector{T}(value, index, length)
 end
-function OneElementArray(value::T, index::Int, length::Integer; kwargs...) where {T}
-  return OneElementVector{T}(value, index, length; kwargs...)
+function OneElementArray(value::T, index::Int, length::Integer) where {T}
+  return OneElementVector{T}(value, index, length)
 end
 
-function OneElementVector{T}(index::Int, size::Integer; kwargs...) where {T}
-  return OneElementVector{T}((index,), (size,); kwargs...)
+function OneElementVector{T}(index::Int, size::Integer) where {T}
+  return OneElementVector{T}((index,), (size,))
 end
-function OneElementVector(index::Int, length::Integer; kwargs...)
-  return OneElementVector{Bool}(index, length; kwargs...)
+function OneElementVector(index::Int, length::Integer)
+  return OneElementVector{Bool}(index, length)
 end
-function OneElementArray{T}(index::Int, size::Integer; kwargs...) where {T}
-  return OneElementVector{T}(index, size; kwargs...)
+function OneElementArray{T}(index::Int, size::Integer) where {T}
+  return OneElementVector{T}(index, size)
 end
-function OneElementArray(index::Int, size::Integer; kwargs...)
-  return OneElementVector{Bool}(index, size; kwargs...)
+function OneElementArray(index::Int, size::Integer)
+  return OneElementVector{Bool}(index, size)
 end
 
 # Interface to overload for constructing arrays like `OneElementArray`,
 # that may not be `OneElementArray` (i.e. wrapped versions).
 function oneelement(
-  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  value, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {N}
-  return OneElementArray(value, index, axes; kwargs...)
+  return OneElementArray(value, index, axes)
 end
 function oneelement(
-  eltype::Type, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
+  eltype::Type, index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}
 ) where {N}
-  return oneelement(one(eltype), index, axes; kwargs...)
+  return oneelement(one(eltype), index, axes)
 end
-function oneelement(
-  index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}; kwargs...
-) where {N}
-  return oneelement(Bool, index, axes; kwargs...)
+function oneelement(index::NTuple{N,Int}, axes::NTuple{N,AbstractUnitRange}) where {N}
+  return oneelement(Bool, index, axes)
 end
 
-function oneelement(
-  value, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
-) where {N}
-  return oneelement(value, index, Base.oneto.(size); kwargs...)
+function oneelement(value, index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
+  return oneelement(value, index, Base.oneto.(size))
 end
-function oneelement(
-  eltype::Type, index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...
-) where {N}
-  return oneelement(one(eltype), index, size; kwargs...)
+function oneelement(eltype::Type, index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
+  return oneelement(one(eltype), index, size)
 end
-function oneelement(index::NTuple{N,Int}, size::NTuple{N,Integer}; kwargs...) where {N}
-  return oneelement(Bool, index, size; kwargs...)
+function oneelement(index::NTuple{N,Int}, size::NTuple{N,Integer}) where {N}
+  return oneelement(Bool, index, size)
 end
 
-function oneelement(value, ax_ind::Pair{<:AbstractUnitRange,Int}...; kwargs...)
-  return oneelement(value, last.(ax_ind), first.(ax_ind); kwargs...)
+function oneelement(value, ax_ind::Pair{<:AbstractUnitRange,Int}...)
+  return oneelement(value, last.(ax_ind), first.(ax_ind))
 end
-function oneelement(eltype::Type, ax_ind::Pair{<:AbstractUnitRange,Int}...; kwargs...)
-  return oneelement(one(eltype), ax_ind...; kwargs...)
+function oneelement(eltype::Type, ax_ind::Pair{<:AbstractUnitRange,Int}...)
+  return oneelement(one(eltype), ax_ind...)
 end
-function oneelement(ax_ind::Pair{<:AbstractUnitRange,Int}...; kwargs...)
-  return oneelement(Bool, ax_ind...; kwargs...)
-end
-
-function oneelement(value; kwargs...)
-  return oneelement(value, (), (); kwargs...)
-end
-function oneelement(eltype::Type; kwargs...)
-  return oneelement(one(eltype); kwargs...)
-end
-function oneelement(; kwargs...)
-  return oneelement(Bool; kwargs...)
+function oneelement(ax_ind::Pair{<:AbstractUnitRange,Int}...)
+  return oneelement(Bool, ax_ind...)
 end
 
-Base.axes(a::OneElementArray) = getfield(a, :axes)
-Base.size(a::OneElementArray) = length.(axes(a))
+function oneelement(value)
+  return oneelement(value, (), ())
+end
+function oneelement(eltype::Type)
+  return oneelement(one(eltype))
+end
+function oneelement()
+  return oneelement(Bool)
+end
+
+unstored(a::OneElementArray) = getfield(a, :unstored)
+Base.axes(a::OneElementArray) = axes(unstored(a))
+Base.size(a::OneElementArray) = size(unstored(a))
 storedvalue(a::OneElementArray) = getfield(a, :value)
 storedvalues(a::OneElementArray) = Fill(storedvalue(a), 1)
 
@@ -295,7 +268,7 @@ function getstoredindex(a::OneElementArray, I::Int...)
   return storedvalue(a)
 end
 function getunstoredindex(a::OneElementArray, I::Int...)
-  return a.getunstored(a, I...)
+  return unstored(a)[I...]
 end
 function setstoredindex!(a::OneElementArray, value, I::Int...)
   return error("`OneElementArray` is immutable, you can't set elements.")
