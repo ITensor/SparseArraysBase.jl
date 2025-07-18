@@ -20,12 +20,33 @@ using DerivableInterfaces: @derive
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-# DerivableInterfaces `Base.getindex`, `Base.setindex!`, etc.
-# TODO: Define `AbstractMatrixOps` and overload for
-# `AnyAbstractSparseMatrix` and `AnyAbstractSparseVector`,
-# which is where matrix multiplication and factorizations
-# should go.
-@derive AnyAbstractSparseArray AbstractArrayOps
+@derive (T=AnyAbstractSparseArray,) begin
+  Base.getindex(::T, ::Any...)
+  Base.getindex(::T, ::Int...)
+  Base.setindex!(::T, ::Any, ::Any...)
+  Base.setindex!(::T, ::Any, ::Int...)
+  Base.similar(::T, ::Type, ::Tuple{Vararg{Int}})
+  Base.similar(::T, ::Type, ::Tuple{Base.OneTo,Vararg{Base.OneTo}})
+  Base.copy(::T)
+  Base.copy!(::AbstractArray, ::T)
+  Base.copyto!(::AbstractArray, ::T)
+  Base.map(::Any, ::T...)
+  Base.map!(::Any, ::AbstractArray, ::T...)
+  Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
+  Base.reduce(::Any, ::T...; kwargs...)
+  Base.all(::Function, ::T)
+  Base.all(::T)
+  Base.iszero(::T)
+  Base.real(::T)
+  Base.fill!(::T, ::Any)
+  DerivableInterfaces.zero!(::T)
+  Base.zero(::T)
+  Base.permutedims!(::Any, ::T, ::Any)
+  Broadcast.BroadcastStyle(::Type{<:T})
+  Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
+  ArrayLayouts.MemoryLayout(::Type{<:T})
+  LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
+end
 
 using DerivableInterfaces.Concatenate: concatenate
 # We overload `Base._cat` instead of `Base.cat` since it
@@ -75,27 +96,30 @@ from the input indices.
 This constructor does not take ownership of the supplied storage, and will result in an
 independent container.
 """
-sparse(::Union{AbstractDict,AbstractDictionary}, dims...; kwargs...)
+sparse(::Union{AbstractDict,AbstractDictionary}, dims...)
 
 const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
 # checked constructor from data: use `setindex!` to validate/convert input
-function sparse(storage::AbstractDictOrDictionary, dims::Dims; kwargs...)
-  A = SparseArrayDOK{valtype(storage)}(undef, dims; kwargs...)
+function sparse(storage::AbstractDictOrDictionary, unstored::AbstractArray)
+  A = SparseArrayDOK(Unstored(unstored))
   for (i, v) in pairs(storage)
     A[i] = v
   end
   return A
 end
-function sparse(storage::AbstractDictOrDictionary, dims::Int...; kwargs...)
-  return sparse(storage, dims; kwargs...)
+function sparse(storage::AbstractDictOrDictionary, ax::Tuple)
+  return sparse(storage, Zeros{valtype(storage)}(ax))
+end
+function sparse(storage::AbstractDictOrDictionary, dims::Int...)
+  return sparse(storage, dims)
 end
 # Determine the size automatically.
-function sparse(storage::AbstractDictOrDictionary; kwargs...)
+function sparse(storage::AbstractDictOrDictionary)
   dims = ntuple(Returns(0), length(keytype(storage)))
   for I in keys(storage)
     dims = map(max, dims, Tuple(I))
   end
-  return sparse(storage, dims; kwargs...)
+  return sparse(storage, dims)
 end
 
 using Random: Random, AbstractRNG, default_rng
@@ -107,12 +131,18 @@ Create an empty size `dims` sparse array.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
 """ sparsezeros
 
-function sparsezeros(::Type{T}, dims::Dims; kwargs...) where {T}
-  return SparseArrayDOK{T}(undef, dims; kwargs...)
+function sparsezeros(::Type{T}, unstored::AbstractArray{<:Any,N}) where {T,N}
+  return SparseArrayDOK{T,N}(Unstored(unstored))
 end
-sparsezeros(::Type{T}, dims::Int...; kwargs...) where {T} = sparsezeros(T, dims; kwargs...)
-sparsezeros(dims::Dims; kwargs...) = sparsezeros(Float64, dims; kwargs...)
-sparsezeros(dims::Int...; kwargs...) = sparsezeros(Float64, dims; kwargs...)
+function sparsezeros(unstored::AbstractArray{T,N}) where {T,N}
+  return SparseArrayDOK{T,N}(Unstored(unstored))
+end
+function sparsezeros(::Type{T}, dims::Dims) where {T}
+  return sparsezeros(T, Zeros{T}(dims))
+end
+sparsezeros(::Type{T}, dims::Int...) where {T} = sparsezeros(T, dims)
+sparsezeros(dims::Dims) = sparsezeros(Float64, dims)
+sparsezeros(dims::Int...) = sparsezeros(Float64, dims)
 
 @doc """
     sparserand([rng], [T::Type], dims; density::Real=0.5, randfun::Function=rand) -> A::SparseArrayDOK{T}

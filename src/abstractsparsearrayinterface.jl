@@ -1,7 +1,9 @@
 using Base: @_propagate_inbounds_meta
 using DerivableInterfaces:
   DerivableInterfaces, @derive, @interface, AbstractArrayInterface, zero!
+using FillArrays: Zeros
 
+function unstored end
 function eachstoredindex end
 function getstoredindex end
 function getunstoredindex end
@@ -12,9 +14,27 @@ function storedlength end
 function storedpairs end
 function storedvalues end
 
-# Replace the function for accessing
-# unstored values.
-function set_getunstoredindex end
+# Indicates that the array should be interpreted
+# as the unstored values of a sparse array.
+struct Unstored{T,N,P<:AbstractArray{T,N}} <: AbstractArray{T,N}
+  parent::P
+end
+Base.parent(a::Unstored) = a.parent
+
+unstored(a::AbstractArray) = Zeros{eltype(a)}(axes(a))
+
+function unstoredsimilar(a::AbstractArray, T::Type, ax::Tuple)
+  return Zeros{T}(ax)
+end
+function unstoredsimilar(a::AbstractArray, T::Type)
+  return unstoredsimilar(a, T, axes(a))
+end
+function unstoredsimilar(a::AbstractArray, ax::Tuple)
+  return unstoredsimilar(a, eltype(a), ax)
+end
+function unstoredsimilar(a::AbstractArray)
+  return unstoredsimilar(a, eltype(a), axes(a))
+end
 
 # Generic functionality for converting to a
 # dense array, trying to preserve information
@@ -84,13 +104,22 @@ Base.size(a::StoredValues) = size(a.storedindices)
   return setindex!(a.array, value, a.storedindices[I])
 end
 
-# TODO: This may need to be defined in `sparsearraydok.jl`, after `SparseArrayDOK`
-# is defined. And/or define `default_type(::SparseArrayStyle, T::Type) = SparseArrayDOK{T}`.
 @interface ::AbstractSparseArrayInterface function Base.similar(
-  a::AbstractArray, T::Type, size::Tuple{Vararg{Int}}
+  a::AbstractArray, T::Type, ax::Tuple
 )
-  # TODO: Define `default_similartype` or something like that?
-  return SparseArrayDOK{T}(undef, size)
+  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
+end
+# Fix ambiguity error with DerivableInterfaces.jl.
+@interface ::AbstractSparseArrayInterface function Base.similar(
+  a::AbstractArray, T::Type, ax::Tuple{Int,Vararg{Int}}
+)
+  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
+end
+# Fix ambiguity error with DerivableInterfaces.jl.
+@interface ::AbstractSparseArrayInterface function Base.similar(
+  a::AbstractArray, T::Type, ax::Tuple{Base.OneTo,Vararg{Base.OneTo}}
+)
+  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 using DerivableInterfaces: DerivableInterfaces, zero!
 
@@ -136,7 +165,10 @@ end
 
 abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
 
-@derive AbstractSparseArrayStyle AbstractArrayStyleOps
+@derive (T=AbstractSparseArrayStyle,) begin
+  Base.similar(::Broadcast.Broadcasted{<:T}, ::Type, ::Tuple)
+  Base.copyto!(::AbstractArray, ::Broadcast.Broadcasted{<:T})
+end
 
 struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
 

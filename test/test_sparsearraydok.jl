@@ -1,6 +1,7 @@
 using Adapt: adapt
 using ArrayLayouts: zero!
 using Dictionaries: Dictionary
+using FillArrays: Zeros
 using JLArrays: JLArray, @allowscalar
 using SparseArraysBase:
   SparseArraysBase,
@@ -275,12 +276,10 @@ arrayts = (Array,)
   )
     for a in (
       sparse(d, 2, 2),
-      sparse(d, 2, 2; getunstored=Returns(zero(elt))),
+      sparse(d, Zeros{elt}(2, 2)),
       sparse(d, (2, 2)),
-      sparse(d, (2, 2); getunstored=Returns(zero(elt))),
       # Determine the size automatically.
       sparse(d),
-      sparse(d; getunstored=Returns(zero(elt))),
     )
       @test !iszero(a)
       @test iszero(a[1, 1])
@@ -296,13 +295,11 @@ arrayts = (Array,)
 
   for (a, elt′) in (
     (sparsezeros(elt, 2, 2), elt),
-    (sparsezeros(elt, 2, 2; getunstored=Returns(zero(elt))), elt),
+    (sparsezeros(elt, Zeros{elt}(2, 2)), elt),
     (sparsezeros(elt, (2, 2)), elt),
-    (sparsezeros(elt, (2, 2); getunstored=Returns(zero(elt))), elt),
     (sparsezeros(2, 2), Float64),
-    (sparsezeros(2, 2; getunstored=Returns(zero(Float64))), Float64),
+    (sparsezeros(Zeros{Float64}(2, 2)), Float64),
     (sparsezeros((2, 2)), Float64),
-    (sparsezeros((2, 2); getunstored=Returns(zero(Float64))), Float64),
   )
     @test iszero(a)
     @test size(a) == (2, 2)
