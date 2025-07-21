@@ -27,20 +27,24 @@ end
 function Base.similar(a::AnyAbstractSparseArray, ax::Tuple)
   return similar(a, Unstored(unstoredsimilar(unstored(a), ax)))
 end
-function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
+
+function similar_sparsearray(a::AbstractArray, T::Type, ax::Tuple)
   return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
-# Fix ambiguity error.
-function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Int,Vararg{Int}})
-  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
+function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Vararg{Int}})
+  return similar_sparsearray(a, T, ax)
 end
-# Fix ambiguity error.
+function Base.similar(
+  a::AnyAbstractSparseArray, T::Type, ax::Tuple{Integer,Vararg{Integer}}
+)
+  return similar_sparsearray(a, T, ax)
+end
 function Base.similar(
   a::AnyAbstractSparseArray,
   T::Type,
   ax::Tuple{Union{Integer,Base.OneTo},Vararg{Union{Integer,Base.OneTo}}},
 )
-  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
+  return similar_sparsearray(a, T, ax)
 end
 
 using DerivableInterfaces: @derive
