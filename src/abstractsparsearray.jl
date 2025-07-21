@@ -15,40 +15,24 @@ function Base.copy(a::AnyAbstractSparseArray)
   return copyto!(similar(a), a)
 end
 
-function similar_sparsearray(a::AnyAbstractSparseArray, unstored::Unstored)
-  return SparseArrayDOK(unstored)
-end
-function similar_sparsearray(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
-  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
-end
-function similar_sparsearray(a::AnyAbstractSparseArray, T::Type)
-  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), T)))
-end
-function similar_sparsearray(a::AnyAbstractSparseArray, ax::Tuple)
-  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), ax)))
-end
-function similar_sparsearray(a::AnyAbstractSparseArray)
-  return similar_sparsearray(a, Unstored(unstored(a)))
-end
-
 function Base.similar(a::AnyAbstractSparseArray, unstored::Unstored)
-  return similar_sparsearray(a, unstored)
+  return SparseArrayDOK(undef, unstored)
 end
 function Base.similar(a::AnyAbstractSparseArray)
-  return similar_sparsearray(a)
+  return similar(a, Unstored(unstored(a)))
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type)
-  return similar_sparsearray(a, T)
+  return similar(a, Unstored(unstoredsimilar(unstored(a), T)))
 end
 function Base.similar(a::AnyAbstractSparseArray, ax::Tuple)
-  return similar_sparsearray(a, ax)
+  return similar(a, Unstored(unstoredsimilar(unstored(a), ax)))
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
-  return similar_sparsearray(a, T, ax)
+  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 # Fix ambiguity error.
 function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Int,Vararg{Int}})
-  return similar_sparsearray(a, T, ax)
+  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 # Fix ambiguity error.
 function Base.similar(
@@ -56,7 +40,7 @@ function Base.similar(
   T::Type,
   ax::Tuple{Union{Integer,Base.OneTo},Vararg{Union{Integer,Base.OneTo}}},
 )
-  return similar_sparsearray(a, T, ax)
+  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 
 using DerivableInterfaces: @derive
@@ -155,7 +139,7 @@ sparse(::Union{AbstractDict,AbstractDictionary}, dims...)
 const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
 # checked constructor from data: use `setindex!` to validate/convert input
 function sparse(storage::AbstractDictOrDictionary, unstored::AbstractArray)
-  A = SparseArrayDOK(Unstored(unstored))
+  A = SparseArrayDOK(undef, Unstored(unstored))
   for (i, v) in pairs(storage)
     A[i] = v
   end
@@ -186,10 +170,10 @@ The optional `T` argument specifies the element type, which defaults to `Float64
 """ sparsezeros
 
 function sparsezeros(::Type{T}, unstored::AbstractArray{<:Any,N}) where {T,N}
-  return SparseArrayDOK{T,N}(Unstored(unstored))
+  return SparseArrayDOK{T,N}(undef, Unstored(unstored))
 end
 function sparsezeros(unstored::AbstractArray{T,N}) where {T,N}
-  return SparseArrayDOK{T,N}(Unstored(unstored))
+  return SparseArrayDOK{T,N}(undef, Unstored(unstored))
 end
 function sparsezeros(::Type{T}, dims::Dims) where {T}
   return sparsezeros(T, Zeros{T}(dims))

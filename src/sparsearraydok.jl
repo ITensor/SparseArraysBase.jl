@@ -26,18 +26,18 @@ unstored(a::SparseArrayDOK) = a.unstored
 Base.size(a::SparseArrayDOK) = size(unstored(a))
 Base.axes(a::SparseArrayDOK) = axes(unstored(a))
 
-function SparseArrayDOK{T,N}(a::Unstored) where {T,N}
+function SparseArrayDOK{T,N}(::UndefInitializer, a::Unstored) where {T,N}
   storage = DOKStorage{T,N}()
   return _SparseArrayDOK(storage, parent(a))
 end
-function SparseArrayDOK{T}(a::Unstored) where {T}
-  return SparseArrayDOK{T,ndims(a)}(a)
+function SparseArrayDOK{T}(::UndefInitializer, a::Unstored) where {T}
+  return SparseArrayDOK{T,ndims(a)}(undef, a)
 end
-function SparseArrayDOK{<:Any,N}(a::Unstored) where {N}
+function SparseArrayDOK{<:Any,N}(::UndefInitializer, a::Unstored) where {N}
   return SparseArrayDOK{eltype(a),N}(a)
 end
-function SparseArrayDOK(a::Unstored)
-  return SparseArrayDOK{eltype(a),ndims(a)}(a)
+function SparseArrayDOK(::UndefInitializer, a::Unstored)
+  return SparseArrayDOK{eltype(a),ndims(a)}(undef, a)
 end
 
 # Constructors
@@ -53,7 +53,7 @@ the length or number of `dims`.
 SparseArrayDOK{T,N}(::UndefInitializer, dims...)
 
 function SparseArrayDOK{T,N}(::UndefInitializer, ax::Tuple{Vararg{Any,N}}) where {T,N}
-  return SparseArrayDOK{T,N}(Unstored(Zeros{T}(ax)))
+  return SparseArrayDOK{T,N}(undef, Unstored(Zeros{T}(ax)))
 end
 function SparseArrayDOK{T}(::UndefInitializer, ax::Tuple{Vararg{Any,N}}) where {T,N}
   return SparseArrayDOK{T,N}(undef, ax)
