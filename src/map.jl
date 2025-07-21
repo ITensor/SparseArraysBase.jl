@@ -48,20 +48,20 @@ function ZeroPreserving(f, T::Type, Ts::Type...)
     return NonPreserving(f)
   end
 end
+ZeroPreserving(f::ZeroPreserving, T::Type, Ts::Type...) = f
 
-const _WEAK_FUNCTIONS = (:+, :-)
-for f in _WEAK_FUNCTIONS
+for F in (:(typeof(+)), :(typeof(-)), :(typeof(identity)))
   @eval begin
-    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = WeakPreserving($f)
+    ZeroPreserving(f::$F, ::Type, ::Type...) = WeakPreserving(f)
   end
 end
 
-const _STRONG_FUNCTIONS = (:*,)
-for f in _STRONG_FUNCTIONS
+using MapBroadcast: MapFunction
+for F in (:(typeof(*)), :(MapFunction{typeof(*)}))
   @eval begin
-    ZeroPreserving(::typeof($f), ::Type{<:Number}, ::Type{<:Number}...) = StrongPreserving(
-      $f
-    )
+    function ZeroPreserving(f::$F, ::Type, ::Type...)
+      return StrongPreserving(f)
+    end
   end
 end
 
@@ -71,29 +71,32 @@ end
   f, A::AbstractArray, Bs::AbstractArray...
 )
   f_pres = ZeroPreserving(f, A, Bs...)
-  return @interface I map(f_pres, A, Bs...)
+  return map_sparsearray(f_pres, A, Bs...)
 end
-@interface I::AbstractSparseArrayInterface function Base.map(
-  f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray...
-)
+
+# This isn't an overload of `Base.map` since that leads to ambiguity errors. 
+function map_sparsearray(f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray...)
   T = Base.Broadcast.combine_eltypes(f.f, (A, Bs...))
-  C = similar(I, T, size(A))
-  return @interface I map!(f, C, A, Bs...)
+  C = similar(A, T)
+  # TODO: Instead use:
+  # U = map(f.f, map(unstored, (A, Bs...))...)
+  # C = similar(A, Unstored(U))
+  return map_sparsearray!(f, C, A, Bs...)
 end
 
 @interface I::AbstractSparseArrayInterface function Base.map!(
   f, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
 )
   f_pres = ZeroPreserving(f, A, Bs...)
-  return @interface I map!(f_pres, C, A, Bs...)
+  return map_sparsearray!(f_pres, C, A, Bs...)
 end
 
-@interface ::AbstractSparseArrayInterface function Base.map!(
+# This isn't an overload of `Base.map!` since that leads to ambiguity errors. 
+function map_sparsearray!(
   f::ZeroPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
 )
   checkshape(C, A, Bs...)
   unaliased = map(Base.Fix1(Base.unalias, C), (A, Bs...))
-
   if f isa StrongPreserving
     style = IndexStyle(C, unaliased...)
     inds = intersect(eachstoredindex.(Ref(style), unaliased)...)
@@ -107,19 +110,20 @@ end
   else
     error(lazy"unknown zero-preserving type $(typeof(f))")
   end
-
   @inbounds for I in inds
     C[I] = f.f(ith_all(I, unaliased)...)
   end
-
   return C
 end
 
 # Derived functions
 # -----------------
-@interface I::AbstractSparseArrayInterface Base.copyto!(C::AbstractArray, A::AbstractArray) = @interface I map!(
-  identity, C, A
+@interface I::AbstractSparseArrayInterface function Base.copyto!(
+  dest::AbstractArray, src::AbstractArray
 )
+  @interface I map!(identity, dest, src)
+  return dest
+end
 
 # Only map the stored values of the inputs.
 function map_stored! end

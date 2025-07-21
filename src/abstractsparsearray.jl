@@ -85,7 +85,12 @@ function Base._cat(dims, a::AnyAbstractSparseArray...)
   return concatenate(dims, a...)
 end
 
+# TODO: Use `map(WeakPreserving(f), a)` instead.
+# Currently that has trouble with type unstable maps, since
+# the element type becomes abstract and therefore the zero/unstored
+# values are not well defined.
 function map_stored(f, a::AnyAbstractSparseArray)
+  iszero(storedlength(a)) && return a
   kvs = storedpairs(a)
   # `collect` to convert to `Vector`, since otherwise
   # if it stays as `Dictionary` we might hit issues like
@@ -102,6 +107,10 @@ end
 
 using Adapt: adapt
 function Base.print_array(io::IO, a::AnyAbstractSparseArray)
+  # TODO: Use `map(WeakPreserving(adapt(Array)), a)` instead.
+  # Currently that has trouble with type unstable maps, since
+  # the element type becomes abstract and therefore the zero/unstored
+  # values are not well defined.
   a′ = map_stored(adapt(Array), a)
   return @invoke Base.print_array(io::typeof(io), a′::AbstractArray{<:Any,ndims(a)})
 end
