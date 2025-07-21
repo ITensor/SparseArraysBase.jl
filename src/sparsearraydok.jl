@@ -2,10 +2,6 @@ using Accessors: @set
 using DerivableInterfaces: DerivableInterfaces, @interface, interface, zero!
 using Dictionaries: Dictionary, IndexError, set!
 
-function getzero(a::AbstractArray{<:Any,N}, I::Vararg{Int,N}) where {N}
-  return zero(eltype(a))
-end
-
 const DOKStorage{T,N} = Dictionary{CartesianIndex{N},T}
 
 function _SparseArrayDOK end
@@ -13,53 +9,60 @@ function _SparseArrayDOK end
 """
     SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
 
-`N`-dimensional sparse Dictionary-of-keys (DOK) array with elements of type `T`,
-optionally with a function of type `F` to instantiate non-stored elements.
+`N`-dimensional sparse dictionary-of-keys (DOK) array with elements of type `T`,
+with a specified background of unstored values `unstored` of the size of the array.
 """
-struct SparseArrayDOK{T,N,F} <: AbstractSparseArray{T,N}
+struct SparseArrayDOK{T,N,Unstored<:AbstractArray{T,N}} <: AbstractSparseArray{T,N}
   storage::DOKStorage{T,N}
-  size::NTuple{N,Int}
-  getunstored::F
+  unstored::Unstored
   global @inline function _SparseArrayDOK(
-    storage::DOKStorage{T,N}, size::Dims{N}, getunstored::F
-  ) where {T,N,F}
-    return new{T,N,F}(storage, size, getunstored)
+    storage::DOKStorage{T,N}, unstored::Unstored
+  ) where {T,N,Unstored<:AbstractArray{T,N}}
+    return new{T,N,Unstored}(storage, unstored)
   end
+end
+
+unstored(a::SparseArrayDOK) = a.unstored
+Base.size(a::SparseArrayDOK) = size(unstored(a))
+Base.axes(a::SparseArrayDOK) = axes(unstored(a))
+
+function SparseArrayDOK{T,N}(a::Unstored) where {T,N}
+  storage = DOKStorage{T,N}()
+  return _SparseArrayDOK(storage, parent(a))
+end
+function SparseArrayDOK{T}(a::Unstored) where {T}
+  return SparseArrayDOK{T,ndims(a)}(a)
+end
+function SparseArrayDOK{<:Any,N}(a::Unstored) where {N}
+  return SparseArrayDOK{eltype(a),N}(a)
+end
+function SparseArrayDOK(a::Unstored)
+  return SparseArrayDOK{eltype(a),ndims(a)}(a)
 end
 
 # Constructors
 # ------------
 """
-    SparseArrayDOK{T}(undef, dims...[; getunstored])
-    SparseArrayDOK{T,N}(undef, dims...[; getunstored])
+    SparseArrayDOK{T}(undef, dims...)
+    SparseArrayDOK{T,N}(undef, dims...)
 
 Construct an uninitialized `N`-dimensional [`SparseArrayDOK`](@ref) containing
 elements of type `T`. `N` can either be supplied explicitly, or be determined by
 the length or number of `dims`.
 """
-SparseArrayDOK{T,N}(::UndefInitializer, dims; kwargs...)
+SparseArrayDOK{T,N}(::UndefInitializer, dims...)
 
-function SparseArrayDOK{T,N}(
-  ::UndefInitializer, dims::Dims; getunstored=getzero
-) where {T,N}
-  (length(dims) == N && all(≥(0), dims)) ||
-    throw(ArgumentError("Invalid dimensions: $dims"))
-  storage = DOKStorage{T,N}()
-  return _SparseArrayDOK(storage, dims, getunstored)
+function SparseArrayDOK{T,N}(::UndefInitializer, ax::Tuple{Vararg{Any,N}}) where {T,N}
+  return SparseArrayDOK{T,N}(Unstored(Zeros{T}(ax)))
 end
-function SparseArrayDOK{T,N}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) where {T,N}
-  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
+function SparseArrayDOK{T}(::UndefInitializer, ax::Tuple{Vararg{Any,N}}) where {T,N}
+  return SparseArrayDOK{T,N}(undef, ax)
 end
-function SparseArrayDOK{T}(::UndefInitializer, dims::Dims{N}; kwargs...) where {T,N}
-  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
+function SparseArrayDOK{T,N}(::UndefInitializer, ax::Vararg{Int,N}) where {T,N}
+  return SparseArrayDOK{T,N}(undef, ax)
 end
-function SparseArrayDOK{T}(::UndefInitializer, dims::Vararg{Int,N}; kwargs...) where {T,N}
-  return SparseArrayDOK{T,N}(undef, dims; kwargs...)
-end
-
-function set_getunstored(a::SparseArrayDOK, f)
-  @set a.getunstored = f
-  return a
+function SparseArrayDOK{T}(::UndefInitializer, ax::Vararg{Any,N}) where {T,N}
+  return SparseArrayDOK{T,N}(undef, ax)
 end
 
 using DerivableInterfaces: DerivableInterfaces
@@ -73,7 +76,6 @@ using DerivableInterfaces: @array_aliases
 @array_aliases SparseArrayDOK
 
 storage(a::SparseArrayDOK) = a.storage
-Base.size(a::SparseArrayDOK) = a.size
 
 storedvalues(a::SparseArrayDOK) = values(storage(a))
 @inline function isstored(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
@@ -89,7 +91,7 @@ end
 end
 @inline function getunstoredindex(a::SparseArrayDOK{<:Any,N}, I::Vararg{Int,N}) where {N}
   @boundscheck checkbounds(a, I...)
-  return a.getunstored(a, I...)
+  return unstored(a)[I...]
 end
 @inline function setstoredindex!(
   a::SparseArrayDOK{<:Any,N}, value, I::Vararg{Int,N}
