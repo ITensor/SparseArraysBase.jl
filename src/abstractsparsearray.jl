@@ -15,14 +15,33 @@ function Base.copy(a::AnyAbstractSparseArray)
   return copyto!(similar(a), a)
 end
 
+function similar_sparsearray(a::AnyAbstractSparseArray, unstored::Unstored)
+  return SparseArrayDOK(unstored)
+end
+function similar_sparsearray(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
+  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
+end
+function similar_sparsearray(a::AnyAbstractSparseArray, T::Type)
+  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), T)))
+end
+function similar_sparsearray(a::AnyAbstractSparseArray, ax::Tuple)
+  return similar_sparsearray(a, Unstored(unstoredsimilar(unstored(a), ax)))
+end
+function similar_sparsearray(a::AnyAbstractSparseArray)
+  return similar_sparsearray(a, Unstored(unstored(a)))
+end
+
+function Base.similar(a::AnyAbstractSparseArray, unstored::Unstored)
+  return similar_sparsearray(a, unstored)
+end
 function Base.similar(a::AnyAbstractSparseArray)
-  return SparseArrayDOK(Unstored(unstored(a)))
+  return similar_sparsearray(a)
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type)
-  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T)))
+  return similar_sparsearray(a, T)
 end
 function Base.similar(a::AnyAbstractSparseArray, ax::Tuple)
-  return similar(a, eltype(a), ax)
+  return similar_sparsearray(a, ax)
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
   return similar_sparsearray(a, T, ax)
@@ -38,9 +57,6 @@ function Base.similar(
   ax::Tuple{Union{Integer,Base.OneTo},Vararg{Union{Integer,Base.OneTo}}},
 )
   return similar_sparsearray(a, T, ax)
-end
-function similar_sparsearray(a::AnyAbstractSparseArray, T::Type, ax::Tuple)
-  return SparseArrayDOK(Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 
 using DerivableInterfaces: @derive

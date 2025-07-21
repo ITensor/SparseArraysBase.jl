@@ -79,8 +79,11 @@ function map_sparsearray(f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray.
   T = Base.Broadcast.combine_eltypes(f.f, (A, Bs...))
   C = similar(A, T)
   # TODO: Instead use:
+  # ```julia
   # U = map(f.f, map(unstored, (A, Bs...))...)
   # C = similar(A, Unstored(U))
+  # ```
+  # though right now `map` doesn't preserve `Zeros` or `BlockZeros`.
   return map_sparsearray!(f, C, A, Bs...)
 end
 
