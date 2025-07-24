@@ -20,6 +20,8 @@ struct Unstored{T,N,P<:AbstractArray{T,N}} <: AbstractArray{T,N}
   parent::P
 end
 Base.parent(a::Unstored) = a.parent
+Base.size(a::Unstored) = size(parent(a))
+Base.axes(a::Unstored) = axes(parent(a))
 
 unstored(a::AbstractArray) = Zeros{eltype(a)}(axes(a))
 
