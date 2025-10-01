@@ -13,7 +13,7 @@ Obtain `getindex(A, I...)` with the guarantee that there is a stored entry at th
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
 @inline getstoredindex(A::AbstractArray, I...) = @interface interface(A) getstoredindex(
-  A, I...
+    A, I...
 )
 
 """
@@ -27,7 +27,7 @@ instantiated object.
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
 @inline getunstoredindex(A::AbstractArray, I...) = @interface interface(A) getunstoredindex(
-  A, I...
+    A, I...
 )
 
 """
@@ -49,7 +49,7 @@ Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
 @inline setstoredindex!(A::AbstractArray, v, I...) = @interface interface(A) setstoredindex!(
-  A, v, I...
+    A, v, I...
 )
 
 """
@@ -60,7 +60,7 @@ Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
 @inline setunstoredindex!(A::AbstractArray, v, I...) = @interface interface(A) setunstoredindex!(
-  A, v, I...
+    A, v, I...
 )
 
 # Indices interface
@@ -109,12 +109,12 @@ to be the same as [`eachstoredindex`](@ref).
 """
 function storedvalues end
 
-@derive (T=AbstractArray,) begin
-  SparseArraysBase.eachstoredindex(::T...)
-  SparseArraysBase.eachstoredindex(::IndexStyle, ::T...)
-  SparseArraysBase.storedlength(::T)
-  SparseArraysBase.storedpairs(::T)
-  SparseArraysBase.storedvalues(::T)
+@derive (T = AbstractArray,) begin
+    SparseArraysBase.eachstoredindex(::T...)
+    SparseArraysBase.eachstoredindex(::IndexStyle, ::T...)
+    SparseArraysBase.storedlength(::T)
+    SparseArraysBase.storedpairs(::T)
+    SparseArraysBase.storedvalues(::T)
 end
 
 # canonical indexing
@@ -124,126 +124,126 @@ end
 #   f(::AbstractArray{<:Any,N}, I::Vararg{Int,N}) if IndexCartesian
 
 for f in (:isstored, :getunstoredindex, :getstoredindex)
-  _f = Symbol(:_, f)
-  error_if_canonical = Symbol(:error_if_canonical_, f)
-  @eval begin
-    @interface ::AbstractArrayInterface function $f(A::AbstractArray, I...)
-      @_propagate_inbounds_meta
-      style = IndexStyle(A)
-      $error_if_canonical(style, A, I...)
-      return $_f(style, A, Base.to_indices(A, I)...)
-    end
+    _f = Symbol(:_, f)
+    error_if_canonical = Symbol(:error_if_canonical_, f)
+    @eval begin
+        @interface ::AbstractArrayInterface function $f(A::AbstractArray, I...)
+            @_propagate_inbounds_meta
+            style = IndexStyle(A)
+            $error_if_canonical(style, A, I...)
+            return $_f(style, A, Base.to_indices(A, I)...)
+        end
 
-    # linear indexing
-    @inline $_f(::IndexLinear, A::AbstractVector, i::Int) = $f(A, i)
-    @inline $_f(::IndexLinear, A::AbstractArray, i::Int) = $f(A, i)
-    @inline function $_f(::IndexLinear, A::AbstractArray, I::Vararg{Int,M}) where {M}
-      @boundscheck checkbounds(A, I...)
-      return @inbounds $f(A, Base._to_linear_index(A, I...))
-    end
+        # linear indexing
+        @inline $_f(::IndexLinear, A::AbstractVector, i::Int) = $f(A, i)
+        @inline $_f(::IndexLinear, A::AbstractArray, i::Int) = $f(A, i)
+        @inline function $_f(::IndexLinear, A::AbstractArray, I::Vararg{Int, M}) where {M}
+            @boundscheck checkbounds(A, I...)
+            return @inbounds $f(A, Base._to_linear_index(A, I...))
+        end
 
-    # cartesian indexing
-    @inline function $_f(::IndexCartesian, A::AbstractArray, I::Vararg{Int,M}) where {M}
-      @boundscheck checkbounds(A, I...)
-      return @inbounds $f(A, Base._to_subscript_indices(A, I...)...)
-    end
-    @inline function $_f(
-      ::IndexCartesian, A::AbstractArray{<:Any,N}, I::Vararg{Int,N}
-    ) where {N}
-      return $f(A, I...)
-    end
+        # cartesian indexing
+        @inline function $_f(::IndexCartesian, A::AbstractArray, I::Vararg{Int, M}) where {M}
+            @boundscheck checkbounds(A, I...)
+            return @inbounds $f(A, Base._to_subscript_indices(A, I...)...)
+        end
+        @inline function $_f(
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, I::Vararg{Int, N}
+            ) where {N}
+            return $f(A, I...)
+        end
 
-    # errors
-    $_f(::IndexStyle, A::AbstractArray, I...) = error(
-      "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
-    )
+        # errors
+        $_f(::IndexStyle, A::AbstractArray, I...) = error(
+            "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+        )
 
-    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-      Base.CanonicalIndexError("$($f)", typeof(A))
-    )
-    $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}) where {N} = throw(
-      Base.CanonicalIndexError("$($f)", typeof(A))
-    )
-    $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
-  end
+        $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
+            Base.CanonicalIndexError("$($f)", typeof(A))
+        )
+        $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}) where {N} = throw(
+            Base.CanonicalIndexError("$($f)", typeof(A))
+        )
+        $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
+    end
 end
 
 for f! in (:setunstoredindex!, :setstoredindex!)
-  _f! = Symbol(:_, f!)
-  error_if_canonical = Symbol(:error_if_canonical_, f!)
-  @eval begin
-    @interface ::AbstractArrayInterface function $f!(A::AbstractArray, v, I...)
-      @_propagate_inbounds_meta
-      style = IndexStyle(A)
-      $error_if_canonical(style, A, I...)
-      return $_f!(style, A, v, Base.to_indices(A, I)...)
-    end
+    _f! = Symbol(:_, f!)
+    error_if_canonical = Symbol(:error_if_canonical_, f!)
+    @eval begin
+        @interface ::AbstractArrayInterface function $f!(A::AbstractArray, v, I...)
+            @_propagate_inbounds_meta
+            style = IndexStyle(A)
+            $error_if_canonical(style, A, I...)
+            return $_f!(style, A, v, Base.to_indices(A, I)...)
+        end
 
-    # linear indexing
-    @inline $_f!(::IndexLinear, A::AbstractVector, v, i::Int) = $f!(A, v, i)
-    @inline $_f!(::IndexLinear, A::AbstractArray, v, i::Int) = $f!(A, v, i)
-    @inline function $_f!(::IndexLinear, A::AbstractArray, v, I::Vararg{Int,M}) where {M}
-      @boundscheck checkbounds(A, I...)
-      return @inbounds $f!(A, v, Base._to_linear_index(A, I...))
-    end
+        # linear indexing
+        @inline $_f!(::IndexLinear, A::AbstractVector, v, i::Int) = $f!(A, v, i)
+        @inline $_f!(::IndexLinear, A::AbstractArray, v, i::Int) = $f!(A, v, i)
+        @inline function $_f!(::IndexLinear, A::AbstractArray, v, I::Vararg{Int, M}) where {M}
+            @boundscheck checkbounds(A, I...)
+            return @inbounds $f!(A, v, Base._to_linear_index(A, I...))
+        end
 
-    # cartesian indexing
-    @inline function $_f!(::IndexCartesian, A::AbstractArray, v, I::Vararg{Int,M}) where {M}
-      @boundscheck checkbounds(A, I...)
-      return @inbounds $f!(A, v, Base._to_subscript_indices(A, I...)...)
-    end
-    @inline function $_f!(
-      ::IndexCartesian, A::AbstractArray{<:Any,N}, v, I::Vararg{Int,N}
-    ) where {N}
-      return $f!(A, v, I...)
-    end
+        # cartesian indexing
+        @inline function $_f!(::IndexCartesian, A::AbstractArray, v, I::Vararg{Int, M}) where {M}
+            @boundscheck checkbounds(A, I...)
+            return @inbounds $f!(A, v, Base._to_subscript_indices(A, I...)...)
+        end
+        @inline function $_f!(
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N}
+            ) where {N}
+            return $f!(A, v, I...)
+        end
 
-    # errors
-    $_f!(::IndexStyle, A::AbstractArray, I...) = error(
-      "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
-    )
+        # errors
+        $_f!(::IndexStyle, A::AbstractArray, I...) = error(
+            "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+        )
 
-    $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-      Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
-    )
-    $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any,N}, ::Vararg{Int,N}) where {N} = throw(
-      Base.CanonicalIndexError("$($f!)", typeof(A))
-    )
-    $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
-  end
+        $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
+            Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
+        )
+        $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}) where {N} = throw(
+            Base.CanonicalIndexError("$($f!)", typeof(A))
+        )
+        $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
+    end
 end
 
 # AbstractArrayInterface fallback definitions
 # -------------------------------------------
 @interface ::AbstractArrayInterface function isstored(A::AbstractArray, i::Int, I::Int...)
-  @inline
-  @boundscheck checkbounds(A, i, I...)
-  return true
+    @inline
+    @boundscheck checkbounds(A, i, I...)
+    return true
 end
 
 @interface ::AbstractArrayInterface function getunstoredindex(A::AbstractArray, I::Int...)
-  @inline
-  @boundscheck checkbounds(A, I...)
-  return zero(eltype(A))
+    @inline
+    @boundscheck checkbounds(A, I...)
+    return zero(eltype(A))
 end
 @interface ::AbstractArrayInterface function getstoredindex(A::AbstractArray, I::Int...)
-  @inline
-  return getindex(A, I...)
+    @inline
+    return getindex(A, I...)
 end
 
 @interface ::AbstractArrayInterface function setstoredindex!(A::AbstractArray, v, I::Int...)
-  @inline
-  return setindex!(A, v, I...)
+    @inline
+    return setindex!(A, v, I...)
 end
 @interface ::AbstractArrayInterface setunstoredindex!(A::AbstractArray, v, I::Int...) = error(
-  "setunstoredindex! for $(typeof(A)) is not supported"
+    "setunstoredindex! for $(typeof(A)) is not supported"
 )
 
 @interface ::AbstractArrayInterface eachstoredindex(A::AbstractArray, B::AbstractArray...) = eachstoredindex(
-  IndexStyle(A, B...), A, B...
+    IndexStyle(A, B...), A, B...
 )
 @interface ::AbstractArrayInterface eachstoredindex(style::IndexStyle, A::AbstractArray, B::AbstractArray...) = eachindex(
-  style, A, B...
+    style, A, B...
 )
 
 @interface ::AbstractArrayInterface storedvalues(A::AbstractArray) = values(A)
@@ -255,86 +255,86 @@ end
 # canonical errors are moved to `isstored`, `getstoredindex` and `getunstoredindex`
 # so no errors at this level by defining both IndexLinear and IndexCartesian
 @interface ::AbstractSparseArrayInterface function Base.getindex(
-  A::AbstractArray{<:Any,N}, I::Vararg{Int,N}
-) where {N}
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
-  return @inbounds isstored(A, I...) ? getstoredindex(A, I...) : getunstoredindex(A, I...)
+        A::AbstractArray{<:Any, N}, I::Vararg{Int, N}
+    ) where {N}
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
+    return @inbounds isstored(A, I...) ? getstoredindex(A, I...) : getunstoredindex(A, I...)
 end
 @interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractArray, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I)
+    return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
 end
 # disambiguate vectors
 @interface ::AbstractSparseArrayInterface function Base.getindex(A::AbstractVector, I::Int)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I)
+    return @inbounds isstored(A, I) ? getstoredindex(A, I) : getunstoredindex(A, I)
 end
 
 @interface ::AbstractSparseArrayInterface function Base.setindex!(
-  A::AbstractArray{<:Any,N}, v, I::Vararg{Int,N}
-) where {N}
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I...)
-  return @inbounds if isstored(A, I...)
-    setstoredindex!(A, v, I...)
-  else
-    setunstoredindex!(A, v, I...)
-  end
+        A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N}
+    ) where {N}
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I...)
+    return @inbounds if isstored(A, I...)
+        setstoredindex!(A, v, I...)
+    else
+        setunstoredindex!(A, v, I...)
+    end
 end
 @interface ::AbstractSparseArrayInterface function Base.setindex!(
-  A::AbstractArray, v, I::Int
-)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds if isstored(A, I)
-    setstoredindex!(A, v, I)
-  else
-    setunstoredindex!(A, v, I)
-  end
+        A::AbstractArray, v, I::Int
+    )
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I)
+    return @inbounds if isstored(A, I)
+        setstoredindex!(A, v, I)
+    else
+        setunstoredindex!(A, v, I)
+    end
 end
 # disambiguate vectors
 @interface ::AbstractSparseArrayInterface function Base.setindex!(
-  A::AbstractVector, v, I::Int
-)
-  @_propagate_inbounds_meta
-  @boundscheck checkbounds(A, I)
-  return @inbounds if isstored(A, I)
-    setstoredindex!(A, v, I)
-  else
-    setunstoredindex!(A, v, I)
-  end
+        A::AbstractVector, v, I::Int
+    )
+    @_propagate_inbounds_meta
+    @boundscheck checkbounds(A, I)
+    return @inbounds if isstored(A, I)
+        setstoredindex!(A, v, I)
+    else
+        setunstoredindex!(A, v, I)
+    end
 end
 
 @noinline function error_if_canonical_eachstoredindex(style::IndexStyle, A::AbstractArray)
-  style === IndexStyle(A) && throw(Base.CanonicalIndexError("eachstoredindex", typeof(A)))
-  return nothing
+    style === IndexStyle(A) && throw(Base.CanonicalIndexError("eachstoredindex", typeof(A)))
+    return nothing
 end
 
 # required: one implementation for canonical index style
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
-  style::IndexStyle, A::AbstractArray
-)
-  error_if_canonical_eachstoredindex(style, A)
-  inds = eachstoredindex(A)
-  if style === IndexCartesian()
-    eltype(inds) === CartesianIndex{ndims(A)} && return inds
-    return map(Base.Fix1(Base.getindex, CartesianIndices(A)), inds)
-  elseif style === IndexLinear()
-    eltype(inds) === Int && return inds
-    return map(Base.Fix1(Base.getindex, LinearIndices(A)), inds)
-  else
-    error(lazy"unkown index style $style")
-  end
+        style::IndexStyle, A::AbstractArray
+    )
+    error_if_canonical_eachstoredindex(style, A)
+    inds = eachstoredindex(A)
+    if style === IndexCartesian()
+        eltype(inds) === CartesianIndex{ndims(A)} && return inds
+        return map(Base.Fix1(Base.getindex, CartesianIndices(A)), inds)
+    elseif style === IndexLinear()
+        eltype(inds) === Int && return inds
+        return map(Base.Fix1(Base.getindex, LinearIndices(A)), inds)
+    else
+        error(lazy"unkown index style $style")
+    end
 end
 
 # derived but may be specialized:
 @interface ::AbstractSparseArrayInterface function eachstoredindex(
-  style::IndexStyle, A::AbstractArray, B::AbstractArray...
-)
-  return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
+        style::IndexStyle, A::AbstractArray, B::AbstractArray...
+    )
+    return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
 end
 
 @interface ::AbstractSparseArrayInterface storedvalues(A::AbstractArray) = StoredValues(A)
@@ -343,74 +343,74 @@ end
 # implementation, so we check this and otherwise map back to `_isstored` to canonicalize the
 # indices
 @interface ::AbstractSparseArrayInterface function isstored(A::AbstractArray, I::Int...)
-  @_propagate_inbounds_meta
-  style = IndexStyle(A)
-  # canonical linear indexing
-  if style == IndexLinear() && length(I) == 1
-    @boundscheck checkbounds(A, I...)
-    return only(I) in eachstoredindex(style, A)
-  end
+    @_propagate_inbounds_meta
+    style = IndexStyle(A)
+    # canonical linear indexing
+    if style == IndexLinear() && length(I) == 1
+        @boundscheck checkbounds(A, I...)
+        return only(I) in eachstoredindex(style, A)
+    end
 
-  # canonical cartesian indexing
-  if style == IndexCartesian() && length(I) == ndims(A)
-    @boundscheck checkbounds(A, I...)
-    return CartesianIndex(I...) in eachstoredindex(style, A)
-  end
+    # canonical cartesian indexing
+    if style == IndexCartesian() && length(I) == ndims(A)
+        @boundscheck checkbounds(A, I...)
+        return CartesianIndex(I...) in eachstoredindex(style, A)
+    end
 
-  # non-canonical indexing
-  return _isstored(style, A, Base.to_indices(A, I)...)
+    # non-canonical indexing
+    return _isstored(style, A, Base.to_indices(A, I)...)
 end
 
 @interface ::AbstractSparseArrayInterface function getunstoredindex(
-  A::AbstractArray, I::Int...
-)
-  @_propagate_inbounds_meta
-  style = IndexStyle(A)
+        A::AbstractArray, I::Int...
+    )
+    @_propagate_inbounds_meta
+    style = IndexStyle(A)
 
-  # canonical linear indexing
-  if style == IndexLinear() && length(I) == 1
-    @boundscheck checkbounds(A, I...)
-    return zero(eltype(A))
-  end
+    # canonical linear indexing
+    if style == IndexLinear() && length(I) == 1
+        @boundscheck checkbounds(A, I...)
+        return zero(eltype(A))
+    end
 
-  # canonical cartesian indexing
-  if style == IndexCartesian() && length(I) == ndims(A)
-    @boundscheck checkbounds(A, I...)
-    return zero(eltype(A))
-  end
+    # canonical cartesian indexing
+    if style == IndexCartesian() && length(I) == ndims(A)
+        @boundscheck checkbounds(A, I...)
+        return zero(eltype(A))
+    end
 
-  # non-canonical indexing
-  return _getunstoredindex(style, A, Base.to_indices(A, I)...)
+    # non-canonical indexing
+    return _getunstoredindex(style, A, Base.to_indices(A, I)...)
 end
 
 # make sure we don't call AbstractArrayInterface defaults
 @interface ::AbstractSparseArrayInterface function getstoredindex(
-  A::AbstractArray, I::Int...
-)
-  @_propagate_inbounds_meta
-  style = IndexStyle(A)
-  error_if_canonical_getstoredindex(style, A, I...)
-  return _getstoredindex(style, A, Base.to_indices(A, I)...)
+        A::AbstractArray, I::Int...
+    )
+    @_propagate_inbounds_meta
+    style = IndexStyle(A)
+    error_if_canonical_getstoredindex(style, A, I...)
+    return _getstoredindex(style, A, Base.to_indices(A, I)...)
 end
 
 for f! in (:setstoredindex!, :setunstoredindex!)
-  _f! = Symbol(:_, f!)
-  error_if_canonical_setstoredindex = Symbol(:error_if_canonical_, f!)
-  @eval begin
-    @interface ::AbstractSparseArrayInterface function $f!(A::AbstractArray, v, I::Int...)
-      @_propagate_inbounds_meta
-      style = IndexStyle(A)
-      $error_if_canonical_setstoredindex(style, A, I...)
-      return $_f!(style, A, v, Base.to_indices(A, I)...)
+    _f! = Symbol(:_, f!)
+    error_if_canonical_setstoredindex = Symbol(:error_if_canonical_, f!)
+    @eval begin
+        @interface ::AbstractSparseArrayInterface function $f!(A::AbstractArray, v, I::Int...)
+            @_propagate_inbounds_meta
+            style = IndexStyle(A)
+            $error_if_canonical_setstoredindex(style, A, I...)
+            return $_f!(style, A, v, Base.to_indices(A, I)...)
+        end
     end
-  end
 end
 
 @interface ::AbstractSparseArrayInterface storedlength(A::AbstractArray) = length(
-  storedvalues(A)
+    storedvalues(A)
 )
 @interface ::AbstractSparseArrayInterface function storedpairs(A::AbstractArray)
-  return Iterators.map(I -> (I => A[I]), eachstoredindex(A))
+    return Iterators.map(I -> (I => A[I]), eachstoredindex(A))
 end
 
 #=
@@ -422,15 +422,15 @@ eg: ArrayLayouts.@layoutgetindex ArrayType
 TODO: decide if we need the interface approach at all here
 =#
 for (Tr, Tc) in Iterators.product(
-  Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
-)
-  Tr === Tc === :Integer && continue
-  @eval begin
-    @interface ::AbstractSparseArrayInterface function Base.getindex(
-      A::AbstractMatrix, kr::$Tr, jr::$Tc
+        Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
     )
-      Base.@inline # needed to make boundschecks work
-      return ArrayLayouts.layout_getindex(A, kr, jr)
+    Tr === Tc === :Integer && continue
+    @eval begin
+        @interface ::AbstractSparseArrayInterface function Base.getindex(
+                A::AbstractMatrix, kr::$Tr, jr::$Tc
+            )
+            Base.@inline # needed to make boundschecks work
+            return ArrayLayouts.layout_getindex(A, kr, jr)
+        end
     end
-  end
 end

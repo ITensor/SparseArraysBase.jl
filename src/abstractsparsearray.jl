@@ -1,6 +1,6 @@
 using Dictionaries: AbstractDictionary
 
-abstract type AbstractSparseArray{T,N} <: AbstractArray{T,N} end
+abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
 
 using DerivableInterfaces: @array_aliases
 # Define AbstractSparseVector, AnyAbstractSparseArray, etc.
@@ -8,43 +8,43 @@ using DerivableInterfaces: @array_aliases
 
 using DerivableInterfaces: DerivableInterfaces
 function DerivableInterfaces.interface(::Type{<:AbstractSparseArray})
-  return SparseArrayInterface()
+    return SparseArrayInterface()
 end
 
 function Base.copy(a::AnyAbstractSparseArray)
-  return copyto!(similar(a), a)
+    return copyto!(similar(a), a)
 end
 
 function Base.similar(a::AnyAbstractSparseArray, unstored::Unstored)
-  return SparseArrayDOK(undef, unstored)
+    return SparseArrayDOK(undef, unstored)
 end
 function Base.similar(a::AnyAbstractSparseArray)
-  return similar(a, Unstored(unstored(a)))
+    return similar(a, Unstored(unstored(a)))
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type)
-  return similar(a, Unstored(unstoredsimilar(unstored(a), T)))
+    return similar(a, Unstored(unstoredsimilar(unstored(a), T)))
 end
 function Base.similar(a::AnyAbstractSparseArray, ax::Tuple)
-  return similar(a, Unstored(unstoredsimilar(unstored(a), ax)))
+    return similar(a, Unstored(unstoredsimilar(unstored(a), ax)))
 end
 
 function similar_sparsearray(a::AbstractArray, T::Type, ax::Tuple)
-  return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
+    return similar(a, Unstored(unstoredsimilar(unstored(a), T, ax)))
 end
 function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Vararg{Int}})
-  return similar_sparsearray(a, T, ax)
+    return similar_sparsearray(a, T, ax)
 end
 function Base.similar(
-  a::AnyAbstractSparseArray, T::Type, ax::Tuple{Integer,Vararg{Integer}}
-)
-  return similar_sparsearray(a, T, ax)
+        a::AnyAbstractSparseArray, T::Type, ax::Tuple{Integer, Vararg{Integer}}
+    )
+    return similar_sparsearray(a, T, ax)
 end
 function Base.similar(
-  a::AnyAbstractSparseArray,
-  T::Type,
-  ax::Tuple{Union{Integer,Base.OneTo},Vararg{Union{Integer,Base.OneTo}}},
-)
-  return similar_sparsearray(a, T, ax)
+        a::AnyAbstractSparseArray,
+        T::Type,
+        ax::Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo}}},
+    )
+    return similar_sparsearray(a, T, ax)
 end
 
 using DerivableInterfaces: @derive
@@ -56,29 +56,29 @@ using DerivableInterfaces: @derive
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-@derive (T=AnyAbstractSparseArray,) begin
-  Base.getindex(::T, ::Any...)
-  Base.getindex(::T, ::Int...)
-  Base.setindex!(::T, ::Any, ::Any...)
-  Base.setindex!(::T, ::Any, ::Int...)
-  Base.copy!(::AbstractArray, ::T)
-  Base.copyto!(::AbstractArray, ::T)
-  Base.map(::Any, ::T...)
-  Base.map!(::Any, ::AbstractArray, ::T...)
-  Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
-  Base.reduce(::Any, ::T...; kwargs...)
-  Base.all(::Function, ::T)
-  Base.all(::T)
-  Base.iszero(::T)
-  Base.real(::T)
-  Base.fill!(::T, ::Any)
-  DerivableInterfaces.zero!(::T)
-  Base.zero(::T)
-  Base.permutedims!(::Any, ::T, ::Any)
-  Broadcast.BroadcastStyle(::Type{<:T})
-  Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
-  ArrayLayouts.MemoryLayout(::Type{<:T})
-  LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
+@derive (T = AnyAbstractSparseArray,) begin
+    Base.getindex(::T, ::Any...)
+    Base.getindex(::T, ::Int...)
+    Base.setindex!(::T, ::Any, ::Any...)
+    Base.setindex!(::T, ::Any, ::Int...)
+    Base.copy!(::AbstractArray, ::T)
+    Base.copyto!(::AbstractArray, ::T)
+    Base.map(::Any, ::T...)
+    Base.map!(::Any, ::AbstractArray, ::T...)
+    Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
+    Base.reduce(::Any, ::T...; kwargs...)
+    Base.all(::Function, ::T)
+    Base.all(::T)
+    Base.iszero(::T)
+    Base.real(::T)
+    Base.fill!(::T, ::Any)
+    DerivableInterfaces.zero!(::T)
+    Base.zero(::T)
+    Base.permutedims!(::Any, ::T, ::Any)
+    Broadcast.BroadcastStyle(::Type{<:T})
+    Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
+    ArrayLayouts.MemoryLayout(::Type{<:T})
+    LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
 end
 
 using DerivableInterfaces.Concatenate: concatenate
@@ -86,7 +86,7 @@ using DerivableInterfaces.Concatenate: concatenate
 # is friendlier for invalidations/compile times, see
 # https://github.com/ITensor/SparseArraysBase.jl/issues/25.
 function Base._cat(dims, a::AnyAbstractSparseArray...)
-  return concatenate(dims, a...)
+    return concatenate(dims, a...)
 end
 
 # TODO: Use `map(WeakPreserving(f), a)` instead.
@@ -94,34 +94,34 @@ end
 # the element type becomes abstract and therefore the zero/unstored
 # values are not well defined.
 function map_stored(f, a::AnyAbstractSparseArray)
-  iszero(storedlength(a)) && return a
-  kvs = storedpairs(a)
-  # `collect` to convert to `Vector`, since otherwise
-  # if it stays as `Dictionary` we might hit issues like
-  # https://github.com/andyferris/Dictionaries.jl/issues/163.
-  ks = collect(first.(kvs))
-  vs = collect(last.(kvs))
-  vs′ = map(f, vs)
-  a′ = zero!(similar(a, eltype(vs′)))
-  for (k, v′) in zip(ks, vs′)
-    a′[k] = v′
-  end
-  return a′
+    iszero(storedlength(a)) && return a
+    kvs = storedpairs(a)
+    # `collect` to convert to `Vector`, since otherwise
+    # if it stays as `Dictionary` we might hit issues like
+    # https://github.com/andyferris/Dictionaries.jl/issues/163.
+    ks = collect(first.(kvs))
+    vs = collect(last.(kvs))
+    vs′ = map(f, vs)
+    a′ = zero!(similar(a, eltype(vs′)))
+    for (k, v′) in zip(ks, vs′)
+        a′[k] = v′
+    end
+    return a′
 end
 
 using Adapt: adapt
 function Base.print_array(io::IO, a::AnyAbstractSparseArray)
-  # TODO: Use `map(WeakPreserving(adapt(Array)), a)` instead.
-  # Currently that has trouble with type unstable maps, since
-  # the element type becomes abstract and therefore the zero/unstored
-  # values are not well defined.
-  a′ = map_stored(adapt(Array), a)
-  return @invoke Base.print_array(io::typeof(io), a′::AbstractArray{<:Any,ndims(a)})
+    # TODO: Use `map(WeakPreserving(adapt(Array)), a)` instead.
+    # Currently that has trouble with type unstable maps, since
+    # the element type becomes abstract and therefore the zero/unstored
+    # values are not well defined.
+    a′ = map_stored(adapt(Array), a)
+    return @invoke Base.print_array(io::typeof(io), a′::AbstractArray{<:Any, ndims(a)})
 end
 function Base.replace_in_print_matrix(
-  a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
-)
-  return isstored(a, i, j) ? s : Base.replace_with_centered_mark(s)
+        a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
+    )
+    return isstored(a, i, j) ? s : Base.replace_with_centered_mark(s)
 end
 
 # Special-purpose constructors
@@ -138,30 +138,30 @@ from the input indices.
 This constructor does not take ownership of the supplied storage, and will result in an
 independent container.
 """
-sparse(::Union{AbstractDict,AbstractDictionary}, dims...)
+sparse(::Union{AbstractDict, AbstractDictionary}, dims...)
 
-const AbstractDictOrDictionary = Union{AbstractDict,AbstractDictionary}
+const AbstractDictOrDictionary = Union{AbstractDict, AbstractDictionary}
 # checked constructor from data: use `setindex!` to validate/convert input
 function sparse(storage::AbstractDictOrDictionary, unstored::AbstractArray)
-  A = SparseArrayDOK(undef, Unstored(unstored))
-  for (i, v) in pairs(storage)
-    A[i] = v
-  end
-  return A
+    A = SparseArrayDOK(undef, Unstored(unstored))
+    for (i, v) in pairs(storage)
+        A[i] = v
+    end
+    return A
 end
 function sparse(storage::AbstractDictOrDictionary, ax::Tuple)
-  return sparse(storage, Zeros{valtype(storage)}(ax))
+    return sparse(storage, Zeros{valtype(storage)}(ax))
 end
 function sparse(storage::AbstractDictOrDictionary, dims::Int...)
-  return sparse(storage, dims)
+    return sparse(storage, dims)
 end
 # Determine the size automatically.
 function sparse(storage::AbstractDictOrDictionary)
-  dims = ntuple(Returns(0), length(keytype(storage)))
-  for I in keys(storage)
-    dims = map(max, dims, Tuple(I))
-  end
-  return sparse(storage, dims)
+    dims = ntuple(Returns(0), length(keytype(storage)))
+    for I in keys(storage)
+        dims = map(max, dims, Tuple(I))
+    end
+    return sparse(storage, dims)
 end
 
 using Random: Random, AbstractRNG, default_rng
@@ -173,14 +173,14 @@ Create an empty size `dims` sparse array.
 The optional `T` argument specifies the element type, which defaults to `Float64`.
 """ sparsezeros
 
-function sparsezeros(::Type{T}, unstored::AbstractArray{<:Any,N}) where {T,N}
-  return SparseArrayDOK{T,N}(undef, Unstored(unstored))
+function sparsezeros(::Type{T}, unstored::AbstractArray{<:Any, N}) where {T, N}
+    return SparseArrayDOK{T, N}(undef, Unstored(unstored))
 end
-function sparsezeros(unstored::AbstractArray{T,N}) where {T,N}
-  return SparseArrayDOK{T,N}(undef, Unstored(unstored))
+function sparsezeros(unstored::AbstractArray{T, N}) where {T, N}
+    return SparseArrayDOK{T, N}(undef, Unstored(unstored))
 end
 function sparsezeros(::Type{T}, dims::Dims) where {T}
-  return sparsezeros(T, Zeros{T}(dims))
+    return sparsezeros(T, Zeros{T}(dims))
 end
 sparsezeros(::Type{T}, dims::Int...) where {T} = sparsezeros(T, dims)
 sparsezeros(dims::Dims) = sparsezeros(Float64, dims)
@@ -200,26 +200,26 @@ See also [`sparserand!`](@ref).
 """ sparserand
 
 function sparserand(::Type{T}, dims::Dims; kwargs...) where {T}
-  return sparserand(default_rng(), T, dims; kwargs...)
+    return sparserand(default_rng(), T, dims; kwargs...)
 end
 function sparserand(::Type{T}, dims::Int...; kwargs...) where {T}
-  return sparserand(T, dims; kwargs...)
+    return sparserand(T, dims; kwargs...)
 end
 sparserand(dims::Dims; kwargs...) = sparserand(default_rng(), Float64, dims; kwargs...)
 sparserand(dims::Int...; kwargs...) = sparserand(dims; kwargs...)
 function sparserand(rng::AbstractRNG, dims::Dims; kwargs...)
-  return sparserand(rng, Float64, dims; kwargs...)
+    return sparserand(rng, Float64, dims; kwargs...)
 end
 function sparserand(rng::AbstractRNG, dims::Int...; kwargs...)
-  return sparserand(rng, dims; kwargs...)
+    return sparserand(rng, dims; kwargs...)
 end
 function sparserand(rng::AbstractRNG, ::Type{T}, dims::Dims; kwargs...) where {T}
-  A = SparseArrayDOK{T}(undef, dims)
-  sparserand!(rng, A; kwargs...)
-  return A
+    A = SparseArrayDOK{T}(undef, dims)
+    sparserand!(rng, A; kwargs...)
+    return A
 end
 function sparserand(rng::AbstractRNG, ::Type{T}, dims::Int...; kwargs...) where {T}
-  return sparserand(rng, T, dims; kwargs...)
+    return sparserand(rng, T, dims; kwargs...)
 end
 
 @doc """
@@ -235,14 +235,14 @@ See also [`sparserand`](@ref).
 
 sparserand!(A::AbstractArray; kwargs...) = sparserand!(default_rng(), A; kwargs...)
 function sparserand!(
-  rng::AbstractRNG, A::AbstractArray; density::Real=0.5, randfun::Function=Random.rand
-)
-  ArrayLayouts.zero!(A)
-  rand_inds = Random.randsubseq(rng, eachindex(A), density)
-  rand_entries = randfun(rng, eltype(A), length(rand_inds))
-  @inbounds for (I, v) in zip(rand_inds, rand_entries)
-    A[I] = v
-  end
+        rng::AbstractRNG, A::AbstractArray; density::Real = 0.5, randfun::Function = Random.rand
+    )
+    ArrayLayouts.zero!(A)
+    rand_inds = Random.randsubseq(rng, eachindex(A), density)
+    rand_entries = randfun(rng, eltype(A), length(rand_inds))
+    return @inbounds for (I, v) in zip(rand_inds, rand_entries)
+        A[I] = v
+    end
 end
 
 # Catch some cases that aren't getting caught by the current
@@ -251,36 +251,36 @@ end
 # is rewritten.
 using ArrayLayouts: ArrayLayouts, MemoryLayout
 using LinearAlgebra: LinearAlgebra, Adjoint
-function ArrayLayouts.MemoryLayout(::Type{Transpose{T,P}}) where {T,P<:AbstractSparseMatrix}
-  return MemoryLayout(P)
+function ArrayLayouts.MemoryLayout(::Type{Transpose{T, P}}) where {T, P <: AbstractSparseMatrix}
+    return MemoryLayout(P)
 end
-function ArrayLayouts.MemoryLayout(::Type{Adjoint{T,P}}) where {T,P<:AbstractSparseMatrix}
-  return MemoryLayout(P)
-end
-function LinearAlgebra.mul!(
-  dest::AbstractMatrix,
-  A::Adjoint{<:Any,<:AbstractSparseMatrix},
-  B::AbstractSparseMatrix,
-  α::Number,
-  β::Number,
-)
-  return ArrayLayouts.mul!(dest, A, B, α, β)
+function ArrayLayouts.MemoryLayout(::Type{Adjoint{T, P}}) where {T, P <: AbstractSparseMatrix}
+    return MemoryLayout(P)
 end
 function LinearAlgebra.mul!(
-  dest::AbstractMatrix,
-  A::AbstractSparseMatrix,
-  B::Adjoint{<:Any,<:AbstractSparseMatrix},
-  α::Number,
-  β::Number,
-)
-  return ArrayLayouts.mul!(dest, A, B, α, β)
+        dest::AbstractMatrix,
+        A::Adjoint{<:Any, <:AbstractSparseMatrix},
+        B::AbstractSparseMatrix,
+        α::Number,
+        β::Number,
+    )
+    return ArrayLayouts.mul!(dest, A, B, α, β)
 end
 function LinearAlgebra.mul!(
-  dest::AbstractMatrix,
-  A::Adjoint{<:Any,<:AbstractSparseMatrix},
-  B::Adjoint{<:Any,<:AbstractSparseMatrix},
-  α::Number,
-  β::Number,
-)
-  return ArrayLayouts.mul!(dest, A, B, α, β)
+        dest::AbstractMatrix,
+        A::AbstractSparseMatrix,
+        B::Adjoint{<:Any, <:AbstractSparseMatrix},
+        α::Number,
+        β::Number,
+    )
+    return ArrayLayouts.mul!(dest, A, B, α, β)
+end
+function LinearAlgebra.mul!(
+        dest::AbstractMatrix,
+        A::Adjoint{<:Any, <:AbstractSparseMatrix},
+        B::Adjoint{<:Any, <:AbstractSparseMatrix},
+        α::Number,
+        β::Number,
+    )
+    return ArrayLayouts.mul!(dest, A, B, α, β)
 end
