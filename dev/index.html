@@ -3,19 +3,19 @@
 <img class="display-dark-only" src="assets/CCQ-dark.png" width="20%" alt="Flatiron Center for Computational Quantum Physics logo."/><p>SparseArraysBase.jl is supported by the Flatiron Institute, a division of the Simons Foundation.</p><h2 id="Installation-instructions"><a class="docs-heading-anchor" href="#Installation-instructions">Installation instructions</a><a id="Installation-instructions-1"></a><a class="docs-heading-anchor-permalink" href="#Installation-instructions" title="Permalink"></a></h2><p>This package resides in the <code>ITensor/ITensorRegistry</code> local registry. In order to install, simply add that registry through your package manager. This step is only required once.</p><pre><code class="language-julia hljs">julia&gt; using Pkg: Pkg
 
 julia&gt; Pkg.Registry.add(url=&quot;https://github.com/ITensor/ITensorRegistry&quot;)</code></pre><p>or:</p><pre><code class="language-julia hljs">julia&gt; Pkg.Registry.add(url=&quot;git@github.com:ITensor/ITensorRegistry.git&quot;)</code></pre><p>if you want to use SSH credentials, which can make it so you don&#39;t have to enter your Github ursername and password when registering packages.</p><p>Then, the package can be added as usual through the package manager:</p><pre><code class="language-julia hljs">julia&gt; Pkg.add(&quot;SparseArraysBase&quot;)</code></pre><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><pre><code class="language-julia hljs">using SparseArraysBase:
-  SparseArrayDOK,
-  SparseMatrixDOK,
-  SparseVectorDOK,
-  eachstoredindex,
-  getstoredindex,
-  getunstoredindex,
-  isstored,
-  setstoredindex!,
-  setunstoredindex!,
-  storedlength,
-  storedpairs,
-  storedvalues,
-  zero!
+    SparseArrayDOK,
+    SparseMatrixDOK,
+    SparseVectorDOK,
+    eachstoredindex,
+    getstoredindex,
+    getunstoredindex,
+    isstored,
+    setstoredindex!,
+    setunstoredindex!,
+    storedlength,
+    storedpairs,
+    storedvalues,
+    zero!
 using Test: @test, @test_throws
 
 a = SparseArrayDOK{Float64}(undef, 2, 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×2 SparseArraysBase.SparseMatrixDOK{Float64, FillArrays.Zeros{Float64, 2, Tuple{Base.OneTo{Int64}, Base.OneTo{Int64}}}}:
@@ -73,14 +73,14 @@ b = a * a&#39;
 a = SparseArrayDOK{Float64}(undef, 2, 2)
 a .= 2
 for I in eachindex(a)
-  @test a[I] == 2
+    @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
 a = SparseArrayDOK{Float64}(undef, 2, 2)
 fill!(a, 2)
 for I in eachindex(a)
-  @test a[I] == 2
+    @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
@@ -99,4 +99,4 @@ a = SparseArrayDOK{Float64}(undef, 2, 2)
 a[1, 2] = 12
 b = zero(a)
 @test iszero(b)
-@test iszero(storedlength(b))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="reference/">Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Thursday 2 October 2025 18:40">Thursday 2 October 2025</span>. Using Julia version 1.11.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+@test iszero(storedlength(b))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr32"><span class="sgr1">Test Passed</span></span></code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="reference/">Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Thursday 2 October 2025 19:20">Thursday 2 October 2025</span>. Using Julia version 1.11.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
