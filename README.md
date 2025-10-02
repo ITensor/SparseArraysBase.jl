@@ -43,19 +43,19 @@ julia> Pkg.add("SparseArraysBase")
 
 ````julia
 using SparseArraysBase:
-  SparseArrayDOK,
-  SparseMatrixDOK,
-  SparseVectorDOK,
-  eachstoredindex,
-  getstoredindex,
-  getunstoredindex,
-  isstored,
-  setstoredindex!,
-  setunstoredindex!,
-  storedlength,
-  storedpairs,
-  storedvalues,
-  zero!
+    SparseArrayDOK,
+    SparseMatrixDOK,
+    SparseVectorDOK,
+    eachstoredindex,
+    getstoredindex,
+    getunstoredindex,
+    isstored,
+    setstoredindex!,
+    setunstoredindex!,
+    storedlength,
+    storedpairs,
+    storedvalues,
+    zero!
 using Test: @test, @test_throws
 
 a = SparseArrayDOK{Float64}(undef, 2, 2)
@@ -135,14 +135,14 @@ b = a[1:2, 2]
 a = SparseArrayDOK{Float64}(undef, 2, 2)
 a .= 2
 for I in eachindex(a)
-  @test a[I] == 2
+    @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
 a = SparseArrayDOK{Float64}(undef, 2, 2)
 fill!(a, 2)
 for I in eachindex(a)
-  @test a[I] == 2
+    @test a[I] == 2
 end
 @test storedlength(a) == length(a)
 
