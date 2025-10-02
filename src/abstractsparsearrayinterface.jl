@@ -43,6 +43,7 @@ using TypeParameterAccessors: unspecify_type_parameters, unwrap_array, unwrap_ar
 function densetype(arraytype::Type{<:AbstractArray})
   return unspecify_type_parameters(unwrap_array_type(arraytype))
 end
+# TODO: Ideally this would be defined as `densetype(typeof(a))` but that is less general right now since `unwrap_array_type` is defined on fewer arrays, since it is based on `parentype` rather than `parent`.
 function densetype(a::AbstractArray)
   return unspecify_type_parameters(typeof(unwrap_array(a)))
 end
