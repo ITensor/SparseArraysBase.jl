@@ -122,3 +122,8 @@ end
 function ArrayLayouts.zero!(a::SparseArrayDOK)
     return zero!(a)
 end
+
+# The fallback doesn't work since `SparseArrayDOK`
+# isn't a wrapper around `Array`.
+densetype(::SparseArrayDOK) = Array
+densetype(::Type{<:SparseArrayDOK}) = Array
