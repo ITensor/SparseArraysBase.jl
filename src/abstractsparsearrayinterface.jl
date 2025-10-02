@@ -39,15 +39,16 @@ unstoredsimilar(a::AbstractArray) = a
 # Generic functionality for converting to a
 # dense array, trying to preserve information
 # about the array (such as which device it is on).
-# TODO: Maybe call `densecopy`?
-# TODO: Make sure this actually preserves the device,
-# maybe use `TypeParameterAccessors.unwrap_array_type`.
-# TODO: Turn into an `@interface` function.
-function densearray(a::AbstractArray)
-  # TODO: `set_ndims(unwrap_array_type(a), ndims(a))(a)`
-  # Maybe define `densetype(a) = set_ndims(unwrap_array_type(a), ndims(a))`.
-  # Or could use `unspecify_parameters(unwrap_array_type(a))(a)`.
-  return Array(a)
+using TypeParameterAccessors: unspecify_type_parameters, unwrap_array, unwrap_array_type
+function densetype(arraytype::Type{<:AbstractArray})
+  return unspecify_type_parameters(unwrap_array_type(arraytype))
+end
+function densetype(a::AbstractArray)
+  return unspecify_type_parameters(typeof(unwrap_array(a)))
+end
+using GPUArraysCore: @allowscalar
+function dense(a::AbstractArray)
+  return @allowscalar convert(densetype(a), a)
 end
 
 # Minimal interface for `SparseArrayInterface`.
