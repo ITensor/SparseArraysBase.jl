@@ -1,21 +1,21 @@
 module SparseArraysBase
 
 export SparseArrayDOK,
-  SparseMatrixDOK,
-  SparseVectorDOK,
-  OneElementArray,
-  OneElementMatrix,
-  OneElementVector,
-  eachstoredindex,
-  isstored,
-  oneelement,
-  sparse,
-  sparserand,
-  sparserand!,
-  sparsezeros,
-  storedlength,
-  storedpairs,
-  storedvalues
+    SparseMatrixDOK,
+    SparseVectorDOK,
+    OneElementArray,
+    OneElementMatrix,
+    OneElementVector,
+    eachstoredindex,
+    isstored,
+    oneelement,
+    sparse,
+    sparserand,
+    sparserand!,
+    sparsezeros,
+    storedlength,
+    storedpairs,
+    storedvalues
 
 include("abstractsparsearrayinterface.jl")
 include("sparsearrayinterface.jl")
