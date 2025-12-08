@@ -11,6 +11,7 @@ SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 SparseArraysBase = "0d5efcca-f356-4864-8770-e1ed8d78f208"
 StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
+TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [sources]
@@ -29,4 +30,5 @@ SafeTestsets = "0.1.0"
 SparseArraysBase = "0.7.0"
 StableRNGs = "1.0.2"
 Suppressor = "0.2.8"
+TensorAlgebra = "0.6"
 Test = "<0.0.1, 1"
