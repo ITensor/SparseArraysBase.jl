@@ -34,7 +34,6 @@ arrayts = (Array, JLArray)
             dev(elt[2, 4]), Dict([CartesianIndex(1, 2) => 1, CartesianIndex(3, 4) => 2]), (3, 4)
         )
         d = dense(s)
-        @show typeof(d)
         @test d isa arrayt{elt, 2}
         @test d == dev(elt[0 2 0 0; 0 0 0 0; 0 0 0 4])
     end
