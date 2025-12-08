@@ -2,6 +2,8 @@ using Dictionaries: AbstractDictionary
 
 abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
 
+Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
+
 using DerivableInterfaces: @array_aliases
 # Define AbstractSparseVector, AnyAbstractSparseArray, etc.
 @array_aliases AbstractSparseArray

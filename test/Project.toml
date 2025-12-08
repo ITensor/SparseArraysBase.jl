@@ -13,6 +13,9 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[sources]
+SparseArraysBase = {path = "/Users/mfishman/.julia/dev/SparseArraysBase"}
+
 [compat]
 Adapt = "4.2.0"
 Aqua = "0.8.11"

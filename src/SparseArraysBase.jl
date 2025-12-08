@@ -25,5 +25,6 @@ include("wrappers.jl")
 include("abstractsparsearray.jl")
 include("sparsearraydok.jl")
 include("oneelementarray.jl")
+include("sparsearrays.jl")
 
 end
