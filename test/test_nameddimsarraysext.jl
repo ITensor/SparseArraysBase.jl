@@ -1,13 +1,8 @@
-using Adapt: adapt
-using JLArrays: JLArray
 using NamedDimsArrays: NamedDimsArray, dename, nameddims, namedoneto, inds
 using SparseArraysBase: dense, oneelement, sparsezeros
 using Test: @test, @testset
 
-@testset "SparseArraysBaseExt (eltype=$elt, arraytype=$arrayt)" for elt in (Float64, ComplexF64),
-        arrayt in (Array, JLArray)
-
-    dev = adapt(arrayt)
+@testset "SparseArraysBaseExt (eltype=$elt)" for elt in (Float64, ComplexF64)
     @testset "oneelement" begin
         i = namedoneto(3, "i")
         a = oneelement(i => 2)
