@@ -5,9 +5,8 @@ using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange,
 using SparseArraysBase: SparseArraysBase, dense, oneelement
 
 function SparseArraysBase.dense(a::AbstractNamedDimsArray)
-    # TODO: Rewrite as `set_unnamed(a, dense(unname(a)))`.
-    # See also on DimensionalData.jl's interface:
-    # https://github.com/rafaqz/DimensionalData.jl/blob/v0.29.25/src/utils.jl#L93-L97
+    # TODO: Use `NamedDimsArrays.nameddimsof(a, dense(unname(a)))` once that is defined,
+    # see: https://github.com/ITensor/NamedDimsArrays.jl/issues/138
     return constructorof_nameddims(typeof(a))(dense(dename(a)), inds(a))
 end
 
