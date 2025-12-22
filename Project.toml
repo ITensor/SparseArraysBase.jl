@@ -18,9 +18,11 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 TypeParameterAccessors = "7e5a90cf-f82e-492e-a09b-e3e26432c138"
 
 [weakdeps]
+NamedDimsArrays = "60cbd0c0-df58-4cb7-918c-6f5607b73fde"
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 
 [extensions]
+SparseArraysBaseNamedDimsArraysExt = ["NamedDimsArrays"]
 SparseArraysBaseTensorAlgebraExt = ["TensorAlgebra", "SparseArrays"]
 
 [compat]
@@ -33,6 +35,7 @@ FillArrays = "1.13"
 GPUArraysCore = "0.2"
 LinearAlgebra = "1.10"
 MapBroadcast = "0.1.5"
+NamedDimsArrays = "0.10"
 Random = "1.10"
 SparseArrays = "1.10"
 TensorAlgebra = "0.6.2"
