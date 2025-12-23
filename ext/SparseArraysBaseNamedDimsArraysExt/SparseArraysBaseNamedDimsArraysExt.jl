@@ -1,13 +1,13 @@
 module SparseArraysBaseNamedDimsArraysExt
 
-using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange,
-    constructorof_nameddims, dename, inds, nameddims
+using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange, dename, inds,
+    nameddims, nameddimsof
 using SparseArraysBase: SparseArraysBase, dense, oneelement
 
 function SparseArraysBase.dense(a::AbstractNamedDimsArray)
     # TODO: Use `NamedDimsArrays.nameddimsof(a, dense(unname(a)))` once that is defined,
     # see: https://github.com/ITensor/NamedDimsArrays.jl/issues/138
-    return constructorof_nameddims(typeof(a))(dense(dename(a)), inds(a))
+    return nameddimsof(a, dense(dename(a)))
 end
 
 function SparseArraysBase.oneelement(
