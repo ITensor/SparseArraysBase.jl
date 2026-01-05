@@ -71,9 +71,8 @@ end
 ##     return similar(SparseArrayDOK{T}, ax)
 ## end
 
-## using DerivableInterfaces: @array_aliases
-## # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
-## @array_aliases SparseArrayDOK
+const SparseVectorDOK{T} = SparseArrayDOK{T, 1}
+const SparseMatrixDOK{T} = SparseArrayDOK{T, 2}
 
 storage(a::SparseArrayDOK) = a.storage
 

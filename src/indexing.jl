@@ -126,7 +126,11 @@ function storedvalues end
 #   f(::AbstractArray, I::Int) if IndexLinear
 #   f(::AbstractArray{<:Any,N}, I::Vararg{Int,N}) if IndexCartesian
 
-for f in (:isstored, :getunstoredindex, :getstoredindex)
+const isstored_sparse = sparse_style(isstored)
+const getunstoredindex_sparse = sparse_style(getunstoredindex)
+const getstoredindex_sparse = sparse_style(getstoredindex)
+
+for f in (:isstored_sparse, :getunstoredindex_sparse, :getstoredindex_sparse)
     _f = Symbol(:_, f)
     error_if_canonical = Symbol(:error_if_canonical_, f)
     @eval begin
@@ -171,7 +175,9 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
     end
 end
 
-for f! in (:setunstoredindex!, :setstoredindex!)
+const setunstoredindex!_sparse = sparse_style(setunstoredindex!)
+const setstoredindex!_sparse = sparse_style(setstoredindex!)
+for f! in (:setunstoredindex!_sparse, :setstoredindex!_sparse)
     _f! = Symbol(:_, f!)
     error_if_canonical = Symbol(:error_if_canonical_, f!)
     @eval begin
@@ -349,7 +355,6 @@ storedvalues_sparse(A::AbstractArray) = StoredValues(A)
 # default implementation is a bit tricky here: we don't know if this is the "canonical"
 # implementation, so we check this and otherwise map back to `_isstored` to canonicalize the
 # indices
-const isstored_sparse = sparse_style(isstored)
 function isstored_sparse(A::AbstractArray, I::Int...)
     @_propagate_inbounds_meta
     style = IndexStyle(A)
@@ -369,7 +374,6 @@ function isstored_sparse(A::AbstractArray, I::Int...)
     return _isstored(style, A, Base.to_indices(A, I)...)
 end
 
-const getunstoredindex_sparse = sparse_style(getunstoredindex)
 function getunstoredindex_sparse(
         A::AbstractArray, I::Int...
     )
@@ -392,7 +396,6 @@ function getunstoredindex_sparse(
     return _getunstoredindex(style, A, Base.to_indices(A, I)...)
 end
 
-const getstoredindex_sparse = sparse_style(getstoredindex)
 function getstoredindex_sparse(
         A::AbstractArray, I::Int...
     )

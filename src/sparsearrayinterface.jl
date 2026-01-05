@@ -93,7 +93,7 @@ end
 
 module Broadcast
 
-    abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
+    abstract type AbstractSparseArrayStyle{N} <: Base.Broadcast.AbstractArrayStyle{N} end
 
     ## @derive (T = AbstractSparseArrayStyle,) begin
     ##     Base.similar(::Broadcast.Broadcasted{<:T}, ::Type, ::Tuple)
@@ -105,14 +105,15 @@ module Broadcast
     SparseArrayStyle{M}(::Val{N}) where {M, N} = SparseArrayStyle{N}()
 
     # TODO: Don't make this a `sparse_style` function.
-    BroadcastStyle_sparse = sparse_style(Broadcast.BroadcastStyle)
-    function BroadcastStyle_sparse(type::Type)
-        return SparseArrayStyle{ndims(type)}()
-    end
+    ## using ..SparseArraysBase: sparse_style
+    ## const BroadcastStyle_sparse = sparse_style(Base.Broadcast.BroadcastStyle)
+    ## function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
+    ##     return SparseArrayStyle{ndims(type)}()
+    ## end
 
 end # module Broadcast
 
-# TODO: Don't make this a `sparse_style` function.
+## # TODO: Don't make this a `sparse_style` function.
 struct SparseLayout <: AbstractSparseLayout end
-const MemoryLayout_sparse = sparse_style(ArrayLayouts.MemoryLayout)
-MemoryLayout_sparse(type::Type) = SparseLayout()
+## const MemoryLayout_sparse = sparse_style(ArrayLayouts.MemoryLayout)
+## ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()

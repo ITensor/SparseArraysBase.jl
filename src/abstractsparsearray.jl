@@ -1,6 +1,20 @@
 using Dictionaries: AbstractDictionary
 
 abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
+const AbstractSparseVector{T} = AbstractSparseArray{T, 1}
+const AbstractSparseMatrix{T} = AbstractSparseArray{T, 2}
+
+using Adapt: WrappedArray
+const WrappedAbstractSparseArray{T, N} =
+    WrappedArray{T, N, AbstractSparseArray, AbstractSparseArray{T, N}}
+const AnyAbstractSparseArray{T, N} = Union{
+    AbstractSparseArray{T, N}, WrappedAbstractSparseArray{T, N},
+}
+const AnyAbstractSparseVector{T} = AnyAbstractSparseArray{T, 1}
+const AnyAbstractSparseMatrix{T} = AnyAbstractSparseArray{T, 2}
+const AnyAbstractSparseVecOrMat{T} = Union{
+    AnyAbstractSparseVector{T}, AnyAbstractSparseMatrix{T},
+}
 
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
@@ -83,13 +97,13 @@ using LinearAlgebra: LinearAlgebra
 ##     LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
 ## end
 
-using FunctionImplementations.Concatenate: concatenate
-# We overload `Base._cat` instead of `Base.cat` since it
-# is friendlier for invalidations/compile times, see
-# https://github.com/ITensor/SparseArraysBase.jl/issues/25.
-function Base._cat(dims, a::AnyAbstractSparseArray...)
-    return concatenate(dims, a...)
-end
+## using FunctionImplementations.Concatenate: concatenate
+## # We overload `Base._cat` instead of `Base.cat` since it
+## # is friendlier for invalidations/compile times, see
+## # https://github.com/ITensor/SparseArraysBase.jl/issues/25.
+## function Base._cat(dims, a::AnyAbstractSparseArray...)
+##     return concatenate(dims, a...)
+## end
 
 # TODO: Use `map(WeakPreserving(f), a)` instead.
 # Currently that has trouble with type unstable maps, since
