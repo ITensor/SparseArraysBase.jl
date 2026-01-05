@@ -190,8 +190,11 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
     end
 end
 
+using FunctionImplementations: Style
 using LinearAlgebra: LinearAlgebra, Diagonal
-storedvalues_sparse(D::Diagonal) = LinearAlgebra.diag(D)
+const diag_style = Style(Diagonal)
+const storedvalues_diag = diag_style(storedvalues)
+storedvalues_diag(D::Diagonal) = LinearAlgebra.diag(D)
 
 # compat with LTS:
 @static if VERSION ≥ v"1.11"
@@ -201,20 +204,21 @@ else
         return view(CartesianIndices(x), LinearAlgebra.diagind(x))
     end
 end
-eachstoredindex_sparse(D::Diagonal) = _diagind(
-    D, IndexCartesian()
-)
+const eachstoredindex_diag = diag_style(eachstoredindex)
+eachstoredindex_diag(D::Diagonal) = _diagind(D, IndexCartesian())
 
-function isstored_sparse(D::Diagonal, i::Int, j::Int)
+const isstored_diag = diag_style(isstored)
+function isstored_diag(D::Diagonal, i::Int, j::Int)
     return i == j && checkbounds(Bool, D, i, j)
 end
-function getstoredindex_sparse(D::Diagonal, i::Int, j::Int)
-    return D.diag[i]
-end
-function getunstoredindex_sparse(D::Diagonal, i::Int, j::Int)
+const getstoredindex_diag = diag_style(getstoredindex)
+getstoredindex_diag(D::Diagonal, i::Int, j::Int) = D.diag[i]
+const getunstoredindex_diag = diag_style(getunstoredindex)
+function getunstoredindex_diag(D::Diagonal, i::Int, j::Int)
     return zero(eltype(D))
 end
-function setstoredindex!_sparse(D::Diagonal, v, i::Int, j::Int)
+const setstoredindex!_diag = diag_style(setstoredindex!)
+function setstoredindex!_diag(D::Diagonal, v, i::Int, j::Int)
     D.diag[i] = v
     return D
 end

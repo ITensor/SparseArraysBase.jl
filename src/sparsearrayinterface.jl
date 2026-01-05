@@ -49,6 +49,11 @@ const sparse_style = SparseArrayStyle()
 ##     return a
 ## end
 
+const fill!_sparse = sparse_style(fill!)
+function fill!_sparse(a::AbstractArray, value)
+    return map!(Returns(value), a, a)
+end
+
 using FunctionImplementations: FunctionImplementations, zero!
 
 # `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`
