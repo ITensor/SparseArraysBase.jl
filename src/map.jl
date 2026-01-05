@@ -67,15 +67,16 @@ end
 
 # map(!)
 # ------
-@interface I::AbstractSparseArrayInterface function Base.map(
+const map_sparse = sparse_style(map)
+function map_sparse(
         f, A::AbstractArray, Bs::AbstractArray...
     )
     f_pres = ZeroPreserving(f, A, Bs...)
-    return map_sparsearray(f_pres, A, Bs...)
+    return map_sparse(f_pres, A, Bs...)
 end
 
 # This isn't an overload of `Base.map` since that leads to ambiguity errors.
-function map_sparsearray(f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray...)
+function map_sparse(f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray...)
     T = Base.Broadcast.combine_eltypes(f.f, (A, Bs...))
     C = similar(A, T)
     # TODO: Instead use:
@@ -84,18 +85,19 @@ function map_sparsearray(f::ZeroPreserving, A::AbstractArray, Bs::AbstractArray.
     # C = similar(A, Unstored(U))
     # ```
     # though right now `map` doesn't preserve `Zeros` or `BlockZeros`.
-    return map_sparsearray!(f, C, A, Bs...)
+    return map!_sparse(f, C, A, Bs...)
 end
 
-@interface I::AbstractSparseArrayInterface function Base.map!(
+const map!_sparse = sparse_style(map!)
+function map!_sparse(
         f, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
     )
     f_pres = ZeroPreserving(f, A, Bs...)
-    return map_sparsearray!(f_pres, C, A, Bs...)
+    return map!_sparse(f_pres, C, A, Bs...)
 end
 
 # This isn't an overload of `Base.map!` since that leads to ambiguity errors.
-function map_sparsearray!(
+function map!_sparse(
         f::ZeroPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
     )
     checkshape(C, A, Bs...)
@@ -121,30 +123,33 @@ end
 
 # Derived functions
 # -----------------
-@interface I::AbstractSparseArrayInterface function Base.copyto!(
+const copyto!_sparse = sparse_style(copyto!)
+function copyto!_sparse(
         dest::AbstractArray, src::AbstractArray
     )
-    @interface I map!(identity, dest, src)
+    map!_sparse(identity, dest, src)
     return dest
 end
 
 # Only map the stored values of the inputs.
 function map_stored! end
 
-@interface interface::AbstractArrayInterface function map_stored!(
+const map_stored!_sparse = sparse_style(map_stored!)
+function map_stored!_sparse(
         f, a_dest::AbstractArray, as::AbstractArray...
     )
-    @interface interface map!(WeakPreserving(f), a_dest, as...)
+    map!_sparse(WeakPreserving(f), a_dest, as...)
     return a_dest
 end
 
 # Only map all values, not just the stored ones.
 function map_all! end
 
-@interface interface::AbstractArrayInterface function map_all!(
+const map_all!_sparse = sparse_style(map_all!)
+function map_all!_sparse(
         f, a_dest::AbstractArray, as::AbstractArray...
     )
-    @interface interface map!(NonPreserving(f), a_dest, as...)
+    map!_sparse(NonPreserving(f), a_dest, as...)
     return a_dest
 end
 

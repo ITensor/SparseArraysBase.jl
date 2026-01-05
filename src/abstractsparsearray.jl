@@ -4,12 +4,12 @@ abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
 
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
-using DerivableInterfaces: @array_aliases
-# Define AbstractSparseVector, AnyAbstractSparseArray, etc.
-@array_aliases AbstractSparseArray
+## using DerivableInterfaces: @array_aliases
+## # Define AbstractSparseVector, AnyAbstractSparseArray, etc.
+## @array_aliases AbstractSparseArray
 
-using DerivableInterfaces: DerivableInterfaces
-function DerivableInterfaces.interface(::Type{<:AbstractSparseArray})
+using FunctionImplementations: FunctionImplementations
+function FunctionImplementations.Style(::Type{<:AbstractSparseArray})
     return SparseArrayInterface()
 end
 
@@ -49,7 +49,7 @@ function Base.similar(
     return similar_sparsearray(a, T, ax)
 end
 
-using DerivableInterfaces: @derive
+## using DerivableInterfaces: @derive
 
 # TODO: These need to be loaded since `AbstractArrayOps`
 # includes overloads of functions from these modules.
@@ -58,32 +58,32 @@ using DerivableInterfaces: @derive
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-@derive (T = AnyAbstractSparseArray,) begin
-    Base.getindex(::T, ::Any...)
-    Base.getindex(::T, ::Int...)
-    Base.setindex!(::T, ::Any, ::Any...)
-    Base.setindex!(::T, ::Any, ::Int...)
-    Base.copy!(::AbstractArray, ::T)
-    Base.copyto!(::AbstractArray, ::T)
-    Base.map(::Any, ::T...)
-    Base.map!(::Any, ::AbstractArray, ::T...)
-    Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
-    Base.reduce(::Any, ::T...; kwargs...)
-    Base.all(::Function, ::T)
-    Base.all(::T)
-    Base.iszero(::T)
-    Base.real(::T)
-    Base.fill!(::T, ::Any)
-    DerivableInterfaces.zero!(::T)
-    Base.zero(::T)
-    Base.permutedims!(::Any, ::T, ::Any)
-    Broadcast.BroadcastStyle(::Type{<:T})
-    Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
-    ArrayLayouts.MemoryLayout(::Type{<:T})
-    LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
-end
+## @derive (T = AnyAbstractSparseArray,) begin
+##     Base.getindex(::T, ::Any...)
+##     Base.getindex(::T, ::Int...)
+##     Base.setindex!(::T, ::Any, ::Any...)
+##     Base.setindex!(::T, ::Any, ::Int...)
+##     Base.copy!(::AbstractArray, ::T)
+##     Base.copyto!(::AbstractArray, ::T)
+##     Base.map(::Any, ::T...)
+##     Base.map!(::Any, ::AbstractArray, ::T...)
+##     Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
+##     Base.reduce(::Any, ::T...; kwargs...)
+##     Base.all(::Function, ::T)
+##     Base.all(::T)
+##     Base.iszero(::T)
+##     Base.real(::T)
+##     Base.fill!(::T, ::Any)
+##     DerivableInterfaces.zero!(::T)
+##     Base.zero(::T)
+##     Base.permutedims!(::Any, ::T, ::Any)
+##     Broadcast.BroadcastStyle(::Type{<:T})
+##     Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
+##     ArrayLayouts.MemoryLayout(::Type{<:T})
+##     LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
+## end
 
-using DerivableInterfaces.Concatenate: concatenate
+using FunctionImplementations.Concatenate: concatenate
 # We overload `Base._cat` instead of `Base.cat` since it
 # is friendlier for invalidations/compile times, see
 # https://github.com/ITensor/SparseArraysBase.jl/issues/25.

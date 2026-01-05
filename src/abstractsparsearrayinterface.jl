@@ -1,7 +1,6 @@
 using Base: @_propagate_inbounds_meta
-using DerivableInterfaces:
-    DerivableInterfaces, @derive, @interface, AbstractArrayInterface, zero!
 using FillArrays: Zeros
+using FunctionImplementations: FunctionImplementations
 
 function unstored end
 function eachstoredindex end
@@ -52,35 +51,32 @@ function dense(a::AbstractArray)
     return @allowscalar convert(densetype(a), a)
 end
 
-# Minimal interface for `SparseArrayInterface`.
+# Minimal interface for `SparseArrayStyle`.
 # Fallbacks for dense/non-sparse arrays.
 
-# TODO: Add `ndims` type parameter, like `Base.Broadcast.AbstractArrayStyle`.
-# TODO: This isn't used to define interface functions right now.
-# Currently, `@interface` expects an instance, probably it should take a
-# type instead so fallback functions can use abstract types.
-abstract type AbstractSparseArrayInterface{N} <: AbstractArrayInterface{N} end
+using FunctionImplementations: AbstractArrayStyle
+abstract type AbstractSparseArrayStyle <: AbstractArrayStyle end
 
-function DerivableInterfaces.combine_interface_rule(
-        interface1::AbstractSparseArrayInterface, interface2::AbstractSparseArrayInterface
+function FunctionImplementations.Style(
+        style1::AbstractSparseArrayStyle, style2::AbstractSparseArrayStyle
     )
     return error("Rule not defined.")
 end
-function DerivableInterfaces.combine_interface_rule(
-        interface1::Interface, interface2::Interface
-    ) where {Interface <: AbstractSparseArrayInterface}
-    return interface1
-end
-function DerivableInterfaces.combine_interface_rule(
-        interface1::AbstractSparseArrayInterface, interface2::AbstractArrayInterface
+## function FunctionImplementations.Style(
+##         style1::Style, style2::Style
+##     ) where {Style <: AbstractSparseArrayStyle}
+##     return style1
+## end
+function FunctionImplementations.Style(
+        style1::AbstractSparseArrayStyle, style2::AbstractArrayStyle
     )
-    return interface1
+    return style1
 end
-function DerivableInterfaces.combine_interface_rule(
-        interface1::AbstractArrayInterface, interface2::AbstractSparseArrayInterface
-    )
-    return interface2
-end
+## function FunctionImplementations.Style(
+##         style1::AbstractArrayStyle, style2::AbstractSparseArrayStyle
+##     )
+##     return style2
+## end
 
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)
@@ -104,63 +100,6 @@ Base.size(a::StoredValues) = size(a.storedindices)
 @inline Base.getindex(a::StoredValues, I::Int) = getindex(a.array, a.storedindices[I])
 @inline function Base.setindex!(a::StoredValues, value, I::Int)
     return setindex!(a.array, value, a.storedindices[I])
-end
-
-using DerivableInterfaces: DerivableInterfaces, zero!
-
-# `zero!` isn't defined in `Base`, but it is defined in `ArrayLayouts`
-# and is useful for sparse array logic, since it can be used to empty
-# the sparse array storage.
-# We use a single function definition to minimize method ambiguities.
-@interface interface::AbstractSparseArrayInterface function DerivableInterfaces.zero!(
-        a::AbstractArray
-    )
-    # More generally, this codepath could be taking if `zero(eltype(a))`
-    # is defined and the elements are immutable.
-    f = eltype(a) <: Number ? Returns(zero(eltype(a))) : zero!
-    @inbounds for I in eachstoredindex(a)
-        a[I] = f(a[I])
-    end
-    return a
-end
-
-# `f::typeof(norm)`, `op::typeof(max)` used by `norm`.
-function reduce_init(f, op, as...)
-    # TODO: Generalize this.
-    @assert isone(length(as))
-    a = only(as)
-    ## TODO: Make this more efficient for block sparse
-    ## arrays, in that case it allocates a block. Maybe
-    ## it can use `FillArrays.Zeros`.
-    return f(getunstoredindex(a, first(eachindex(a))))
-end
-
-@interface ::AbstractSparseArrayInterface function Base.mapreduce(
-        f, op, as::AbstractArray...; init = reduce_init(f, op, as...), kwargs...
-    )
-    # TODO: Generalize this.
-    @assert isone(length(as))
-    a = only(as)
-    output = mapreduce(f, op, storedvalues(a); init, kwargs...)
-    ## TODO: Bring this check back, or make the function more general.
-    ## f_notstored = apply_notstored(f, a)
-    ## @assert isequal(op(output, eltype(output)(f_notstored)), output)
-    return output
-end
-
-abstract type AbstractSparseArrayStyle{N} <: Broadcast.AbstractArrayStyle{N} end
-
-@derive (T = AbstractSparseArrayStyle,) begin
-    Base.similar(::Broadcast.Broadcasted{<:T}, ::Type, ::Tuple)
-    Base.copyto!(::AbstractArray, ::Broadcast.Broadcasted{<:T})
-end
-
-struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
-
-SparseArrayStyle{M}(::Val{N}) where {M, N} = SparseArrayStyle{N}()
-
-@interface ::AbstractSparseArrayInterface function Broadcast.BroadcastStyle(type::Type)
-    return SparseArrayStyle{ndims(type)}()
 end
 
 using ArrayLayouts: ArrayLayouts, MatMulMatAdd
@@ -229,10 +168,4 @@ function ArrayLayouts.materialize!(
     )
     sparse_mul!(m.C, m.A, m.B, m.α, m.β)
     return m.C
-end
-
-struct SparseLayout <: AbstractSparseLayout end
-
-@interface ::AbstractSparseArrayInterface function ArrayLayouts.MemoryLayout(type::Type)
-    return SparseLayout()
 end

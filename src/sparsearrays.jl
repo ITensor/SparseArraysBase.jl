@@ -6,7 +6,7 @@ function eachstoredindex(m::AbstractSparseMatrixCSC)
     return Iterators.map(CartesianIndex, zip(I, J))
 end
 function eachstoredindex(a::Base.ReshapedArray{<:Any, <:Any, <:AbstractSparseMatrixCSC})
-    return @interface SparseArrayInterface() eachstoredindex(a)
+    return eachstoredindex_sparse(a)
 end
 
 function SparseArrays.SparseMatrixCSC{Tv, Ti}(m::AnyAbstractSparseMatrix) where {Tv, Ti}

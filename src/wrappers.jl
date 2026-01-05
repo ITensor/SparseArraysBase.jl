@@ -148,30 +148,30 @@ function isstored(a::Transpose, I::Vararg{Int, 2})
     return isstored_wrapped(a, I...)
 end
 
-# TODO: Turn these into `AbstractWrappedSparseArrayInterface` functions?
+# TODO: Turn these into `AbstractWrappedSparseArrayStyle` functions?
 for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose)
     @eval begin
-        @interface ::AbstractSparseArrayInterface storedvalues(a::$type) = storedparentvalues(a)
-        @interface ::AbstractSparseArrayInterface function eachstoredindex(a::$type)
+        storedvalues_sparse(a::$type) = storedparentvalues(a)
+        function eachstoredindex_sparse(a::$type)
             return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(a))
         end
-        @interface ::AbstractSparseArrayInterface function eachstoredindex(
+        function eachstoredindex_sparse(
                 style::IndexStyle, a::$type
             )
             # TODO: Make lazy with `Iterators.map`.
             return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(style, a))
         end
-        @interface ::AbstractSparseArrayInterface function getstoredindex(a::$type, I::Int...)
+        function getstoredindex_sparse(a::$type, I::Int...)
             return parentvalue_to_value(
                 a, getstoredindex(parent(a), index_to_parentindex(a, I...)...)
             )
         end
-        @interface ::AbstractSparseArrayInterface function getunstoredindex(a::$type, I::Int...)
+        function getunstoredindex_sparse(a::$type, I::Int...)
             return parentvalue_to_value(
                 a, getunstoredindex(parent(a), index_to_parentindex(a, I...)...)
             )
         end
-        @interface ::AbstractSparseArrayInterface function setstoredindex!(
+        function setstoredindex!_sparse(
                 a::$type, value, I::Int...
             )
             setstoredindex!(
@@ -179,7 +179,7 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
             )
             return a
         end
-        @interface ::AbstractSparseArrayInterface function setunstoredindex!(
+        function setunstoredindex!_sparse(
                 a::$type, value, I::Int...
             )
             setunstoredindex!(
@@ -191,7 +191,7 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
 end
 
 using LinearAlgebra: LinearAlgebra, Diagonal
-@interface ::AbstractArrayInterface storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
+storedvalues_sparse(D::Diagonal) = LinearAlgebra.diag(D)
 
 # compat with LTS:
 @static if VERSION ≥ v"1.11"
@@ -201,20 +201,20 @@ else
         return view(CartesianIndices(x), LinearAlgebra.diagind(x))
     end
 end
-@interface ::AbstractArrayInterface eachstoredindex(D::Diagonal) = _diagind(
+eachstoredindex_sparse(D::Diagonal) = _diagind(
     D, IndexCartesian()
 )
 
-@interface ::AbstractArrayInterface function isstored(D::Diagonal, i::Int, j::Int)
+function isstored_sparse(D::Diagonal, i::Int, j::Int)
     return i == j && checkbounds(Bool, D, i, j)
 end
-@interface ::AbstractArrayInterface function getstoredindex(D::Diagonal, i::Int, j::Int)
+function getstoredindex_sparse(D::Diagonal, i::Int, j::Int)
     return D.diag[i]
 end
-@interface ::AbstractArrayInterface function getunstoredindex(D::Diagonal, i::Int, j::Int)
+function getunstoredindex_sparse(D::Diagonal, i::Int, j::Int)
     return zero(eltype(D))
 end
-@interface ::AbstractArrayInterface function setstoredindex!(D::Diagonal, v, i::Int, j::Int)
+function setstoredindex!_sparse(D::Diagonal, v, i::Int, j::Int)
     D.diag[i] = v
     return D
 end

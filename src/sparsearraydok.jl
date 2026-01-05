@@ -1,5 +1,5 @@
 using Accessors: @set
-using DerivableInterfaces: DerivableInterfaces, @interface, interface, zero!
+using FunctionImplementations: FunctionImplementations, zero!
 using Dictionaries: Dictionary, IndexError, set!
 
 const DOKStorage{T, N} = Dictionary{CartesianIndex{N}, T}
@@ -65,15 +65,15 @@ function SparseArrayDOK{T}(::UndefInitializer, ax::Vararg{Any, N}) where {T, N}
     return SparseArrayDOK{T, N}(undef, ax)
 end
 
-using DerivableInterfaces: DerivableInterfaces
-# This defines the destination type of various operations in DerivableInterfaces.jl.
-function Base.similar(::AbstractSparseArrayInterface, T::Type, ax::Tuple)
-    return similar(SparseArrayDOK{T}, ax)
-end
+## using DerivableInterfaces: DerivableInterfaces
+## # This defines the destination type of various operations in DerivableInterfaces.jl.
+## function Base.similar(::AbstractSparseArrayInterface, T::Type, ax::Tuple)
+##     return similar(SparseArrayDOK{T}, ax)
+## end
 
-using DerivableInterfaces: @array_aliases
-# Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
-@array_aliases SparseArrayDOK
+## using DerivableInterfaces: @array_aliases
+## # Define `SparseMatrixDOK`, `AnySparseArrayDOK`, etc.
+## @array_aliases SparseArrayDOK
 
 storage(a::SparseArrayDOK) = a.storage
 
@@ -115,7 +115,7 @@ end
 storedpairs(a::SparseArrayDOK) = pairs(storage(a))
 
 # TODO: Also handle wrappers.
-function DerivableInterfaces.zero!(a::SparseArrayDOK)
+function FunctionImplementations.zero!(a::SparseArrayDOK)
     empty!(storage(a))
     return a
 end
