@@ -17,8 +17,8 @@ export SparseArrayDOK,
     storedpairs,
     storedvalues
 
-include("abstractsparsearrayinterface.jl")
-include("sparsearrayinterface.jl")
+include("abstractsparsearraystyle.jl")
+include("sparsearraystyle.jl")
 include("indexing.jl")
 include("map.jl")
 include("wrappers.jl")

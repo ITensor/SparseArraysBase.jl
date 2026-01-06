@@ -62,21 +62,11 @@ function FunctionImplementations.Style(
     )
     return error("Rule not defined.")
 end
-## function FunctionImplementations.Style(
-##         style1::Style, style2::Style
-##     ) where {Style <: AbstractSparseArrayStyle}
-##     return style1
-## end
 function FunctionImplementations.Style(
         style1::AbstractSparseArrayStyle, style2::AbstractArrayStyle
     )
     return style1
 end
-## function FunctionImplementations.Style(
-##         style1::AbstractArrayStyle, style2::AbstractSparseArrayStyle
-##     )
-##     return style2
-## end
 
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)

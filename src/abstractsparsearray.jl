@@ -18,10 +18,6 @@ const AnyAbstractSparseVecOrMat{T} = Union{
 
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
-## using DerivableInterfaces: @array_aliases
-## # Define AbstractSparseVector, AnyAbstractSparseArray, etc.
-## @array_aliases AbstractSparseArray
-
 using FunctionImplementations: FunctionImplementations
 FunctionImplementations.Style(::Type{<:AnyAbstractSparseArray}) = SparseArrayStyle()
 
@@ -61,10 +57,6 @@ function Base.similar(
     return similar_sparsearray(a, T, ax)
 end
 
-# TODO: These need to be loaded since `AbstractArrayOps`
-# includes overloads of functions from these modules.
-# Ideally that wouldn't be needed and can be circumvented
-# with `GlobalRef`.
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
@@ -73,7 +65,9 @@ Base.getindex(a::AnyAbstractSparseArray, I::Int...) = style(a)(getindex)(a, I...
 Base.setindex!(a::AnyAbstractSparseArray, x, I::Any...) = style(a)(setindex!)(a, x, I...)
 Base.setindex!(a::AnyAbstractSparseArray, x, I::Int...) = style(a)(setindex!)(a, x, I...)
 Base.copy!(dst::AbstractArray, src::AnyAbstractSparseArray) = style(src)(copy!)(dst, src)
-Base.copyto!(dst::AbstractArray, src::AnyAbstractSparseArray) = style(src)(copyto!)(dst, src)
+function Base.copyto!(dst::AbstractArray, src::AnyAbstractSparseArray)
+    return style(src)(copyto!)(dst, src)
+end
 Base.map(f, as::AnyAbstractSparseArray...) = style(as...)(map)(f, as...)
 function Base.map!(f, dst::AbstractArray, as::AnyAbstractSparseArray...)
     return style(as...)(map!)(f, dst, as...)
@@ -109,18 +103,11 @@ end
 using ArrayLayouts: ArrayLayouts
 ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()
 
-## Broadcast.BroadcastStyle(::Type{<:T})
-## Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
-## ArrayLayouts.MemoryLayout(::Type{<:T})
-## LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
-
-## using FunctionImplementations.Concatenate: concatenate
-## # We overload `Base._cat` instead of `Base.cat` since it
-## # is friendlier for invalidations/compile times, see
-## # https://github.com/ITensor/SparseArraysBase.jl/issues/25.
-## function Base._cat(dims, a::AnyAbstractSparseArray...)
-##     return concatenate(dims, a...)
-## end
+using FunctionImplementations.Concatenate: concatenate
+# We overload `Base._cat` instead of `Base.cat` since it
+# is friendlier for invalidations/compile times, see:
+# https://github.com/ITensor/SparseArraysBase.jl/issues/25
+Base._cat(dims, a::AnyAbstractSparseArray...) = concatenate(dims, a...)
 
 # TODO: Use `map(WeakPreserving(f), a)` instead.
 # Currently that has trouble with type unstable maps, since
@@ -278,10 +265,6 @@ function sparserand!(
     end
 end
 
-# Catch some cases that aren't getting caught by the current
-# DerivableInterfaces.jl logic.
-# TODO: Make this more systematic once DerivableInterfaces.jl
-# is rewritten.
 using ArrayLayouts: ArrayLayouts, MemoryLayout
 using LinearAlgebra: LinearAlgebra, Adjoint
 function ArrayLayouts.MemoryLayout(::Type{Transpose{T, P}}) where {T, P <: AbstractSparseMatrix}

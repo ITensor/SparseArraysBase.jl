@@ -194,31 +194,31 @@ using FunctionImplementations: Style
 using LinearAlgebra: LinearAlgebra, Diagonal
 const diag_style = Style(Diagonal)
 const storedvalues_diag = diag_style(storedvalues)
-storedvalues_diag(D::Diagonal) = LinearAlgebra.diag(D)
+storedvalues_diag(D::AbstractMatrix) = LinearAlgebra.diag(D)
 
 # compat with LTS:
 @static if VERSION ≥ v"1.11"
     _diagind = LinearAlgebra.diagind
 else
-    function _diagind(x::Diagonal, ::IndexCartesian)
+    function _diagind(x::AbstractMatrix, ::IndexCartesian)
         return view(CartesianIndices(x), LinearAlgebra.diagind(x))
     end
 end
 const eachstoredindex_diag = diag_style(eachstoredindex)
-eachstoredindex_diag(D::Diagonal) = _diagind(D, IndexCartesian())
+eachstoredindex_diag(D::AbstractMatrix) = _diagind(D, IndexCartesian())
 
 const isstored_diag = diag_style(isstored)
-function isstored_diag(D::Diagonal, i::Int, j::Int)
+function isstored_diag(D::AbstractMatrix, i::Int, j::Int)
     return i == j && checkbounds(Bool, D, i, j)
 end
 const getstoredindex_diag = diag_style(getstoredindex)
-getstoredindex_diag(D::Diagonal, i::Int, j::Int) = D.diag[i]
+getstoredindex_diag(D::AbstractMatrix, i::Int, j::Int) = D.diag[i]
 const getunstoredindex_diag = diag_style(getunstoredindex)
-function getunstoredindex_diag(D::Diagonal, i::Int, j::Int)
+function getunstoredindex_diag(D::AbstractMatrix, i::Int, j::Int)
     return zero(eltype(D))
 end
 const setstoredindex!_diag = diag_style(setstoredindex!)
-function setstoredindex!_diag(D::Diagonal, v, i::Int, j::Int)
+function setstoredindex!_diag(D::AbstractMatrix, v, i::Int, j::Int)
     D.diag[i] = v
     return D
 end

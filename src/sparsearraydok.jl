@@ -65,12 +65,6 @@ function SparseArrayDOK{T}(::UndefInitializer, ax::Vararg{Any, N}) where {T, N}
     return SparseArrayDOK{T, N}(undef, ax)
 end
 
-## using DerivableInterfaces: DerivableInterfaces
-## # This defines the destination type of various operations in DerivableInterfaces.jl.
-## function Base.similar(::AbstractSparseArrayInterface, T::Type, ax::Tuple)
-##     return similar(SparseArrayDOK{T}, ax)
-## end
-
 const SparseVectorDOK{T} = SparseArrayDOK{T, 1}
 const SparseMatrixDOK{T} = SparseArrayDOK{T, 2}
 
