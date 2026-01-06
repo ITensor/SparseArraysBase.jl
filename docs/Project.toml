@@ -11,4 +11,4 @@ SparseArraysBase = {path = ".."}
 Dictionaries = "0.4.4"
 Documenter = "1.8.1"
 Literate = "2.20.1"
-SparseArraysBase = "0.7.0"
+SparseArraysBase = "0.8"
