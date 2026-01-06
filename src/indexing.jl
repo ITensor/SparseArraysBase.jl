@@ -280,6 +280,10 @@ function getindex_sparse(
     ) where {N}
     return getindex_sparse(a, Tuple(I)...)
 end
+using ArrayLayouts: ArrayLayouts
+function getindex_sparse(a::AbstractArray, I...)
+    return ArrayLayouts.layout_getindex(a, I...)
+end
 
 const setindex!_sparse = sparse_style(setindex!)
 function setindex!_sparse(
@@ -418,11 +422,12 @@ end
 
 const setstoredindex!_sparse = sparse_style(setstoredindex!)
 const setunstoredindex!_sparse = sparse_style(setunstoredindex!)
-for f! in (:setstoredindex!_sparse, :setunstoredindex!_sparse)
+for f! in (:setstoredindex!, :setunstoredindex!)
+    f!_sparse = Symbol(f!, :_sparse)
     _f! = Symbol(:_, f!)
     error_if_canonical_setstoredindex = Symbol(:error_if_canonical_, f!)
     @eval begin
-        function $f!(A::AbstractArray, v, I::Int...)
+        function $f!_sparse(A::AbstractArray, v, I::Int...)
             @_propagate_inbounds_meta
             style = IndexStyle(A)
             $error_if_canonical_setstoredindex(style, A, I...)

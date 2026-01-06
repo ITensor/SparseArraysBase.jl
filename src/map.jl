@@ -131,6 +131,13 @@ function copyto!_sparse(
     return dest
 end
 
+const permutedims!_sparse = sparse_style(permutedims!)
+function permutedims!_sparse(
+        a_dest::AbstractArray, a_src::AbstractArray, perm
+    )
+    return map!(identity, a_dest, PermutedDimsArray(a_src, perm))
+end
+
 # Only map the stored values of the inputs.
 function map_stored! end
 
@@ -152,6 +159,26 @@ function map_all!_sparse(
     map!_sparse(NonPreserving(f), a_dest, as...)
     return a_dest
 end
+
+# TODO: Generalize to multiple inputs.
+const reduce_sparse = sparse_style(reduce)
+function reduce_sparse(f, a::AbstractArray; kwargs...)
+    return mapreduce(identity, f, a; kwargs...)
+end
+
+const all_sparse = sparse_style(all)
+function all_sparse(a::AbstractArray)
+    return reduce(&, a; init = true)
+end
+function all_sparse(f::Function, a::AbstractArray)
+    return mapreduce(f, &, a; init = true)
+end
+
+const isreal_sparse = sparse_style(isreal)
+isreal_sparse(a::AbstractArray) = all(isreal, a)
+
+const iszero_sparse = sparse_style(iszero)
+iszero_sparse(a::AbstractArray) = all(iszero, a)
 
 # Utility functions
 # -----------------

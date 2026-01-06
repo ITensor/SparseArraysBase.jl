@@ -95,6 +95,19 @@ Base.zero(a::AnyAbstractSparseArray) = style(a)(zero)(a)
 function Base.permutedims!(dst, a::AnyAbstractSparseArray, perm)
     return style(a)(permutedims!)(dst, a, perm)
 end
+function LinearAlgebra.mul!(
+        dst::AbstractMatrix, a1::AnyAbstractSparseArray, a2::AnyAbstractSparseArray,
+        α::Number, β::Number,
+    )
+    return style(a1, a2)(mul!)(dst, a1, a2, α, β)
+end
+
+function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
+    return Broadcast.SparseArrayStyle{ndims(type)}()
+end
+
+using ArrayLayouts: ArrayLayouts
+ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()
 
 ## Broadcast.BroadcastStyle(::Type{<:T})
 ## Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})

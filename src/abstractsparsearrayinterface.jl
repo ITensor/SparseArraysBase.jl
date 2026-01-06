@@ -120,7 +120,7 @@ function mul_indices(I1::CartesianIndex{2}, I2::CartesianIndex{2})
 end
 
 using LinearAlgebra: mul!
-function default_mul!!(
+function mul!!(
         a_dest::AbstractMatrix,
         a1::AbstractMatrix,
         a2::AbstractMatrix,
@@ -131,20 +131,20 @@ function default_mul!!(
     return a_dest
 end
 
-function default_mul!!(
+function mul!!(
         a_dest::Number, a1::Number, a2::Number, α::Number = true, β::Number = false
     )
     return a1 * a2 * α + a_dest * β
 end
 
 # a1 * a2 * α + a_dest * β
-function sparse_mul!(
+function _mul!_sparse(
         a_dest::AbstractArray,
         a1::AbstractArray,
         a2::AbstractArray,
         α::Number = true,
         β::Number = false;
-        (mul!!) = (default_mul!!),
+        (mul!!) = (mul!!),
     )
     a_dest .*= β
     β′ = one(Bool)
@@ -166,6 +166,6 @@ end
 function ArrayLayouts.materialize!(
         m::MatMulMatAdd{<:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout}
     )
-    sparse_mul!(m.C, m.A, m.B, m.α, m.β)
+    _mul!_sparse(m.C, m.A, m.B, m.α, m.β)
     return m.C
 end
