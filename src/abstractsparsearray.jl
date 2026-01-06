@@ -1,17 +1,25 @@
 using Dictionaries: AbstractDictionary
 
 abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
+const AbstractSparseVector{T} = AbstractSparseArray{T, 1}
+const AbstractSparseMatrix{T} = AbstractSparseArray{T, 2}
+
+using Adapt: WrappedArray
+const WrappedAbstractSparseArray{T, N} =
+    WrappedArray{T, N, AbstractSparseArray, AbstractSparseArray{T, N}}
+const AnyAbstractSparseArray{T, N} = Union{
+    AbstractSparseArray{T, N}, WrappedAbstractSparseArray{T, N},
+}
+const AnyAbstractSparseVector{T} = AnyAbstractSparseArray{T, 1}
+const AnyAbstractSparseMatrix{T} = AnyAbstractSparseArray{T, 2}
+const AnyAbstractSparseVecOrMat{T} = Union{
+    AnyAbstractSparseVector{T}, AnyAbstractSparseMatrix{T},
+}
 
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
-using DerivableInterfaces: @array_aliases
-# Define AbstractSparseVector, AnyAbstractSparseArray, etc.
-@array_aliases AbstractSparseArray
-
-using DerivableInterfaces: DerivableInterfaces
-function DerivableInterfaces.interface(::Type{<:AbstractSparseArray})
-    return SparseArrayInterface()
-end
+using FunctionImplementations: FunctionImplementations
+FunctionImplementations.Style(::Type{<:AnyAbstractSparseArray}) = SparseArrayStyle()
 
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)
@@ -49,47 +57,57 @@ function Base.similar(
     return similar_sparsearray(a, T, ax)
 end
 
-using DerivableInterfaces: @derive
-
-# TODO: These need to be loaded since `AbstractArrayOps`
-# includes overloads of functions from these modules.
-# Ideally that wouldn't be needed and can be circumvented
-# with `GlobalRef`.
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-@derive (T = AnyAbstractSparseArray,) begin
-    Base.getindex(::T, ::Any...)
-    Base.getindex(::T, ::Int...)
-    Base.setindex!(::T, ::Any, ::Any...)
-    Base.setindex!(::T, ::Any, ::Int...)
-    Base.copy!(::AbstractArray, ::T)
-    Base.copyto!(::AbstractArray, ::T)
-    Base.map(::Any, ::T...)
-    Base.map!(::Any, ::AbstractArray, ::T...)
-    Base.mapreduce(::Any, ::Any, ::T...; kwargs...)
-    Base.reduce(::Any, ::T...; kwargs...)
-    Base.all(::Function, ::T)
-    Base.all(::T)
-    Base.iszero(::T)
-    Base.real(::T)
-    Base.fill!(::T, ::Any)
-    DerivableInterfaces.zero!(::T)
-    Base.zero(::T)
-    Base.permutedims!(::Any, ::T, ::Any)
-    Broadcast.BroadcastStyle(::Type{<:T})
-    Base.copyto!(::T, ::Broadcast.Broadcasted{Broadcast.DefaultArrayStyle{0}})
-    ArrayLayouts.MemoryLayout(::Type{<:T})
-    LinearAlgebra.mul!(::AbstractMatrix, ::T, ::T, ::Number, ::Number)
+Base.getindex(a::AnyAbstractSparseArray, I::Any...) = style(a)(getindex)(a, I...)
+Base.getindex(a::AnyAbstractSparseArray, I::Int...) = style(a)(getindex)(a, I...)
+Base.setindex!(a::AnyAbstractSparseArray, x, I::Any...) = style(a)(setindex!)(a, x, I...)
+Base.setindex!(a::AnyAbstractSparseArray, x, I::Int...) = style(a)(setindex!)(a, x, I...)
+Base.copy!(dst::AbstractArray, src::AnyAbstractSparseArray) = style(src)(copy!)(dst, src)
+function Base.copyto!(dst::AbstractArray, src::AnyAbstractSparseArray)
+    return style(src)(copyto!)(dst, src)
+end
+Base.map(f, as::AnyAbstractSparseArray...) = style(as...)(map)(f, as...)
+function Base.map!(f, dst::AbstractArray, as::AnyAbstractSparseArray...)
+    return style(as...)(map!)(f, dst, as...)
+end
+function Base.mapreduce(f, op, as::AnyAbstractSparseArray...; kwargs...)
+    return style(as...)(mapreduce)(f, op, as...; kwargs...)
+end
+function Base.reduce(f, as::AnyAbstractSparseArray...; kwargs...)
+    return style(as...)(reduce)(f, as...; kwargs...)
+end
+Base.all(f::Function, a::AnyAbstractSparseArray) = style(a)(all)(f, a)
+Base.all(a::AnyAbstractSparseArray) = style(a)(all)(a)
+Base.iszero(a::AnyAbstractSparseArray) = style(a)(iszero)(a)
+Base.isreal(a::AnyAbstractSparseArray) = style(a)(isreal)(a)
+Base.real(a::AnyAbstractSparseArray) = style(a)(real)(a)
+Base.fill!(a::AnyAbstractSparseArray, x) = style(a)(fill!)(a, x)
+FunctionImplementations.zero!(a::AnyAbstractSparseArray) = style(a)(zero!)(a)
+Base.zero(a::AnyAbstractSparseArray) = style(a)(zero)(a)
+function Base.permutedims!(dst, a::AnyAbstractSparseArray, perm)
+    return style(a)(permutedims!)(dst, a, perm)
+end
+function LinearAlgebra.mul!(
+        dst::AbstractMatrix, a1::AnyAbstractSparseArray, a2::AnyAbstractSparseArray,
+        α::Number, β::Number,
+    )
+    return style(a1, a2)(mul!)(dst, a1, a2, α, β)
 end
 
-using DerivableInterfaces.Concatenate: concatenate
-# We overload `Base._cat` instead of `Base.cat` since it
-# is friendlier for invalidations/compile times, see
-# https://github.com/ITensor/SparseArraysBase.jl/issues/25.
-function Base._cat(dims, a::AnyAbstractSparseArray...)
-    return concatenate(dims, a...)
+function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
+    return Broadcast.SparseArrayStyle{ndims(type)}()
 end
+
+using ArrayLayouts: ArrayLayouts
+ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()
+
+using FunctionImplementations.Concatenate: concatenate
+# We overload `Base._cat` instead of `Base.cat` since it
+# is friendlier for invalidations/compile times, see:
+# https://github.com/ITensor/SparseArraysBase.jl/issues/25
+Base._cat(dims, a::AnyAbstractSparseArray...) = concatenate(dims, a...)
 
 # TODO: Use `map(WeakPreserving(f), a)` instead.
 # Currently that has trouble with type unstable maps, since
@@ -247,10 +265,6 @@ function sparserand!(
     end
 end
 
-# Catch some cases that aren't getting caught by the current
-# DerivableInterfaces.jl logic.
-# TODO: Make this more systematic once DerivableInterfaces.jl
-# is rewritten.
 using ArrayLayouts: ArrayLayouts, MemoryLayout
 using LinearAlgebra: LinearAlgebra, Adjoint
 function ArrayLayouts.MemoryLayout(::Type{Transpose{T, P}}) where {T, P <: AbstractSparseMatrix}

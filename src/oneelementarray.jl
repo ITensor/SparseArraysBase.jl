@@ -16,9 +16,8 @@ struct OneElementArray{T, N, I, Unstored <: AbstractArray{T, N}} <: AbstractSpar
     end
 end
 
-using DerivableInterfaces: @array_aliases
-# Define `OneElementMatrix`, `AnyOneElementArray`, etc.
-@array_aliases OneElementArray
+const OneElementVector{T} = OneElementArray{T, 1}
+const OneElementMatrix{T} = OneElementArray{T, 2}
 
 function OneElementArray{T, N}(
         value, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
