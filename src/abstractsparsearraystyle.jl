@@ -60,7 +60,7 @@ abstract type AbstractSparseArrayStyle <: AbstractArrayStyle end
 function FunctionImplementations.Style(
         style1::AbstractSparseArrayStyle, style2::AbstractSparseArrayStyle
     )
-    return error("Rule not defined.")
+    return SparseArrayStyle()
 end
 function FunctionImplementations.Style(
         style1::AbstractSparseArrayStyle, style2::AbstractArrayStyle
