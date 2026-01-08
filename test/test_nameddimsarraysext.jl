@@ -1,4 +1,4 @@
-using NamedDimsArrays: NamedDimsArray, dename, nameddims, namedoneto, inds
+using NamedDimsArrays: NamedDimsArray, denamed, nameddims, namedoneto, inds
 using SparseArraysBase: dense, oneelement, sparsezeros
 using Test: @test, @testset
 
@@ -28,8 +28,8 @@ using Test: @test, @testset
         s = sparsezeros(elt, 3, 4)
         a = nameddims(s, (:a, :b))
         b = dense(a)
-        @test dename(b) == dense(dename(a))
-        @test dename(b) isa Array{elt, 2}
+        @test denamed(b) == dense(denamed(a))
+        @test denamed(b) isa Array{elt, 2}
         @test inds(b) == inds(a)
     end
 end
