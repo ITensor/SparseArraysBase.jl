@@ -67,6 +67,13 @@ function FunctionImplementations.Style(
     )
     return style1
 end
+# Fix ambiguity error with `Style(::AbstractSparseArrayStyle, ::AbstractArrayStyle)`.
+using FunctionImplementations: DefaultArrayStyle
+function FunctionImplementations.Style(
+        style1::AbstractSparseArrayStyle, style2::DefaultArrayStyle
+    )
+    return style1
+end
 
 to_vec(x) = vec(collect(x))
 to_vec(x::AbstractArray) = vec(x)
