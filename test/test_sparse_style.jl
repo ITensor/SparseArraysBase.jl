@@ -1,5 +1,6 @@
-using FunctionImplementations: Style, style
-using SparseArraysBase: AbstractSparseArrayStyle, SparseArrayStyle, sparse_style, sparsezeros
+using FunctionImplementations: DefaultArrayStyle, Style, style
+using SparseArraysBase: AbstractSparseArrayStyle, SparseArrayStyle, sparse_style,
+    sparsezeros
 using Test: @test, @testset
 
 module TestSparseStyleUtils
@@ -23,4 +24,11 @@ end
         TestSparseStyleUtils.MySparseArrayStyle()
     @test style(sparsezeros(2, 2), TestSparseStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
         SparseArrayStyle()
+
+    # Regression tests for ambiguity caused by combining AbstractSparseArrayStyle with
+    # DefaultArrayStyle.
+    @test Style(TestSparseStyleUtils.MySparseArrayStyle(), DefaultArrayStyle()) ≡
+        TestSparseStyleUtils.MySparseArrayStyle()
+    @test style(TestSparseStyleUtils.MySparseArray{Float64, 2}((2, 2)), randn(2, 2)) ≡
+        TestSparseStyleUtils.MySparseArrayStyle()
 end
