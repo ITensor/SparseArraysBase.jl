@@ -5,8 +5,13 @@ const AbstractSparseVector{T} = AbstractSparseArray{T, 1}
 const AbstractSparseMatrix{T} = AbstractSparseArray{T, 2}
 
 using Adapt: WrappedArray
+using LinearAlgebra: Adjoint, Transpose
 const WrappedAbstractSparseArray{T, N} =
-    WrappedArray{T, N, AbstractSparseArray, AbstractSparseArray{T, N}}
+    Union{
+    WrappedArray{T, N, AbstractSparseArray, AbstractSparseArray{T, N}},
+    Adjoint{T, <:AbstractSparseArray},
+    Transpose{T, <:AbstractSparseArray},
+}
 const AnyAbstractSparseArray{T, N} = Union{
     AbstractSparseArray{T, N}, WrappedAbstractSparseArray{T, N},
 }
