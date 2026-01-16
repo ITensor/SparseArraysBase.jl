@@ -8,5 +8,5 @@ SparseArraysBase = {path = ".."}
 
 [compat]
 Dictionaries = "0.4.4"
-SparseArraysBase = "0.8"
+SparseArraysBase = "0.9"
 Test = "<0.0.1, 1"

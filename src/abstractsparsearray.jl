@@ -24,7 +24,8 @@ const AnyAbstractSparseVecOrMat{T} = Union{
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
 using FunctionImplementations: FunctionImplementations
-FunctionImplementations.Style(::Type{<:AnyAbstractSparseArray}) = SparseArrayStyle()
+FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray}) =
+    SparseArrayImplementationtyle()
 
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)

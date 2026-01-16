@@ -1,12 +1,12 @@
 using FunctionImplementations: FunctionImplementations
 
-struct SparseArrayStyle <: AbstractSparseArrayStyle end
+struct SparseArrayImplementationStyle <: AbstractSparseArrayImplementationStyle end
 
 # Convenient shorthand to refer to the sparse style.
 # Can turn a function into a sparse function with the syntax `sparse_style(f)`,
 # i.e. `sparse_style(map)(x -> 2x, randn(2, 2))` while use the sparse
 # version of `map`.
-const sparse_style = SparseArrayStyle()
+const sparse_style = SparseArrayImplementationStyle()
 
 const fill!_sparse = sparse_style(fill!)
 function fill!_sparse(a::AbstractArray, value)

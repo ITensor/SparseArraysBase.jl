@@ -1,34 +1,37 @@
-using FunctionImplementations: DefaultArrayStyle, Style, style
-using SparseArraysBase: AbstractSparseArrayStyle, SparseArrayStyle, sparse_style,
-    sparsezeros
+using FunctionImplementations: DefaultArrayImplementationStyle, style
+using SparseArraysBase: AbstractSparseArrayImplementationStyle,
+    SparseArrayImplementationStyle, sparse_style, sparsezeros
 using Test: @test, @testset
 
-module TestSparseStyleUtils
-    using SparseArraysBase: AbstractSparseArray, AbstractSparseArrayStyle
+module TestSparseImplementationStyleUtils
+    using SparseArraysBase: AbstractSparseArray, AbstractSparseArrayImplementationStyle
     using FunctionImplementations: FunctionImplementations
-    struct MySparseArrayStyle <: AbstractSparseArrayStyle end
+    struct MySparseArrayImplementationStyle <: AbstractSparseArrayImplementationStyle end
     struct MySparseArray{T, N} <: AbstractSparseArray{T, N}
         size::NTuple{N, Int}
     end
-    FunctionImplementations.Style(::Type{<:MySparseArray}) = MySparseArrayStyle()
+    FunctionImplementations.ImplementationStyle(::Type{<:MySparseArray}) =
+        MySparseArrayImplementationStyle()
 end
 
 @testset "Combine Sparse Styles" begin
-    @test sparse_style ≡ SparseArrayStyle()
-    @test Style(SparseArrayStyle(), SparseArrayStyle()) ≡ SparseArrayStyle()
-    @test Style(TestSparseStyleUtils.MySparseArrayStyle(), SparseArrayStyle()) ≡
-        SparseArrayStyle()
-    @test Style(SparseArrayStyle(), TestSparseStyleUtils.MySparseArrayStyle()) ≡
-        SparseArrayStyle()
-    @test style(TestSparseStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
-        TestSparseStyleUtils.MySparseArrayStyle()
-    @test style(sparsezeros(2, 2), TestSparseStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
-        SparseArrayStyle()
-
+    @test sparse_style ≡ SparseArrayImplementationStyle()
+    @test ImplementationStyle(SparseArrayImplementationStyle(), SparseArrayImplementationStyle()) ≡ SparseArrayImplementationStyle()
+    @test ImplementationStyle(TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(), SparseArrayImplementationStyle()) ≡
+        SparseArrayImplementationStyle()
+    @test ImplementationStyle(SparseArrayImplementationStyle(), TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()) ≡
+        SparseArrayImplementationStyle()
+    @test style(TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
+        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
+    @test style(sparsezeros(2, 2), TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
+        SparseArrayImplementationStyle()
     # Regression tests for ambiguity caused by combining AbstractSparseArrayStyle with
     # DefaultArrayStyle.
-    @test Style(TestSparseStyleUtils.MySparseArrayStyle(), DefaultArrayStyle()) ≡
-        TestSparseStyleUtils.MySparseArrayStyle()
-    @test style(TestSparseStyleUtils.MySparseArray{Float64, 2}((2, 2)), randn(2, 2)) ≡
-        TestSparseStyleUtils.MySparseArrayStyle()
+    @test ImplementationStyle(
+        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(),
+        DefaultArrayStyle(),
+    ) ≡
+        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
+    @test style(TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2)), randn(2, 2)) ≡
+        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
 end
