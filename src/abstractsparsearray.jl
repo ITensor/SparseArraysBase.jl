@@ -25,7 +25,7 @@ Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T
 
 using FunctionImplementations: FunctionImplementations
 FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray}) =
-    SparseArrayImplementationtyle()
+    SparseArrayImplementationStyle()
 
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)
