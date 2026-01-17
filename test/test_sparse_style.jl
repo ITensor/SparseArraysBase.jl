@@ -1,4 +1,4 @@
-using FunctionImplementations: DefaultArrayImplementationStyle, style
+using FunctionImplementations: DefaultArrayImplementationStyle, ImplementationStyle, style
 using SparseArraysBase: AbstractSparseArrayImplementationStyle,
     SparseArrayImplementationStyle, sparse_style, sparsezeros
 using Test: @test, @testset
@@ -29,7 +29,7 @@ end
     # DefaultArrayStyle.
     @test ImplementationStyle(
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(),
-        DefaultArrayStyle(),
+        DefaultArrayImplementationStyle(),
     ) ≡
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
     @test style(TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2)), randn(2, 2)) ≡
