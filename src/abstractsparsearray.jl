@@ -103,7 +103,7 @@ function LinearAlgebra.mul!(
 end
 
 function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
-    return Broadcast.SparseArrayStyle{ndims(type)}()
+    return SparseArrayStyle{ndims(type)}()
 end
 
 using ArrayLayouts: ArrayLayouts

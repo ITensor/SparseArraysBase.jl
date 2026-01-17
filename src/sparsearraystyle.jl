@@ -78,19 +78,15 @@ function mapreduce_sparse(
     return output
 end
 
-# Namespace for Broadcast styles to avoid clashing with FunctionImplementations
-# styles.
-module Broadcast
-    abstract type AbstractSparseArrayStyle{N} <: Base.Broadcast.AbstractArrayStyle{N} end
-    struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
-    SparseArrayStyle{M}(::Val{N}) where {M, N} = SparseArrayStyle{N}()
-end
+abstract type AbstractSparseArrayStyle{N} <: Base.Broadcast.AbstractArrayStyle{N} end
+struct SparseArrayStyle{N} <: AbstractSparseArrayStyle{N} end
+SparseArrayStyle{M}(::Val{N}) where {M, N} = SparseArrayStyle{N}()
 
 using MapBroadcast: Mapped
 # TODO: Look into `SparseArrays.capturescalars`:
 # https://github.com/JuliaSparse/SparseArrays.jl/blob/1beb0e4a4618b0399907b0000c43d9f66d34accc/src/higherorderfns.jl#L1092-L1102
 function Base.copyto!(
-        a_dest::AbstractArray, bc::Base.Broadcast.Broadcasted{<:Broadcast.SparseArrayStyle}
+        a_dest::AbstractArray, bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle}
     )
     m = Mapped(bc)
     map!(m.f, a_dest, m.args...)
@@ -98,7 +94,7 @@ function Base.copyto!(
 end
 
 function Base.similar(
-        bc::Base.Broadcast.Broadcasted{<:Broadcast.SparseArrayStyle}, elt::Type, ax
+        bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle}, elt::Type, ax
     )
     return similar(SparseArrayDOK{elt}, ax)
 end
