@@ -190,9 +190,9 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
     end
 end
 
-using FunctionImplementations: Style
+using FunctionImplementations: ImplementationStyle
 using LinearAlgebra: LinearAlgebra, Diagonal
-const diag_style = Style(Diagonal)
+const diag_style = ImplementationStyle(Diagonal)
 const storedvalues_diag = diag_style(storedvalues)
 storedvalues_diag(D::AbstractMatrix) = LinearAlgebra.diag(D)
 

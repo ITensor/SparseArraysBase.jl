@@ -24,7 +24,8 @@ const AnyAbstractSparseVecOrMat{T} = Union{
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
 using FunctionImplementations: FunctionImplementations
-FunctionImplementations.Style(::Type{<:AnyAbstractSparseArray}) = SparseArrayStyle()
+FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray}) =
+    SparseArrayImplementationStyle()
 
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)
@@ -102,7 +103,7 @@ function LinearAlgebra.mul!(
 end
 
 function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
-    return Broadcast.SparseArrayStyle{ndims(type)}()
+    return SparseArrayStyle{ndims(type)}()
 end
 
 using ArrayLayouts: ArrayLayouts

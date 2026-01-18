@@ -51,26 +51,30 @@ function dense(a::AbstractArray)
     return @allowscalar convert(densetype(a), a)
 end
 
-# Minimal interface for `SparseArrayStyle`.
+# Minimal interface for `SparseArrayImplementationStyle`.
 # Fallbacks for dense/non-sparse arrays.
 
-using FunctionImplementations: AbstractArrayStyle
-abstract type AbstractSparseArrayStyle <: AbstractArrayStyle end
+using FunctionImplementations: AbstractArrayImplementationStyle
+abstract type AbstractSparseArrayImplementationStyle <: AbstractArrayImplementationStyle end
 
-function FunctionImplementations.Style(
-        style1::AbstractSparseArrayStyle, style2::AbstractSparseArrayStyle
+function FunctionImplementations.ImplementationStyle(
+        style1::AbstractSparseArrayImplementationStyle,
+        style2::AbstractSparseArrayImplementationStyle,
     )
-    return SparseArrayStyle()
+    return SparseArrayImplementationStyle()
 end
-function FunctionImplementations.Style(
-        style1::AbstractSparseArrayStyle, style2::AbstractArrayStyle
+function FunctionImplementations.ImplementationStyle(
+        style1::AbstractSparseArrayImplementationStyle,
+        style2::AbstractArrayImplementationStyle,
     )
     return style1
 end
-# Fix ambiguity error with `Style(::AbstractSparseArrayStyle, ::AbstractArrayStyle)`.
-using FunctionImplementations: DefaultArrayStyle
-function FunctionImplementations.Style(
-        style1::AbstractSparseArrayStyle, style2::DefaultArrayStyle
+# Fix ambiguity error with
+# `ImplementationStyle(::AbstractSparseArrayImplementationStyle, ::AbstractArrayImplementationStyle)`.
+using FunctionImplementations: DefaultArrayImplementationStyle
+function FunctionImplementations.ImplementationStyle(
+        style1::AbstractSparseArrayImplementationStyle,
+        style2::DefaultArrayImplementationStyle,
     )
     return style1
 end
