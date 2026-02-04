@@ -17,8 +17,8 @@ Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[sources]
-SparseArraysBase = {path = ".."}
+[sources.SparseArraysBase]
+path = ".."
 
 [compat]
 Adapt = "4.2.0"
@@ -29,7 +29,7 @@ FillArrays = "1.13.0"
 FunctionImplementations = "0.4"
 JLArrays = "0.2.0, 0.3"
 LinearAlgebra = "<0.0.1, 1"
-NamedDimsArrays = "0.13"
+NamedDimsArrays = "0.13, 0.14"
 Random = "<0.0.1, 1"
 SafeTestsets = "0.1.0"
 SparseArrays = "1.10"
