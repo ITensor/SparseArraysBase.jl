@@ -2,14 +2,13 @@ module SparseArraysBaseTensorAlgebraExt
 
 using SparseArrays: SparseMatrixCSC
 using SparseArraysBase: AnyAbstractSparseArray, AnyAbstractSparseMatrix, SparseArrayDOK
-using TensorAlgebra: TensorAlgebra, BlockedTrivialPermutation, BlockedTuple, FusionStyle,
-    ReshapeFusion, matricize, unmatricize
+using TensorAlgebra: TensorAlgebra, BlockedTrivialPermutation, BlockedTuple, FusionStyle, ReshapeFusion, matricize, unmatricize
 
 struct SparseArrayFusion <: FusionStyle end
 TensorAlgebra.FusionStyle(::Type{<:AnyAbstractSparseArray}) = SparseArrayFusion()
 
 function TensorAlgebra.matricize(
-        style::SparseArrayFusion, a::AbstractArray, length_codomain::Val
+        style::SparseArrayFusion, a::AbstractArray, length_codomain::Val,
     )
     m = matricize(ReshapeFusion(), a, length_codomain)
     return convert(SparseMatrixCSC, m)

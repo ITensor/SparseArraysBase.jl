@@ -21,12 +21,12 @@ function SparseArrayDOK(a::Base.ReshapedArray{<:Any, <:Any, <:AbstractSparseMatr
     return SparseArrayDOK{eltype(a), ndims(a)}(a)
 end
 function SparseArrayDOK{T}(
-        a::Base.ReshapedArray{<:Any, <:Any, <:AbstractSparseMatrixCSC}
+        a::Base.ReshapedArray{<:Any, <:Any, <:AbstractSparseMatrixCSC},
     ) where {T}
     return SparseArrayDOK{T, ndims(a)}(a)
 end
 function SparseArrayDOK{T, N}(
-        a::Base.ReshapedArray{<:Any, N, <:AbstractSparseMatrixCSC}
+        a::Base.ReshapedArray{<:Any, N, <:AbstractSparseMatrixCSC},
     ) where {T, N}
     a′ = SparseArrayDOK{T, N}(undef, size(a))
     for I in eachstoredindex(a)

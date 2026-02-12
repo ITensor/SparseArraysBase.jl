@@ -5,14 +5,15 @@
 
 Holy Trait to indicate how a function interacts with abstract zero values:
 
-- `StrongPreserving` : output is guaranteed to be zero if **any** input is.
-- `WeakPreserving` : output is guaranteed to be zero if **all** inputs are.
-- `NonPreserving` : no guarantees on output.
+  - `StrongPreserving` : output is guaranteed to be zero if **any** input is.
+  - `WeakPreserving` : output is guaranteed to be zero if **all** inputs are.
+  - `NonPreserving` : no guarantees on output.
 
 To attempt to automatically determine this, either `ZeroPreserving(f, A::AbstractArray...)` or
 `ZeroPreserving(f, T::Type...)` can be used/overloaded.
 
 !!! warning
+
     incorrectly registering a function to be zero-preserving will lead to silently wrong results.
 """
 abstract type ZeroPreserving <: Function end
@@ -69,7 +70,7 @@ end
 # ------
 const map_sparse = sparse_style(map)
 function map_sparse(
-        f, A::AbstractArray, Bs::AbstractArray...
+        f, A::AbstractArray, Bs::AbstractArray...,
     )
     f_pres = ZeroPreserving(f, A, Bs...)
     return map_sparse(f_pres, A, Bs...)
@@ -90,7 +91,7 @@ end
 
 const map!_sparse = sparse_style(map!)
 function map!_sparse(
-        f, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
+        f, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...,
     )
     f_pres = ZeroPreserving(f, A, Bs...)
     return map!_sparse(f_pres, C, A, Bs...)
@@ -98,7 +99,7 @@ end
 
 # This isn't an overload of `Base.map!` since that leads to ambiguity errors.
 function map!_sparse(
-        f::ZeroPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...
+        f::ZeroPreserving, C::AbstractArray, A::AbstractArray, Bs::AbstractArray...,
     )
     checkshape(C, A, Bs...)
     unaliased = map(Base.Fix1(Base.unalias, C), (A, Bs...))
@@ -125,7 +126,7 @@ end
 # -----------------
 const copyto!_sparse = sparse_style(copyto!)
 function copyto!_sparse(
-        dest::AbstractArray, src::AbstractArray
+        dest::AbstractArray, src::AbstractArray,
     )
     map!_sparse(identity, dest, src)
     return dest
@@ -133,7 +134,7 @@ end
 
 const permutedims!_sparse = sparse_style(permutedims!)
 function permutedims!_sparse(
-        a_dest::AbstractArray, a_src::AbstractArray, perm
+        a_dest::AbstractArray, a_src::AbstractArray, perm,
     )
     return map!(identity, a_dest, PermutedDimsArray(a_src, perm))
 end
@@ -143,7 +144,7 @@ function map_stored! end
 
 const map_stored!_sparse = sparse_style(map_stored!)
 function map_stored!_sparse(
-        f, a_dest::AbstractArray, as::AbstractArray...
+        f, a_dest::AbstractArray, as::AbstractArray...,
     )
     map!_sparse(WeakPreserving(f), a_dest, as...)
     return a_dest
@@ -154,7 +155,7 @@ function map_all! end
 
 const map_all!_sparse = sparse_style(map_all!)
 function map_all!_sparse(
-        f, a_dest::AbstractArray, as::AbstractArray...
+        f, a_dest::AbstractArray, as::AbstractArray...,
     )
     map!_sparse(NonPreserving(f), a_dest, as...)
     return a_dest

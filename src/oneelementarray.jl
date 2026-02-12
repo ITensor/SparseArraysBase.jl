@@ -4,12 +4,13 @@ function _OneElementArray end
 
 # Like [`FillArrays.OneElement`](https://github.com/JuliaArrays/FillArrays.jl)
 # and [`OneHotArrays.OneHotArray`](https://github.com/FluxML/OneHotArrays.jl).
-struct OneElementArray{T, N, I, Unstored <: AbstractArray{T, N}} <: AbstractSparseArray{T, N}
+struct OneElementArray{T, N, I, Unstored <: AbstractArray{T, N}} <:
+    AbstractSparseArray{T, N}
     value::T
     index::I
     unstored::Unstored
     global @inline function _OneElementArray(
-            value::T, index::I, unstored::Unstored
+            value::T, index::I, unstored::Unstored,
         ) where {T, N, I, Unstored <: AbstractArray{T, N}}
         @assert N == length(index)
         return new{T, N, I, Unstored}(value, index, unstored)
@@ -20,66 +21,73 @@ const OneElementVector{T} = OneElementArray{T, 1}
 const OneElementMatrix{T} = OneElementArray{T, 2}
 
 function OneElementArray{T, N}(
-        value, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        value, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {T, N}
     return _OneElementArray(convert(T, value), index, Zeros{T}(axes))
 end
 
 function OneElementArray{<:Any, N}(
-        value::T, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        value::T, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, axes)
 end
 function OneElementArray(
-        value::T, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        value::T, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, axes)
 end
 
 function OneElementArray{T, N}(
-        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {T, N}
     return OneElementArray{T, N}(one(T), index, axes)
 end
 function OneElementArray{<:Any, N}(
-        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {N}
     return OneElementArray{Bool, N}(index, axes)
 end
 function OneElementArray{T}(
-        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {T, N}
     return OneElementArray{T, N}(index, axes)
 end
-function OneElementArray(index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}) where {N}
+function OneElementArray(
+        index::NTuple{N, Int},
+        axes::NTuple{N, AbstractUnitRange},
+    ) where {N}
     return OneElementArray{Bool, N}(index, axes)
 end
 
 function OneElementArray{T, N}(
-        value, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}
+        value, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
     ) where {T, N}
     return OneElementArray{T, N}(value, last.(ax_ind), first.(ax_ind))
 end
 function OneElementArray{<:Any, N}(
-        value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}
+        value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
     ) where {T, N}
     return OneElementArray{T, N}(value, ax_ind...)
 end
 function OneElementArray{T}(
-        value, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}
+        value, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
     ) where {T, N}
     return OneElementArray{T, N}(value, ax_ind...)
 end
 function OneElementArray(
-        value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}
+        value::T, ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
     ) where {T, N}
     return OneElementArray{T, N}(value, ax_ind...)
 end
 
-function OneElementArray{T, N}(ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}) where {T, N}
+function OneElementArray{T, N}(
+        ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
+    ) where {T, N}
     return OneElementArray{T, N}(last.(ax_ind), first.(ax_ind))
 end
-function OneElementArray{<:Any, N}(ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}) where {N}
+function OneElementArray{<:Any, N}(
+        ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N},
+    ) where {N}
     return OneElementArray{Bool, N}(ax_ind...)
 end
 function OneElementArray{T}(ax_ind::Vararg{Pair{<:AbstractUnitRange, Int}, N}) where {T, N}
@@ -144,22 +152,22 @@ function OneElementArray()
 end
 
 function OneElementArray{T, N}(
-        value, index::NTuple{N, Int}, size::NTuple{N, Integer}
+        value, index::NTuple{N, Int}, size::NTuple{N, Integer},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, Base.oneto.(size))
 end
 function OneElementArray{<:Any, N}(
-        value::T, index::NTuple{N, Int}, size::NTuple{N, Integer}
+        value::T, index::NTuple{N, Int}, size::NTuple{N, Integer},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, size)
 end
 function OneElementArray{T}(
-        value, index::NTuple{N, Int}, size::NTuple{N, Integer}
+        value, index::NTuple{N, Int}, size::NTuple{N, Integer},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, size)
 end
 function OneElementArray(
-        value::T, index::NTuple{N, Int}, size::NTuple{N, Integer}
+        value::T, index::NTuple{N, Int}, size::NTuple{N, Integer},
     ) where {T, N}
     return OneElementArray{T, N}(value, index, Base.oneto.(size))
 end
@@ -167,7 +175,10 @@ end
 function OneElementArray{T, N}(index::NTuple{N, Int}, size::NTuple{N, Integer}) where {T, N}
     return OneElementArray{T, N}(one(T), index, size)
 end
-function OneElementArray{<:Any, N}(index::NTuple{N, Int}, size::NTuple{N, Integer}) where {N}
+function OneElementArray{<:Any, N}(
+        index::NTuple{N, Int},
+        size::NTuple{N, Integer},
+    ) where {N}
     return OneElementArray{Bool, N}(index, size)
 end
 function OneElementArray{T}(index::NTuple{N, Int}, size::NTuple{N, Integer}) where {T, N}
@@ -206,12 +217,12 @@ end
 # Interface to overload for constructing arrays like `OneElementArray`,
 # that may not be `OneElementArray` (i.e. wrapped versions).
 function oneelement(
-        value, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        value, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {N}
     return OneElementArray(value, index, axes)
 end
 function oneelement(
-        eltype::Type, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange}
+        eltype::Type, index::NTuple{N, Int}, axes::NTuple{N, AbstractUnitRange},
     ) where {N}
     return oneelement(one(eltype), index, axes)
 end

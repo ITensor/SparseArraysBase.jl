@@ -1,6 +1,5 @@
 using SparseArrays: SparseMatrixCSC, findnz, nnz
-using SparseArraysBase:
-    SparseMatrixDOK, eachstoredindex, isstored, sparsezeros, storedlength
+using SparseArraysBase: SparseMatrixDOK, eachstoredindex, isstored, sparsezeros, storedlength
 using TensorAlgebra: contract, matricize
 using Test: @test, @testset
 

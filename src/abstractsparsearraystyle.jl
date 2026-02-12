@@ -133,7 +133,7 @@ function mul!!(
 end
 
 function mul!!(
-        a_dest::Number, a1::Number, a2::Number, α::Number = true, β::Number = false
+        a_dest::Number, a1::Number, a2::Number, α::Number = true, β::Number = false,
     )
     return a1 * a2 * α + a_dest * β
 end
@@ -165,7 +165,7 @@ function _mul!_sparse(
 end
 
 function ArrayLayouts.materialize!(
-        m::MatMulMatAdd{<:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout}
+        m::MatMulMatAdd{<:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout},
     )
     _mul!_sparse(m.C, m.A, m.B, m.α, m.β)
     return m.C

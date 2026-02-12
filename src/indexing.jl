@@ -144,26 +144,34 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
         end
 
         # cartesian indexing
-        @inline function $_f(::IndexCartesian, A::AbstractArray, I::Vararg{Int, M}) where {M}
+        @inline function $_f(
+                ::IndexCartesian,
+                A::AbstractArray,
+                I::Vararg{Int, M},
+            ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f(A, Base._to_subscript_indices(A, I...)...)
         end
         @inline function $_f(
-                ::IndexCartesian, A::AbstractArray{<:Any, N}, I::Vararg{Int, N}
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, I::Vararg{Int, N},
             ) where {N}
             return $f(A, I...)
         end
 
         # errors
         $_f(::IndexStyle, A::AbstractArray, I...) = error(
-            "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+            "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported",
         )
 
         $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-            Base.CanonicalIndexError("$($f)", typeof(A))
+            Base.CanonicalIndexError("$($f)", typeof(A)),
         )
-        $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}) where {N} = throw(
-            Base.CanonicalIndexError("$($f)", typeof(A))
+        $error_if_canonical(
+            ::IndexCartesian,
+            A::AbstractArray{<:Any, N},
+            ::Vararg{Int, N},
+        ) where {N} = throw(
+            Base.CanonicalIndexError("$($f)", typeof(A)),
         )
         $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
     end
@@ -183,32 +191,46 @@ for f! in (:setstoredindex!, :setunstoredindex!)
         # linear indexing
         @inline $_f!(::IndexLinear, A::AbstractVector, v, i::Int) = $f!(A, v, i)
         @inline $_f!(::IndexLinear, A::AbstractArray, v, i::Int) = $f!(A, v, i)
-        @inline function $_f!(::IndexLinear, A::AbstractArray, v, I::Vararg{Int, M}) where {M}
+        @inline function $_f!(
+                ::IndexLinear,
+                A::AbstractArray,
+                v,
+                I::Vararg{Int, M},
+            ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f!(A, v, Base._to_linear_index(A, I...))
         end
 
         # cartesian indexing
-        @inline function $_f!(::IndexCartesian, A::AbstractArray, v, I::Vararg{Int, M}) where {M}
+        @inline function $_f!(
+                ::IndexCartesian,
+                A::AbstractArray,
+                v,
+                I::Vararg{Int, M},
+            ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f!(A, v, Base._to_subscript_indices(A, I...)...)
         end
         @inline function $_f!(
-                ::IndexCartesian, A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N}
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N},
             ) where {N}
             return $f!(A, v, I...)
         end
 
         # errors
         $_f!(::IndexStyle, A::AbstractArray, I...) = error(
-            "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+            "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported",
         )
 
         $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-            Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
+            Base.CanonicalIndexError("$($(string(f!)))", typeof(A)),
         )
-        $error_if_canonical(::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}) where {N} = throw(
-            Base.CanonicalIndexError("$($f!)", typeof(A))
+        $error_if_canonical(
+            ::IndexCartesian,
+            A::AbstractArray{<:Any, N},
+            ::Vararg{Int, N},
+        ) where {N} = throw(
+            Base.CanonicalIndexError("$($f!)", typeof(A)),
         )
         $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
     end
@@ -243,7 +265,11 @@ end
 function (::Implementation{typeof(eachstoredindex)})(A::AbstractArray, B::AbstractArray...)
     return eachstoredindex(IndexStyle(A, B...), A, B...)
 end
-function (::Implementation{typeof(eachstoredindex)})(style::IndexStyle, A::AbstractArray, B::AbstractArray...)
+function (::Implementation{typeof(eachstoredindex)})(
+        style::IndexStyle,
+        A::AbstractArray,
+        B::AbstractArray...,
+    )
     return eachindex(style, A, B...)
 end
 
@@ -257,7 +283,7 @@ end
 # so no errors at this level by defining both IndexLinear and IndexCartesian
 const getindex_sparse = sparse_style(getindex)
 function getindex_sparse(
-        A::AbstractArray{<:Any, N}, I::Vararg{Int, N}
+        A::AbstractArray{<:Any, N}, I::Vararg{Int, N},
     ) where {N}
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
@@ -276,7 +302,7 @@ function getindex_sparse(A::AbstractVector, I::Int)
 end
 # TODO: Make this more general, use `Base.to_index`.
 function getindex_sparse(
-        a::AbstractArray{<:Any, N}, I::CartesianIndex{N}
+        a::AbstractArray{<:Any, N}, I::CartesianIndex{N},
     ) where {N}
     return getindex_sparse(a, Tuple(I)...)
 end
@@ -287,7 +313,7 @@ end
 
 const setindex!_sparse = sparse_style(setindex!)
 function setindex!_sparse(
-        A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N}
+        A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N},
     ) where {N}
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I...)
@@ -298,7 +324,7 @@ function setindex!_sparse(
     end
 end
 function setindex!_sparse(
-        A::AbstractArray, v, I::Int
+        A::AbstractArray, v, I::Int,
     )
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I)
@@ -310,7 +336,7 @@ function setindex!_sparse(
 end
 # disambiguate vectors
 function setindex!_sparse(
-        A::AbstractVector, v, I::Int
+        A::AbstractVector, v, I::Int,
     )
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I)
@@ -322,7 +348,7 @@ function setindex!_sparse(
 end
 # TODO: Make this more general, use `Base.to_index`.
 function setindex!_sparse(
-        a::AbstractArray{<:Any, N}, value, I::CartesianIndex{N}
+        a::AbstractArray{<:Any, N}, value, I::CartesianIndex{N},
     ) where {N}
     return setindex!(a, value, Tuple(I)...)
 end
@@ -339,7 +365,7 @@ end
 # required: one implementation for canonical index style
 const eachstoredindex_sparse = sparse_style(eachstoredindex)
 function eachstoredindex_sparse(
-        style::IndexStyle, A::AbstractArray
+        style::IndexStyle, A::AbstractArray,
     )
     error_if_canonical_eachstoredindex(style, A)
     inds = eachstoredindex(A)
@@ -356,7 +382,7 @@ end
 
 # derived but may be specialized:
 function eachstoredindex_sparse(
-        style::IndexStyle, A::AbstractArray, B::AbstractArray...
+        style::IndexStyle, A::AbstractArray, B::AbstractArray...,
     )
     return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
 end
@@ -389,7 +415,7 @@ end
 
 const getunstoredindex_sparse = sparse_style(getunstoredindex)
 function getunstoredindex_sparse(
-        A::AbstractArray, I::Int...
+        A::AbstractArray, I::Int...,
     )
     @_propagate_inbounds_meta
     style = IndexStyle(A)
@@ -412,7 +438,7 @@ end
 
 const getstoredindex_sparse = sparse_style(getstoredindex)
 function getstoredindex_sparse(
-        A::AbstractArray, I::Int...
+        A::AbstractArray, I::Int...,
     )
     @_propagate_inbounds_meta
     style = IndexStyle(A)
@@ -450,12 +476,12 @@ eg: ArrayLayouts.@layoutgetindex ArrayType
 TODO: decide if we need the interface approach at all here
 =#
 for (Tr, Tc) in Iterators.product(
-        Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...
+        Iterators.repeated((:Colon, :AbstractUnitRange, :AbstractVector, :Integer), 2)...,
     )
     Tr === Tc === :Integer && continue
     @eval begin
         function getindex_sparse(
-                A::AbstractMatrix, kr::$Tr, jr::$Tc
+                A::AbstractMatrix, kr::$Tr, jr::$Tc,
             )
             Base.@inline # needed to make boundschecks work
             return ArrayLayouts.layout_getindex(A, kr, jr)

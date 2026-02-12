@@ -16,7 +16,7 @@ struct SparseArrayDOK{T, N, Unstored <: AbstractArray{T, N}} <: AbstractSparseAr
     storage::DOKStorage{T, N}
     unstored::Unstored
     global @inline function _SparseArrayDOK(
-            storage::DOKStorage{T, N}, unstored::Unstored
+            storage::DOKStorage{T, N}, unstored::Unstored,
         ) where {T, N, Unstored <: AbstractArray{T, N}}
         return new{T, N, Unstored}(storage, unstored)
     end
@@ -87,7 +87,7 @@ end
     return unstored(a)[I...]
 end
 @inline function setstoredindex!(
-        a::SparseArrayDOK{<:Any, N}, value, I::Vararg{Int, N}
+        a::SparseArrayDOK{<:Any, N}, value, I::Vararg{Int, N},
     ) where {N}
     # `isstored` includes a boundscheck as well
     @boundscheck isstored(a, I...) ||
@@ -97,7 +97,7 @@ end
     return a
 end
 @inline function setunstoredindex!(
-        a::SparseArrayDOK{<:Any, N}, value, I::Vararg{Int, N}
+        a::SparseArrayDOK{<:Any, N}, value, I::Vararg{Int, N},
     ) where {N}
     @boundscheck checkbounds(a, I...)
     insert!(storage(a), CartesianIndex(I), value)

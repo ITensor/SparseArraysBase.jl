@@ -1,6 +1,5 @@
 using LinearAlgebra: Diagonal, diagind
-using SparseArraysBase: eachstoredindex, getstoredindex, getunstoredindex, isstored,
-    setstoredindex!, storedlength, storedpairs, storedvalues
+using SparseArraysBase: eachstoredindex, getstoredindex, getunstoredindex, isstored, setstoredindex!, storedlength, storedpairs, storedvalues
 using Test: @test, @testset
 
 # compat with LTS:

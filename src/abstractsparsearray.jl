@@ -24,8 +24,9 @@ const AnyAbstractSparseVecOrMat{T} = Union{
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
 using FunctionImplementations: FunctionImplementations
-FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray}) =
-    SparseArrayImplementationStyle()
+function FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray})
+    return SparseArrayImplementationStyle()
+end
 
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)
@@ -51,7 +52,7 @@ function Base.similar(a::AnyAbstractSparseArray, T::Type, ax::Tuple{Vararg{Int}}
     return similar_sparsearray(a, T, ax)
 end
 function Base.similar(
-        a::AnyAbstractSparseArray, T::Type, ax::Tuple{Integer, Vararg{Integer}}
+        a::AnyAbstractSparseArray, T::Type, ax::Tuple{Integer, Vararg{Integer}},
     )
     return similar_sparsearray(a, T, ax)
 end
@@ -145,7 +146,7 @@ function Base.print_array(io::IO, a::AnyAbstractSparseArray)
     return @invoke Base.print_array(io::typeof(io), a′::AbstractArray{<:Any, ndims(a)})
 end
 function Base.replace_in_print_matrix(
-        a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString
+        a::AnyAbstractSparseVecOrMat, i::Integer, j::Integer, s::AbstractString,
     )
     return isstored(a, i, j) ? s : Base.replace_with_centered_mark(s)
 end
@@ -261,7 +262,7 @@ See also [`sparserand`](@ref).
 
 sparserand!(A::AbstractArray; kwargs...) = sparserand!(default_rng(), A; kwargs...)
 function sparserand!(
-        rng::AbstractRNG, A::AbstractArray; density::Real = 0.5, randfun::Function = Random.rand
+        rng::AbstractRNG, A::AbstractArray; density::Real = 0.5, randfun::Function = Random.rand,
     )
     ArrayLayouts.zero!(A)
     rand_inds = Random.randsubseq(rng, eachindex(A), density)
@@ -273,10 +274,14 @@ end
 
 using ArrayLayouts: ArrayLayouts, MemoryLayout
 using LinearAlgebra: LinearAlgebra, Adjoint
-function ArrayLayouts.MemoryLayout(::Type{Transpose{T, P}}) where {T, P <: AbstractSparseMatrix}
+function ArrayLayouts.MemoryLayout(
+        ::Type{Transpose{T, P}},
+    ) where {T, P <: AbstractSparseMatrix}
     return MemoryLayout(P)
 end
-function ArrayLayouts.MemoryLayout(::Type{Adjoint{T, P}}) where {T, P <: AbstractSparseMatrix}
+function ArrayLayouts.MemoryLayout(
+        ::Type{Adjoint{T, P}},
+    ) where {T, P <: AbstractSparseMatrix}
     return MemoryLayout(P)
 end
 function LinearAlgebra.mul!(

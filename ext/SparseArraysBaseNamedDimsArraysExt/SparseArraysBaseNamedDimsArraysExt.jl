@@ -1,7 +1,6 @@
 module SparseArraysBaseNamedDimsArraysExt
 
-using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange, denamed, inds, name,
-    nameddims, nameddimsof
+using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange, denamed, inds, name, nameddims, nameddimsof
 using SparseArraysBase: SparseArraysBase, dense, oneelement
 
 function SparseArraysBase.dense(a::AbstractNamedDimsArray)
@@ -11,7 +10,7 @@ function SparseArraysBase.dense(a::AbstractNamedDimsArray)
 end
 
 function SparseArraysBase.oneelement(
-        value, index::NTuple{N, Int}, ax::NTuple{N, AbstractNamedUnitRange}
+        value, index::NTuple{N, Int}, ax::NTuple{N, AbstractNamedUnitRange},
     ) where {N}
     return nameddims(oneelement(value, index, denamed.(ax)), name.(ax))
 end
