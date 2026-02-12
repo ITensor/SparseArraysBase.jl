@@ -1,8 +1,8 @@
-using SparseArraysBase: SparseArraysBase
 using Documenter: Documenter, DocMeta, deploydocs, makedocs
+using SparseArraysBase: SparseArraysBase
 
 DocMeta.setdocmeta!(
-    SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true
+    SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true,
 )
 
 include("make_index.jl")
@@ -20,5 +20,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo = "github.com/ITensor/SparseArraysBase.jl", devbranch = "main", push_preview = true
+    repo = "github.com/ITensor/SparseArraysBase.jl", devbranch = "main", push_preview = true,
 )

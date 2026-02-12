@@ -8,6 +8,7 @@ on:
     paths:
       - 'Project.toml'
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - 'Project.toml'
 

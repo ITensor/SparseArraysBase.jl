@@ -42,20 +42,9 @@ julia> Pkg.add("SparseArraysBase")
 ## Examples
 
 ````julia
-using SparseArraysBase:
-    SparseArrayDOK,
-    SparseMatrixDOK,
-    SparseVectorDOK,
-    eachstoredindex,
-    getstoredindex,
-    getunstoredindex,
-    isstored,
-    setstoredindex!,
-    setunstoredindex!,
-    storedlength,
-    storedpairs,
-    storedvalues,
-    zero!
+using SparseArraysBase: SparseArrayDOK, SparseMatrixDOK, SparseVectorDOK, eachstoredindex,
+    getstoredindex, getunstoredindex, isstored, setstoredindex!, setunstoredindex!,
+    storedlength, storedpairs, storedvalues, zero!
 using Test: @test, @test_throws
 
 a = SparseArrayDOK{Float64}(undef, 2, 2)

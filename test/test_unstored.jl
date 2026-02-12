@@ -1,5 +1,5 @@
-using SparseArraysBase: Unstored
 using FillArrays: Zeros
+using SparseArraysBase: Unstored
 using Test: @test, @testset
 
 @testset "Unstored" begin

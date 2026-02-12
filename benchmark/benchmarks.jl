@@ -1,5 +1,5 @@
-using SparseArraysBase
 using BenchmarkTools
+using SparseArraysBase
 
 SUITE = BenchmarkGroup()
 SUITE["rand"] = @benchmarkable rand(10)

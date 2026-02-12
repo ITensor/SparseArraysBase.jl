@@ -66,7 +66,7 @@ end
 
 const mapreduce_sparse = sparse_style(mapreduce)
 function mapreduce_sparse(
-        f, op, as::AbstractArray...; init = reduce_init(f, op, as...), kwargs...
+        f, op, as::AbstractArray...; init = reduce_init(f, op, as...), kwargs...,
     )
     # TODO: Generalize this.
     @assert isone(length(as))
@@ -86,7 +86,7 @@ using MapBroadcast: Mapped
 # TODO: Look into `SparseArrays.capturescalars`:
 # https://github.com/JuliaSparse/SparseArrays.jl/blob/1beb0e4a4618b0399907b0000c43d9f66d34accc/src/higherorderfns.jl#L1092-L1102
 function Base.copyto!(
-        a_dest::AbstractArray, bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle}
+        a_dest::AbstractArray, bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle},
     )
     m = Mapped(bc)
     map!(m.f, a_dest, m.args...)
@@ -94,7 +94,7 @@ function Base.copyto!(
 end
 
 function Base.similar(
-        bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle}, elt::Type, ax
+        bc::Base.Broadcast.Broadcasted{<:SparseArrayStyle}, elt::Type, ax,
     )
     return similar(SparseArrayDOK{elt}, ax)
 end
@@ -102,7 +102,8 @@ end
 using ArrayLayouts: ArrayLayouts
 const mul!_sparse = sparse_style(mul!)
 function mul!_sparse(
-        a_dest::AbstractVecOrMat, a1::AbstractVecOrMat, a2::AbstractVecOrMat, α::Number, β::Number
+        a_dest::AbstractVecOrMat, a1::AbstractVecOrMat, a2::AbstractVecOrMat, α::Number,
+        β::Number,
     )
     return ArrayLayouts.mul!(a_dest, a1, a2, α, β)
 end

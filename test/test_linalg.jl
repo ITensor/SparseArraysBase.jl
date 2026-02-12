@@ -1,5 +1,5 @@
-using SparseArraysBase: sparserand
 using LinearAlgebra: mul!
+using SparseArraysBase: sparserand
 using StableRNGs: StableRNG
 using Test: @test, @testset
 
