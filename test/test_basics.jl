@@ -1,6 +1,7 @@
 using Adapt: adapt
 using JLArrays: @allowscalar, JLArray
-using SparseArraysBase: SparseArraysBase, eachstoredindex, getstoredindex, getunstoredindex, isstored, setstoredindex!, setunstoredindex!, storedlength, storedpairs, storedvalues
+using SparseArraysBase: SparseArraysBase, eachstoredindex, getstoredindex, getunstoredindex,
+    isstored, setstoredindex!, setunstoredindex!, storedlength, storedpairs, storedvalues
 using Test: @test, @test_throws, @testset
 
 elts = (Float32, Float64, Complex{Float32}, Complex{Float64})

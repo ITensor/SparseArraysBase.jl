@@ -1,5 +1,6 @@
 using FunctionImplementations: DefaultArrayImplementationStyle, ImplementationStyle, style
-using SparseArraysBase: AbstractSparseArrayImplementationStyle, SparseArrayImplementationStyle, sparse_style, sparsezeros
+using SparseArraysBase: AbstractSparseArrayImplementationStyle,
+    SparseArrayImplementationStyle, sparse_style, sparsezeros
 using Test: @test, @testset
 
 module TestSparseImplementationStyleUtils

@@ -1,6 +1,7 @@
 module SparseArraysBaseNamedDimsArraysExt
 
-using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange, denamed, inds, name, nameddims, nameddimsof
+using NamedDimsArrays: AbstractNamedDimsArray, AbstractNamedUnitRange, denamed, inds, name,
+    nameddims, nameddimsof
 using SparseArraysBase: SparseArraysBase, dense, oneelement
 
 function SparseArraysBase.dense(a::AbstractNamedDimsArray)

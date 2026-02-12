@@ -3,7 +3,9 @@ using ArrayLayouts: zero!
 using Dictionaries: Dictionary
 using FillArrays: Zeros
 using JLArrays: @allowscalar, JLArray
-using SparseArraysBase: SparseArraysBase, SparseArrayDOK, SparseMatrixDOK, eachstoredindex, getstoredindex, getunstoredindex, isstored, setstoredindex!, setunstoredindex!, sparse, sparserand, sparsezeros, storedlength, storedpairs, storedvalues
+using SparseArraysBase: SparseArraysBase, SparseArrayDOK, SparseMatrixDOK, eachstoredindex,
+    getstoredindex, getunstoredindex, isstored, setstoredindex!, setunstoredindex!, sparse,
+    sparserand, sparsezeros, storedlength, storedpairs, storedvalues
 using StableRNGs: StableRNG
 using Test: @test, @test_throws, @testset
 
