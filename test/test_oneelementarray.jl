@@ -1,13 +1,5 @@
-using SparseArraysBase:
-    OneElementArray,
-    OneElementMatrix,
-    OneElementVector,
-    eachstoredindex,
-    isstored,
-    oneelement,
-    storedlength,
-    storedpairs,
-    storedvalues
+using SparseArraysBase: OneElementArray, OneElementMatrix, OneElementVector,
+    eachstoredindex, isstored, oneelement, storedlength, storedpairs, storedvalues
 using Test: @test, @test_broken, @testset
 
 elts = (Float32, Float64, Complex{Float32}, Complex{Float64})

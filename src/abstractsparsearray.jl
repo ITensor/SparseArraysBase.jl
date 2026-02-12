@@ -1,5 +1,4 @@
 using Dictionaries: AbstractDictionary
-using Base: sin
 
 abstract type AbstractSparseArray{T, N} <: AbstractArray{T, N} end
 const AbstractSparseVector{T} = AbstractSparseArray{T, 1}

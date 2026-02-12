@@ -1,8 +1,8 @@
 using SparseArrays: SparseMatrixCSC, findnz, nnz
-using SparseArraysBase: SparseMatrixDOK, eachstoredindex, isstored, sparsezeros,
-    storedlength
+using SparseArraysBase:
+    SparseMatrixDOK, eachstoredindex, isstored, sparsezeros, storedlength
 using TensorAlgebra: contract, matricize
-using Test: @testset, @test
+using Test: @test, @testset
 
 @testset "TensorAlgebraExt (eltype = $elt)" for elt in (Float32, ComplexF64)
     a = sparsezeros(elt, (2, 2, 2))

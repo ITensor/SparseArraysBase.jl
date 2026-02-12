@@ -1,5 +1,5 @@
-using SparseArraysBase: SparseArraysBase
 using Documenter: Documenter, DocMeta, deploydocs, makedocs
+using SparseArraysBase: SparseArraysBase
 
 DocMeta.setdocmeta!(
     SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true

@@ -1,6 +1,6 @@
 using Accessors: @set
-using FunctionImplementations: FunctionImplementations, zero!
 using Dictionaries: Dictionary, IndexError, set!
+using FunctionImplementations: FunctionImplementations, zero!
 
 const DOKStorage{T, N} = Dictionary{CartesianIndex{N}, T}
 

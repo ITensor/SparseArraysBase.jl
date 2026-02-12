@@ -1,4 +1,4 @@
-using NamedDimsArrays: NamedDimsArray, denamed, nameddims, namedoneto, inds
+using NamedDimsArrays: NamedDimsArray, denamed, inds, nameddims, namedoneto
 using SparseArraysBase: dense, oneelement, sparsezeros
 using Test: @test, @testset
 
