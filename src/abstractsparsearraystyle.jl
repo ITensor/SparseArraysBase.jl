@@ -59,13 +59,13 @@ abstract type AbstractSparseArrayImplementationStyle <: AbstractArrayImplementat
 
 function FunctionImplementations.ImplementationStyle(
         style1::AbstractSparseArrayImplementationStyle,
-        style2::AbstractSparseArrayImplementationStyle,
+        style2::AbstractSparseArrayImplementationStyle
     )
     return SparseArrayImplementationStyle()
 end
 function FunctionImplementations.ImplementationStyle(
         style1::AbstractSparseArrayImplementationStyle,
-        style2::AbstractArrayImplementationStyle,
+        style2::AbstractArrayImplementationStyle
     )
     return style1
 end
@@ -74,7 +74,7 @@ end
 using FunctionImplementations: DefaultArrayImplementationStyle
 function FunctionImplementations.ImplementationStyle(
         style1::AbstractSparseArrayImplementationStyle,
-        style2::DefaultArrayImplementationStyle,
+        style2::DefaultArrayImplementationStyle
     )
     return style1
 end
@@ -122,30 +122,23 @@ end
 
 using LinearAlgebra: mul!
 function mul!!(
-        a_dest::AbstractMatrix,
-        a1::AbstractMatrix,
-        a2::AbstractMatrix,
-        α::Number = true,
-        β::Number = false,
+        a_dest::AbstractMatrix, a1::AbstractMatrix, a2::AbstractMatrix,
+        α::Number = true, β::Number = false
     )
     mul!(a_dest, a1, a2, α, β)
     return a_dest
 end
 
 function mul!!(
-        a_dest::Number, a1::Number, a2::Number, α::Number = true, β::Number = false,
+        a_dest::Number, a1::Number, a2::Number, α::Number = true, β::Number = false
     )
     return a1 * a2 * α + a_dest * β
 end
 
 # a1 * a2 * α + a_dest * β
 function _mul!_sparse(
-        a_dest::AbstractArray,
-        a1::AbstractArray,
-        a2::AbstractArray,
-        α::Number = true,
-        β::Number = false;
-        (mul!!) = (mul!!),
+        a_dest::AbstractArray, a1::AbstractArray, a2::AbstractArray,
+        α::Number = true, β::Number = false; (mul!!) = (mul!!)
     )
     a_dest .*= β
     β′ = one(Bool)
@@ -165,7 +158,9 @@ function _mul!_sparse(
 end
 
 function ArrayLayouts.materialize!(
-        m::MatMulMatAdd{<:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout},
+        m::MatMulMatAdd{
+            <:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout,
+        }
     )
     _mul!_sparse(m.C, m.A, m.B, m.α, m.β)
     return m.C

@@ -54,14 +54,12 @@ end
 perm(::PermutedDimsArray{<:Any, <:Any, p}) where {p} = p
 iperm(::PermutedDimsArray{<:Any, <:Any, <:Any, ip}) where {ip} = ip
 function index_to_parentindex(
-        a::PermutedDimsArray{<:Any, N},
-        I::CartesianIndex{N},
+        a::PermutedDimsArray{<:Any, N}, I::CartesianIndex{N}
     ) where {N}
     return CartesianIndex(genperm(I, iperm(a)))
 end
 function parentindex_to_index(
-        a::PermutedDimsArray{<:Any, N},
-        I::CartesianIndex{N},
+        a::PermutedDimsArray{<:Any, N}, I::CartesianIndex{N}
     ) where {N}
     return CartesianIndex(genperm(I, perm(a)))
 end
@@ -106,7 +104,7 @@ function parentindex_to_index(a::SubArray, I::CartesianIndex)
     return CartesianIndex(
         map(nonscalardims) do d
             return findfirst(==(I[d]), parentindices(a)[d])
-        end,
+        end
     )
 end
 ## TODO: Use this and something similar for `Dictionary` to make a faster
@@ -162,34 +160,34 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
             return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(a))
         end
         function eachstoredindex_sparse(
-                style::IndexStyle, a::$type,
+                style::IndexStyle, a::$type
             )
             # TODO: Make lazy with `Iterators.map`.
             return map(Base.Fix1(parentindex_to_index, a), eachstoredparentindex(style, a))
         end
         function getstoredindex_sparse(a::$type, I::Int...)
             return parentvalue_to_value(
-                a, getstoredindex(parent(a), index_to_parentindex(a, I...)...),
+                a, getstoredindex(parent(a), index_to_parentindex(a, I...)...)
             )
         end
         function getunstoredindex_sparse(a::$type, I::Int...)
             return parentvalue_to_value(
-                a, getunstoredindex(parent(a), index_to_parentindex(a, I...)...),
+                a, getunstoredindex(parent(a), index_to_parentindex(a, I...)...)
             )
         end
         function setstoredindex!_sparse(
-                a::$type, value, I::Int...,
+                a::$type, value, I::Int...
             )
             setstoredindex!(
-                parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...,
+                parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...
             )
             return a
         end
         function setunstoredindex!_sparse(
-                a::$type, value, I::Int...,
+                a::$type, value, I::Int...
             )
             setunstoredindex!(
-                parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...,
+                parent(a), value_to_parentvalue(a, value), index_to_parentindex(a, I...)...
             )
             return a
         end

@@ -19,35 +19,35 @@ end
     @test sparse_style ≡ SparseArrayImplementationStyle()
     @test ImplementationStyle(
         SparseArrayImplementationStyle(),
-        SparseArrayImplementationStyle(),
+        SparseArrayImplementationStyle()
     ) ≡ SparseArrayImplementationStyle()
     @test ImplementationStyle(
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(),
-        SparseArrayImplementationStyle(),
+        SparseArrayImplementationStyle()
     ) ≡
         SparseArrayImplementationStyle()
     @test ImplementationStyle(
         SparseArrayImplementationStyle(),
-        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(),
+        TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
     ) ≡
         SparseArrayImplementationStyle()
     @test style(TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2))) ≡
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
     @test style(
         sparsezeros(2, 2),
-        TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2)),
+        TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2))
     ) ≡
         SparseArrayImplementationStyle()
     # Regression tests for ambiguity caused by combining AbstractSparseArrayStyle with
     # DefaultArrayStyle.
     @test ImplementationStyle(
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle(),
-        DefaultArrayImplementationStyle(),
+        DefaultArrayImplementationStyle()
     ) ≡
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
     @test style(
         TestSparseImplementationStyleUtils.MySparseArray{Float64, 2}((2, 2)),
-        randn(2, 2),
+        randn(2, 2)
     ) ≡
         TestSparseImplementationStyleUtils.MySparseArrayImplementationStyle()
 end
