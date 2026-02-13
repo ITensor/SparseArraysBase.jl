@@ -261,9 +261,7 @@ function (::Implementation{typeof(eachstoredindex)})(A::AbstractArray, B::Abstra
     return eachstoredindex(IndexStyle(A, B...), A, B...)
 end
 function (::Implementation{typeof(eachstoredindex)})(
-        style::IndexStyle,
-        A::AbstractArray,
-        B::AbstractArray...
+        style::IndexStyle, A::AbstractArray, B::AbstractArray...
     )
     return eachindex(style, A, B...)
 end

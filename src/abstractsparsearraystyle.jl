@@ -122,11 +122,8 @@ end
 
 using LinearAlgebra: mul!
 function mul!!(
-        a_dest::AbstractMatrix,
-        a1::AbstractMatrix,
-        a2::AbstractMatrix,
-        α::Number = true,
-        β::Number = false
+        a_dest::AbstractMatrix, a1::AbstractMatrix, a2::AbstractMatrix,
+        α::Number = true, β::Number = false
     )
     mul!(a_dest, a1, a2, α, β)
     return a_dest
@@ -140,12 +137,8 @@ end
 
 # a1 * a2 * α + a_dest * β
 function _mul!_sparse(
-        a_dest::AbstractArray,
-        a1::AbstractArray,
-        a2::AbstractArray,
-        α::Number = true,
-        β::Number = false;
-        (mul!!) = (mul!!)
+        a_dest::AbstractArray, a1::AbstractArray, a2::AbstractArray,
+        α::Number = true, β::Number = false; (mul!!) = (mul!!)
     )
     a_dest .*= β
     β′ = one(Bool)
@@ -165,7 +158,9 @@ function _mul!_sparse(
 end
 
 function ArrayLayouts.materialize!(
-        m::MatMulMatAdd{<:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout}
+        m::MatMulMatAdd{
+            <:AbstractSparseLayout, <:AbstractSparseLayout, <:AbstractSparseLayout,
+        }
     )
     _mul!_sparse(m.C, m.A, m.B, m.α, m.β)
     return m.C

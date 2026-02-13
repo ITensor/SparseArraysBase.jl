@@ -102,8 +102,8 @@ end
 using ArrayLayouts: ArrayLayouts
 const mul!_sparse = sparse_style(mul!)
 function mul!_sparse(
-        a_dest::AbstractVecOrMat, a1::AbstractVecOrMat, a2::AbstractVecOrMat, α::Number,
-        β::Number
+        a_dest::AbstractVecOrMat, a1::AbstractVecOrMat, a2::AbstractVecOrMat,
+        α::Number, β::Number
     )
     return ArrayLayouts.mul!(a_dest, a1, a2, α, β)
 end

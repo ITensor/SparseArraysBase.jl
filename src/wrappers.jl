@@ -54,14 +54,12 @@ end
 perm(::PermutedDimsArray{<:Any, <:Any, p}) where {p} = p
 iperm(::PermutedDimsArray{<:Any, <:Any, <:Any, ip}) where {ip} = ip
 function index_to_parentindex(
-        a::PermutedDimsArray{<:Any, N},
-        I::CartesianIndex{N}
+        a::PermutedDimsArray{<:Any, N}, I::CartesianIndex{N}
     ) where {N}
     return CartesianIndex(genperm(I, iperm(a)))
 end
 function parentindex_to_index(
-        a::PermutedDimsArray{<:Any, N},
-        I::CartesianIndex{N}
+        a::PermutedDimsArray{<:Any, N}, I::CartesianIndex{N}
     ) where {N}
     return CartesianIndex(genperm(I, perm(a)))
 end

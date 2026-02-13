@@ -57,8 +57,7 @@ function Base.similar(
     return similar_sparsearray(a, T, ax)
 end
 function Base.similar(
-        a::AnyAbstractSparseArray,
-        T::Type,
+        a::AnyAbstractSparseArray, T::Type,
         ax::Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo}}}
     )
     return similar_sparsearray(a, T, ax)
@@ -252,17 +251,19 @@ end
 @doc """
     sparserand!([rng], A::AbstractArray; density::Real=0.5, randfun::Function=rand) -> A
 
-Overwrite part of an array with random entries, where the probability of overwriting is independently given by `density`.
+Overwrite part of an array with random entries, where the probability of overwriting is
+independently given by `density`.
 The optional `rng` argument specifies a random number generator, see also `Random`.
-The optional `randfun` argument can be used to control the type of random elements, and should support
-the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
+The optional `randfun` argument can be used to control the type of random elements, and
+should support the signature `randfun(rng, T, N)` to generate `N` entries of type `T`.
 
 See also [`sparserand`](@ref).
 """ sparserand!
 
 sparserand!(A::AbstractArray; kwargs...) = sparserand!(default_rng(), A; kwargs...)
 function sparserand!(
-        rng::AbstractRNG, A::AbstractArray; density::Real = 0.5, randfun::Function = Random.rand
+        rng::AbstractRNG, A::AbstractArray; density::Real = 0.5,
+        randfun::Function = Random.rand
     )
     ArrayLayouts.zero!(A)
     rand_inds = Random.randsubseq(rng, eachindex(A), density)
@@ -293,10 +294,8 @@ function LinearAlgebra.mul!(
 end
 function LinearAlgebra.mul!(
         dest::AbstractMatrix,
-        A::AbstractSparseMatrix,
-        B::Adjoint{<:Any, <:AbstractSparseMatrix},
-        α::Number,
-        β::Number
+        A::AbstractSparseMatrix, B::Adjoint{<:Any, <:AbstractSparseMatrix},
+        α::Number, β::Number
     )
     return ArrayLayouts.mul!(dest, A, B, α, β)
 end
@@ -304,8 +303,7 @@ function LinearAlgebra.mul!(
         dest::AbstractMatrix,
         A::Adjoint{<:Any, <:AbstractSparseMatrix},
         B::Adjoint{<:Any, <:AbstractSparseMatrix},
-        α::Number,
-        β::Number
+        α::Number, β::Number
     )
     return ArrayLayouts.mul!(dest, A, B, α, β)
 end
