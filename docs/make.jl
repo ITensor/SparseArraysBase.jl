@@ -2,7 +2,7 @@ using Documenter: Documenter, DocMeta, deploydocs, makedocs
 using SparseArraysBase: SparseArraysBase
 
 DocMeta.setdocmeta!(
-    SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true,
+    SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true
 )
 
 include("make_index.jl")
@@ -14,11 +14,11 @@ makedocs(;
     format = Documenter.HTML(;
         canonical = "https://itensor.github.io/SparseArraysBase.jl",
         edit_link = "main",
-        assets = ["assets/favicon.ico", "assets/extras.css"],
+        assets = ["assets/favicon.ico", "assets/extras.css"]
     ),
-    pages = ["Home" => "index.md", "Reference" => "reference.md"],
+    pages = ["Home" => "index.md", "Reference" => "reference.md"]
 )
 
 deploydocs(;
-    repo = "github.com/ITensor/SparseArraysBase.jl", devbranch = "main", push_preview = true,
+    repo = "github.com/ITensor/SparseArraysBase.jl", devbranch = "main", push_preview = true
 )

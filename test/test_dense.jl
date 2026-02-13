@@ -34,7 +34,7 @@ arrayts = (Array, JLArray)
     @testset "Custom sparse array" begin
         s = TestDenseUtils.MySparseArrayDOK(
             dev(elt[2, 4]),
-            Dict([CartesianIndex(1, 2) => 1, CartesianIndex(3, 4) => 2]), (3, 4),
+            Dict([CartesianIndex(1, 2) => 1, CartesianIndex(3, 4) => 2]), (3, 4)
         )
         d = dense(s)
         @test d isa arrayt{elt, 2}

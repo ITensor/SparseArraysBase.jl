@@ -10,7 +10,7 @@ const GROUP = uppercase(
         get(ENV, "GROUP", "ALL")
     else
         only(match(pat, ARGS[arg_id]).captures)
-    end,
+    end
 )
 
 """
@@ -62,7 +62,7 @@ end
                             :macrocall,
                             GlobalRef(Suppressor, Symbol("@suppress")),
                             LineNumberNode(@__LINE__, @__FILE__),
-                            :(include($filename)),
+                            :(include($filename))
                         )
                     )
                 end
