@@ -286,10 +286,8 @@ function ArrayLayouts.MemoryLayout(
 end
 function LinearAlgebra.mul!(
         dest::AbstractMatrix,
-        A::Adjoint{<:Any, <:AbstractSparseMatrix},
-        B::AbstractSparseMatrix,
-        α::Number,
-        β::Number
+        A::Adjoint{<:Any, <:AbstractSparseMatrix}, B::AbstractSparseMatrix,
+        α::Number, β::Number
     )
     return ArrayLayouts.mul!(dest, A, B, α, β)
 end

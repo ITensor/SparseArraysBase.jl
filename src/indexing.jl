@@ -145,9 +145,7 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
 
         # cartesian indexing
         @inline function $_f(
-                ::IndexCartesian,
-                A::AbstractArray,
-                I::Vararg{Int, M}
+                ::IndexCartesian, A::AbstractArray, I::Vararg{Int, M}
             ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f(A, Base._to_subscript_indices(A, I...)...)
@@ -159,20 +157,21 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
         end
 
         # errors
-        $_f(::IndexStyle, A::AbstractArray, I...) = error(
-            "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
-        )
+        function $_f(::IndexStyle, A::AbstractArray, I...)
+            return error(
+                "`$($f)` for $("$(typeof(A))") with types $("$(typeof(I))") " *
+                    "is not supported"
+            )
+        end
 
-        $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-            Base.CanonicalIndexError("$($f)", typeof(A))
-        )
-        $error_if_canonical(
-            ::IndexCartesian,
-            A::AbstractArray{<:Any, N},
-            ::Vararg{Int, N}
-        ) where {N} = throw(
-            Base.CanonicalIndexError("$($f)", typeof(A))
-        )
+        function $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int)
+            return throw(Base.CanonicalIndexError("$($f)", typeof(A)))
+        end
+        function $error_if_canonical(
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}
+            ) where {N}
+            return throw(Base.CanonicalIndexError("$($f)", typeof(A)))
+        end
         $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
     end
 end
@@ -192,10 +191,7 @@ for f! in (:setstoredindex!, :setunstoredindex!)
         @inline $_f!(::IndexLinear, A::AbstractVector, v, i::Int) = $f!(A, v, i)
         @inline $_f!(::IndexLinear, A::AbstractArray, v, i::Int) = $f!(A, v, i)
         @inline function $_f!(
-                ::IndexLinear,
-                A::AbstractArray,
-                v,
-                I::Vararg{Int, M}
+                ::IndexLinear, A::AbstractArray, v, I::Vararg{Int, M}
             ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f!(A, v, Base._to_linear_index(A, I...))
@@ -203,10 +199,7 @@ for f! in (:setstoredindex!, :setunstoredindex!)
 
         # cartesian indexing
         @inline function $_f!(
-                ::IndexCartesian,
-                A::AbstractArray,
-                v,
-                I::Vararg{Int, M}
+                ::IndexCartesian, A::AbstractArray, v, I::Vararg{Int, M}
             ) where {M}
             @boundscheck checkbounds(A, I...)
             return @inbounds $f!(A, v, Base._to_subscript_indices(A, I...)...)
@@ -218,20 +211,22 @@ for f! in (:setstoredindex!, :setunstoredindex!)
         end
 
         # errors
-        $_f!(::IndexStyle, A::AbstractArray, I...) = error(
-            "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
-        )
+        function $_f!(::IndexStyle, A::AbstractArray, I...)
+            return error(
+                "`$f!` for $("$(typeof(A))") with types $("$(typeof(I))") is not supported"
+            )
+        end
 
-        $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int) = throw(
-            Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
-        )
-        $error_if_canonical(
-            ::IndexCartesian,
-            A::AbstractArray{<:Any, N},
-            ::Vararg{Int, N}
-        ) where {N} = throw(
-            Base.CanonicalIndexError("$($f!)", typeof(A))
-        )
+        function $error_if_canonical(::IndexLinear, A::AbstractArray, ::Int)
+            return throw(
+                Base.CanonicalIndexError("$($(string(f!)))", typeof(A))
+            )
+        end
+        function $error_if_canonical(
+                ::IndexCartesian, A::AbstractArray{<:Any, N}, ::Vararg{Int, N}
+            ) where {N}
+            return throw(Base.CanonicalIndexError("$($f!)", typeof(A)))
+        end
         $error_if_canonical(::IndexStyle, A::AbstractArray, ::Any...) = nothing
     end
 end
@@ -282,9 +277,7 @@ end
 # canonical errors are moved to `isstored`, `getstoredindex` and `getunstoredindex`
 # so no errors at this level by defining both IndexLinear and IndexCartesian
 const getindex_sparse = sparse_style(getindex)
-function getindex_sparse(
-        A::AbstractArray{<:Any, N}, I::Vararg{Int, N}
-    ) where {N}
+function getindex_sparse(A::AbstractArray{<:Any, N}, I::Vararg{Int, N}) where {N}
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
     return @inbounds isstored(A, I...) ? getstoredindex(A, I...) : getunstoredindex(A, I...)
@@ -364,9 +357,7 @@ end
 
 # required: one implementation for canonical index style
 const eachstoredindex_sparse = sparse_style(eachstoredindex)
-function eachstoredindex_sparse(
-        style::IndexStyle, A::AbstractArray
-    )
+function eachstoredindex_sparse(style::IndexStyle, A::AbstractArray)
     error_if_canonical_eachstoredindex(style, A)
     inds = eachstoredindex(A)
     if style === IndexCartesian()
@@ -414,24 +405,19 @@ function isstored_sparse(A::AbstractArray, I::Int...)
 end
 
 const getunstoredindex_sparse = sparse_style(getunstoredindex)
-function getunstoredindex_sparse(
-        A::AbstractArray, I::Int...
-    )
+function getunstoredindex_sparse(A::AbstractArray, I::Int...)
     @_propagate_inbounds_meta
     style = IndexStyle(A)
-
     # canonical linear indexing
     if style == IndexLinear() && length(I) == 1
         @boundscheck checkbounds(A, I...)
         return zero(eltype(A))
     end
-
     # canonical cartesian indexing
     if style == IndexCartesian() && length(I) == ndims(A)
         @boundscheck checkbounds(A, I...)
         return zero(eltype(A))
     end
-
     # non-canonical indexing
     return _getunstoredindex(style, A, Base.to_indices(A, I)...)
 end

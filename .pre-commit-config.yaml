@@ -12,6 +12,6 @@ repos:
     exclude_types: [markdown]  # incompatible with Literate.jl
 
 - repo: https://github.com/ITensor/ITensorFormatter.jl
-  rev: v0.2.7
+  rev: v0.2.9
   hooks:
     - id: itensor-formatter
