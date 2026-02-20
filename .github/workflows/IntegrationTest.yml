@@ -37,6 +37,6 @@ jobs:
     steps:
       - name: "Fail if any downstream integration test failed"
         run: |
-          echo "integration-test.result = ${{ needs['integration-test'].result }}"
-          test "${{ needs['integration-test'].result }}" = "success"
+          echo "integration-test.result = ${{ needs.integration-test.result }}"
+          test "${{ needs.integration-test.result }}" = "success"
           
