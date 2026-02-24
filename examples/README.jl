@@ -48,6 +48,8 @@ using SparseArraysBase: SparseArrayDOK, SparseMatrixDOK, SparseVectorDOK, eachst
     storedlength, storedpairs, storedvalues, zero!
 using Test: @test, @test_throws
 
+x = 2
+
 a = SparseArrayDOK{Float64}(undef, 2, 2)
 
 # AbstractArray interface:
