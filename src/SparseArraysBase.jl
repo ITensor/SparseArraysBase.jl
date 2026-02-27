@@ -1,7 +1,7 @@
 module SparseArraysBase
 
 function f()
-    return 3
+  3
 end
 
 export SparseArrayDOK,
