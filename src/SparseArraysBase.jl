@@ -1,5 +1,9 @@
 module SparseArraysBase
 
+function f()
+  3
+end
+
 export SparseArrayDOK,
     SparseMatrixDOK,
     SparseVectorDOK,
