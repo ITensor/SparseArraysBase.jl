@@ -1,12 +1,12 @@
 [deps]
-Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 SparseArraysBase = "0d5efcca-f356-4864-8770-e1ed8d78f208"
+Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-[sources]
-SparseArraysBase = {path = ".."}
-
 [compat]
-Dictionaries = "0.4.4"
 SparseArraysBase = "0.9"
+Dictionaries = "0.4.4"
 Test = "<0.0.1, 1"
+
+[sources.SparseArraysBase]
+path = ".."
