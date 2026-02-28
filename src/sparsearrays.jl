@@ -1,7 +1,7 @@
 using SparseArrays: SparseArrays, AbstractSparseMatrixCSC, SparseMatrixCSC, findnz
 
 function eachstoredindex(m::AbstractSparseMatrixCSC)
-      I, J, V = findnz(m)
+    I, J, V = findnz(m)
     # TODO: This loses the compile time element type, is there a better lazy way?
     return Iterators.map(CartesianIndex, zip(I, J))
 end
