@@ -7,7 +7,9 @@ on:
       - "main"
     paths:
       - "Project.toml"
-  commit_comment:
+  issue_comment:
+    types:
+      - "created"
 permissions:
   contents: "write"
   pull-requests: "write"
