@@ -1,11 +1,13 @@
 using Documenter: Documenter, DocMeta, deploydocs, makedocs
 using SparseArraysBase: SparseArraysBase
+using ITensorFormatter: ITensorFormatter
 
 DocMeta.setdocmeta!(
     SparseArraysBase, :DocTestSetup, :(using SparseArraysBase); recursive = true
 )
 
-include("make_index.jl")
+
+ITensorFormatter.make_index!(pkgdir(SparseArraysBase))
 
 makedocs(;
     modules = [SparseArraysBase],
