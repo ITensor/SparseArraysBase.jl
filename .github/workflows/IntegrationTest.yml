@@ -4,7 +4,7 @@ on:
     branches:
       - "main"
     tags: "*"
-  pull_request_target:
+  pull_request:
     types:
       - "opened"
       - "synchronize"
@@ -14,27 +14,14 @@ on:
 jobs:
   integration-test:
     name: "IntegrationTest"
-    strategy:
-      fail-fast: false
-      matrix:
-        pkg:
-          - "BlockSparseArrays"
-          - "DiagonalArrays"
-          - "FusionTensors"
-          - "GradedArrays"
-    uses: "ITensor/ITensorActions/.github/workflows/IntegrationTest.yml@main"
+    uses: "ITensor/ITensorActions/.github/workflows/IntegrationTest.yml@v1"
     secrets: "inherit"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
-      pkg: "${{ matrix.pkg }}"
-  integration-gate:
-    name: "IntegrationTest"
-    needs: "integration-test"
-    if: "${{ always() && needs.integration-test.result != 'skipped' }}"
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Fail if any downstream integration test failed"
-        run: |
-          echo "integration-test.result = ${{ needs.integration-test.result }}"
-          test "${{ needs.integration-test.result }}" = "success"
-          
+      pkgs: |
+        [
+          "BlockSparseArrays",
+          "DiagonalArrays",
+          "FusionTensors",
+          "GradedArrays"
+        ]
