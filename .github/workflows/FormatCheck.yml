@@ -9,6 +9,4 @@ on:
 jobs:
   format-check:
     name: "Format Check"
-    uses: "ITensor/ITensorActions/.github/workflows/FormatCheck.yml@dc36f8c88cd2858bdfa5e2458d108027d6b72807"
-    with:
-      concurrent-jobs: true
+    uses: "ITensor/ITensorActions/.github/workflows/FormatCheck.yml@v1"

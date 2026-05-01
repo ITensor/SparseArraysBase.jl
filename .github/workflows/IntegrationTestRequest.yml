@@ -11,6 +11,6 @@ jobs:
     permissions:
       checks: "write"
       pull-requests: "write"
-    uses: "ITensor/ITensorActions/.github/workflows/IntegrationTestRequest.yml@dc36f8c88cd2858bdfa5e2458d108027d6b72807"
+    uses: "ITensor/ITensorActions/.github/workflows/IntegrationTestRequest.yml@v1"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
