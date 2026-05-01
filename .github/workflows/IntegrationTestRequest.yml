@@ -9,8 +9,10 @@ jobs:
       github.event.issue.pull_request &&
       contains(fromJSON('["OWNER", "COLLABORATOR", "MEMBER"]'), github.event.comment.author_association)
     permissions:
+      contents: "read"
       checks: "write"
       pull-requests: "write"
     uses: "ITensor/ITensorActions/.github/workflows/IntegrationTestRequest.yml@v1"
+    secrets: "inherit"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
