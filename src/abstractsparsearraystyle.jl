@@ -16,7 +16,7 @@ function storedvalues end
 # Indicates that the array should be interpreted
 # as the unstored values of a sparse array.
 struct Unstored{T, N, P <: AbstractArray{T, N}} <: AbstractArray{T, N}
-    parent::P
+  parent::P
 end
 Base.parent(a::Unstored) = a.parent
 Base.size(a::Unstored) = size(parent(a))
