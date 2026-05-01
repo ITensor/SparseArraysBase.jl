@@ -4,6 +4,7 @@ on:
     types:
       - "created"
 permissions:
+  actions: "read"
   contents: "read"
   checks: "write"
   pull-requests: "write"
