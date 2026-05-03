@@ -1,3 +1,4 @@
+# Permissions-hardening canary marker — remove before merging.
 *.cov
 *.mem
 *.o
