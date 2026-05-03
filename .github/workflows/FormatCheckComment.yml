@@ -5,12 +5,12 @@ on:
       - "Format Check"
     types:
       - "completed"
+permissions:
+  pull-requests: "write"
+  actions: "read"
 jobs:
   comment:
     name: "Format Check Comment"
     if: "github.event.workflow_run.event == 'pull_request'"
-    permissions:
-      pull-requests: "write"
-      actions: "read"
     uses: "ITensor/ITensorActions/.github/workflows/FormatCheckComment.yml@v1"
     secrets: "inherit"
