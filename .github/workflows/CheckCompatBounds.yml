@@ -1,6 +1,8 @@
 name: "Check Compat Bounds"
 on:
   pull_request: ~
+permissions:
+  contents: "read"
 jobs:
   check-compat-bounds:
     name: "Check Compat Bounds"

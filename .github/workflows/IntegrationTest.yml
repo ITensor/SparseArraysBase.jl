@@ -12,13 +12,11 @@ on:
       - "ready_for_review"
       - "converted_to_draft"
 permissions:
-  contents: read
+  actions: "read"
+  contents: "read"
 jobs:
   integration-test:
     name: "IntegrationTest"
-    permissions:
-      actions: read
-      contents: read
     uses: "ITensor/ITensorActions/.github/workflows/IntegrationTest.yml@v1"
     secrets: "inherit"
     with:
