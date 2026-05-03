@@ -10,6 +10,8 @@ on:
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: "${{ github.ref_name != github.event.repository.default_branch || github.ref != 'refs/tags/v*' }}"
+permissions:
+  contents: "write"
 jobs:
   build-and-deploy-docs:
     name: "Documentation"
