@@ -13,3 +13,5 @@ benchmark/*.json
 dev/
 docs/build/
 docs/src/index.md
+
+# (intentional newline for CI verification under v2 ruleset)
