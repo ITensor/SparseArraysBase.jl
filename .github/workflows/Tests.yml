@@ -34,7 +34,7 @@ jobs:
           - "ubuntu-latest"
           - "macOS-latest"
           - "windows-latest"
-    uses: "ITensor/ITensorActions/.github/workflows/Tests.yml@v1"
+    uses: "ITensor/ITensorActions/.github/workflows/Tests.yml@v2"
     with:
       group: "${{ matrix.group }}"
       julia-version: "${{ matrix.version }}"

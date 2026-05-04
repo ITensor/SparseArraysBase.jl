@@ -1,4 +1,4 @@
-name: "Version Check"
+name: "VersionCheck"
 on:
   pull_request: ~
 permissions:
@@ -6,7 +6,7 @@ permissions:
   pull-requests: "read"
 jobs:
   version-check:
-    name: "Version Check"
-    uses: "ITensor/ITensorActions/.github/workflows/VersionCheck.yml@v1"
+    name: "VersionCheck"
+    uses: "ITensor/ITensorActions/.github/workflows/VersionCheck.yml@v2"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"

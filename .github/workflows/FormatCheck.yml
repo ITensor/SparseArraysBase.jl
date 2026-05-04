@@ -1,4 +1,4 @@
-name: "Format Check"
+name: "FormatCheck"
 on:
   pull_request:
     types:
@@ -10,5 +10,5 @@ permissions:
   contents: "read"
 jobs:
   format-check:
-    name: "Format Check"
-    uses: "ITensor/ITensorActions/.github/workflows/FormatCheck.yml@v1"
+    name: "FormatCheck"
+    uses: "ITensor/ITensorActions/.github/workflows/FormatCheck.yml@v2"
