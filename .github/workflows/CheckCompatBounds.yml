@@ -6,6 +6,6 @@ permissions:
 jobs:
   check-compat-bounds:
     name: "CheckCompatBounds"
-    uses: "ITensor/ITensorActions/.github/workflows/CheckCompatBounds.yml@v2"
+    uses: "ITensor/ITensorActions/.github/workflows/CheckCompatBounds.yml@mf/subdir-inputs"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"

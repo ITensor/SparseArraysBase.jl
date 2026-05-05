@@ -17,7 +17,7 @@ permissions:
 jobs:
   registrator:
     name: "Registrator"
-    uses: "ITensor/ITensorActions/.github/workflows/Registrator.yml@v2"
+    uses: "ITensor/ITensorActions/.github/workflows/Registrator.yml@mf/subdir-inputs"
     with:
       localregistry: "ITensor/ITensorRegistry"
     secrets: "inherit"

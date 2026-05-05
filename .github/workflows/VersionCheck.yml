@@ -7,6 +7,6 @@ permissions:
 jobs:
   version-check:
     name: "VersionCheck"
-    uses: "ITensor/ITensorActions/.github/workflows/VersionCheck.yml@v2"
+    uses: "ITensor/ITensorActions/.github/workflows/VersionCheck.yml@mf/subdir-inputs"
     with:
       localregistry: "https://github.com/ITensor/ITensorRegistry.git"
