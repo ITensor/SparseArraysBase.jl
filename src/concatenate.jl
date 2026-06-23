@@ -1,35 +1,11 @@
-"""
-    module Concatenate
-
-Alternative implementation for `Base.cat` through `Concatenate.cat(!)`.
-
-This is mostly a copy of the Base implementation, with the main difference being
-that the destination is chosen based on all inputs instead of just the first.
-
-Additionally, we have an intermediate representation in terms of a Concatenated object,
-reminiscent of how Broadcast works.
-
-The various entry points for specializing behavior are:
-
-  - Destination selection can be achieved through:
-
-```julia
-Base.similar(concat::Concatenated{Style}, ::Type{T}, axes) where {Style}
-```
-
-  - Custom implementations:
-
-```julia
-Base.copy(concat::Concatenated{Style}) # custom implementation of cat
-Base.copyto!(dest, concat::Concatenated{Style}) # custom implementation of cat! based on style
-Base.copyto!(dest, concat::Concatenated{Nothing}) # custom implementation of cat! based on typeof(dest)
-```
-"""
+# Alternative implementation for `Base.cat` through `Concatenate.cat(!)`.
+# This is mostly a copy of the Base implementation, with the main difference being
+# that the destination is chosen based on all inputs instead of just the first.
+# There is an intermediate representation in terms of a `Concatenated` object,
+# reminiscent of how Broadcast works. Destination selection can be customized through
+# `Base.similar(::Concatenated{Style}, ::Type{T}, axes)`, and the operation itself
+# through `Base.copy`/`Base.copyto!` on a `Concatenated`.
 module Concatenate
-
-export concatenate
-VERSION >= v"1.11.0-DEV.469" &&
-    eval(Meta.parse("public Concatenated, cat, cat!, concatenated"))
 
 import Base.Broadcast as BC
 using ..SparseArraysBase: zero!
@@ -39,12 +15,8 @@ unval(::Val{x}) where {x} = x
 
 function _Concatenated end
 
-"""
-    Concatenated{Style, Dims, Args <: Tuple}
-
-Lazy representation of the concatenation of various `Args` along `Dims`, in order to provide
-hooks to customize the implementation.
-"""
+# Lazy representation of the concatenation of various `Args` along `Dims`, in order to
+# provide hooks to customize the implementation.
 struct Concatenated{Style, Dims, Args <: Tuple}
     style::Style
     dims::Val{Dims}
@@ -140,30 +112,14 @@ Base.ndims(concat::Concatenated) = cat_ndims(dims(concat), concat.args...)
 
 # Main logic
 # ----------
-"""
-    concatenate(dims, args...)
-
-Concatenate the supplied `args` along dimensions `dims`.
-
-See also [`cat`](@ref) and [`cat!`](@ref).
-"""
+# Concatenate the supplied `args` along dimensions `dims`.
 concatenate(dims, args...) = Base.materialize(concatenated(dims, args...))
 
-"""
-    Concatenate.cat(args...; dims)
-
-Concatenate the supplied `args` along dimensions `dims`.
-
-See also [`concatenate`](@ref) and [`cat!`](@ref).
-"""
+# Concatenate the supplied `args` along dimensions `dims`.
 cat(args...; dims) = concatenate(dims, args...)
 Base.materialize(concat::Concatenated) = copy(concat)
 
-"""
-    Concatenate.cat!(dest, args...; dims)
-
-Concatenate the supplied `args` along dimensions `dims`, placing the result into `dest`.
-"""
+# Concatenate the supplied `args` along dimensions `dims`, placing the result into `dest`.
 function cat!(dest, args...; dims)
     Base.materialize!(dest, concatenated(dims, args...))
     return dest
