@@ -1,5 +1,4 @@
 using Base: @_propagate_inbounds_meta
-using FunctionImplementations: Implementation, style
 
 # Indexing interface
 # ------------------
@@ -11,9 +10,7 @@ Obtain `getindex(A, I...)` with the guarantee that there is a stored entry at th
 
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline function getstoredindex(A::AbstractArray, I...)
-    return style(A)(getstoredindex)(A, I...)
-end
+function getstoredindex end
 
 """
     getunstoredindex(A::AbstractArray, I...) -> eltype(A)
@@ -25,9 +22,7 @@ instantiated object.
 
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline function getunstoredindex(A::AbstractArray, I...)
-    return style(A)(getunstoredindex)(A, I...)
-end
+function getunstoredindex end
 
 """
     isstored(A::AbstractArray, I...) -> Bool
@@ -38,9 +33,7 @@ sparse array types might overload this function when appropriate.
 
 Similar to `Base.getindex`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline function isstored(A::AbstractArray, I...)
-    return style(A)(isstored)(A, I...)
-end
+function isstored end
 
 """
     setstoredindex!(A::AbstractArray, v, I...) -> A
@@ -49,9 +42,7 @@ end
 
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline function setstoredindex!(A::AbstractArray, v, I...)
-    return style(A)(setstoredindex!)(A, v, I...)
-end
+function setstoredindex! end
 
 """
     setunstoredindex!(A::AbstractArray, v, I...) -> A
@@ -60,9 +51,7 @@ end
 
 Similar to `Base.setindex!`, new definitions should be in line with `IndexStyle(A)`.
 """
-@inline function setunstoredindex!(A::AbstractArray, v, I...)
-    return style(A)(setunstoredindex!)(A, v, I...)
-end
+function setunstoredindex! end
 
 # Indices interface
 # -----------------
@@ -110,14 +99,6 @@ to be the same as [`eachstoredindex`](@ref).
 """
 function storedvalues end
 
-eachstoredindex(as::AbstractArray...) = style(as...)(eachstoredindex)(as...)
-function eachstoredindex(indexstyle::IndexStyle, as::AbstractArray...)
-    return style(as...)(eachstoredindex)(indexstyle, as...)
-end
-storedlength(a::AbstractArray) = style(a)(storedlength)(a)
-storedpairs(a::AbstractArray) = style(a)(storedpairs)(a)
-storedvalues(a::AbstractArray) = style(a)(storedvalues)(a)
-
 # canonical indexing
 # ------------------
 # ensure functions only have to be defined in terms of a single canonical f:
@@ -128,7 +109,7 @@ for f in (:isstored, :getunstoredindex, :getstoredindex)
     _f = Symbol(:_, f)
     error_if_canonical = Symbol(:error_if_canonical_, f)
     @eval begin
-        function (::Implementation{typeof($f)})(A::AbstractArray, I...)
+        function $f(A::AbstractArray, I...)
             @_propagate_inbounds_meta
             style = IndexStyle(A)
             $error_if_canonical(style, A, I...)
@@ -180,7 +161,7 @@ for f! in (:setstoredindex!, :setunstoredindex!)
     _f! = Symbol(:_, f!)
     error_if_canonical = Symbol(:error_if_canonical_, f!)
     @eval begin
-        function (::Implementation{typeof($f!)})(A::AbstractArray, v, I...)
+        function $f!(A::AbstractArray, v, I...)
             @_propagate_inbounds_meta
             style = IndexStyle(A)
             $error_if_canonical(style, A, I...)
@@ -231,50 +212,52 @@ for f! in (:setstoredindex!, :setunstoredindex!)
     end
 end
 
-# AbstractArrayStyle fallback definitions
-# -------------------------------------------
-function (::Implementation{typeof(isstored)})(A::AbstractArray, i::Int, I::Int...)
+# AbstractArray fallback definitions
+# ----------------------------------
+function isstored(A::AbstractArray, i::Int, I::Int...)
     @inline
     @boundscheck checkbounds(A, i, I...)
     return true
 end
 
-function (::Implementation{typeof(getunstoredindex)})(A::AbstractArray, I::Int...)
+function getunstoredindex(A::AbstractArray, I::Int...)
     @inline
     @boundscheck checkbounds(A, I...)
     return zero(eltype(A))
 end
-function (::Implementation{typeof(getstoredindex)})(A::AbstractArray, I::Int...)
+function getstoredindex(A::AbstractArray, I::Int...)
     @inline
     return getindex(A, I...)
 end
 
-function (::Implementation{typeof(setstoredindex!)})(A::AbstractArray, v, I::Int...)
+function setstoredindex!(A::AbstractArray, v, I::Int...)
     @inline
     return setindex!(A, v, I...)
 end
-function (::Implementation{typeof(setunstoredindex!)})(A::AbstractArray, v, I::Int...)
+function setunstoredindex!(A::AbstractArray, v, I::Int...)
     return error("setunstoredindex! for $(typeof(A)) is not supported")
 end
 
-function (::Implementation{typeof(eachstoredindex)})(A::AbstractArray, B::AbstractArray...)
+function eachstoredindex(A::AbstractArray, B::AbstractArray...)
     return eachstoredindex(IndexStyle(A, B...), A, B...)
 end
-function (::Implementation{typeof(eachstoredindex)})(
+function eachstoredindex(
         style::IndexStyle, A::AbstractArray, B::AbstractArray...
     )
     return eachindex(style, A, B...)
 end
 
-(::Implementation{typeof(storedvalues)})(a::AbstractArray) = values(a)
-(::Implementation{typeof(storedpairs)})(a::AbstractArray) = pairs(a)
-(::Implementation{typeof(storedlength)})(a::AbstractArray) = length(storedvalues(a))
+storedvalues(a::AbstractArray) = values(a)
+storedpairs(a::AbstractArray) = pairs(a)
+storedlength(a::AbstractArray) = length(storedvalues(a))
 
-# SparseArrayInterface implementations
-# ------------------------------------
+# Sparse array implementations
+# ----------------------------
+# These are the implementations for arrays whose stored entries are a strict subset
+# of all entries (`AnyAbstractSparseArray`); they are wired to the interface functions
+# above in `abstractsparsearray.jl`.
 # canonical errors are moved to `isstored`, `getstoredindex` and `getunstoredindex`
 # so no errors at this level by defining both IndexLinear and IndexCartesian
-const getindex_sparse = sparse_style(getindex)
 function getindex_sparse(A::AbstractArray{<:Any, N}, I::Vararg{Int, N}) where {N}
     @_propagate_inbounds_meta
     @boundscheck checkbounds(A, I...) # generally isstored requires bounds checking
@@ -302,7 +285,6 @@ function getindex_sparse(a::AbstractArray, I...)
     return ArrayLayouts.layout_getindex(a, I...)
 end
 
-const setindex!_sparse = sparse_style(setindex!)
 function setindex!_sparse(
         A::AbstractArray{<:Any, N}, v, I::Vararg{Int, N}
     ) where {N}
@@ -354,7 +336,6 @@ end
 end
 
 # required: one implementation for canonical index style
-const eachstoredindex_sparse = sparse_style(eachstoredindex)
 function eachstoredindex_sparse(style::IndexStyle, A::AbstractArray)
     error_if_canonical_eachstoredindex(style, A)
     inds = eachstoredindex(A)
@@ -376,13 +357,11 @@ function eachstoredindex_sparse(
     return union(map(Base.Fix1(eachstoredindex, style), (A, B...))...)
 end
 
-const storedvalues_sparse = sparse_style(storedvalues)
 storedvalues_sparse(A::AbstractArray) = StoredValues(A)
 
 # default implementation is a bit tricky here: we don't know if this is the "canonical"
 # implementation, so we check this and otherwise map back to `_isstored` to canonicalize the
 # indices
-const isstored_sparse = sparse_style(isstored)
 function isstored_sparse(A::AbstractArray, I::Int...)
     @_propagate_inbounds_meta
     style = IndexStyle(A)
@@ -402,7 +381,6 @@ function isstored_sparse(A::AbstractArray, I::Int...)
     return _isstored(style, A, Base.to_indices(A, I)...)
 end
 
-const getunstoredindex_sparse = sparse_style(getunstoredindex)
 function getunstoredindex_sparse(A::AbstractArray, I::Int...)
     @_propagate_inbounds_meta
     style = IndexStyle(A)
@@ -420,7 +398,6 @@ function getunstoredindex_sparse(A::AbstractArray, I::Int...)
     return _getunstoredindex(style, A, Base.to_indices(A, I)...)
 end
 
-const getstoredindex_sparse = sparse_style(getstoredindex)
 function getstoredindex_sparse(
         A::AbstractArray, I::Int...
     )
@@ -430,8 +407,6 @@ function getstoredindex_sparse(
     return _getstoredindex(style, A, Base.to_indices(A, I)...)
 end
 
-const setstoredindex!_sparse = sparse_style(setstoredindex!)
-const setunstoredindex!_sparse = sparse_style(setunstoredindex!)
 for f! in (:setstoredindex!, :setunstoredindex!)
     f!_sparse = Symbol(f!, :_sparse)
     _f! = Symbol(:_, f!)
@@ -446,7 +421,6 @@ for f! in (:setstoredindex!, :setunstoredindex!)
     end
 end
 
-const storedpairs_sparse = sparse_style(storedpairs)
 function storedpairs_sparse(A::AbstractArray)
     return Iterators.map(I -> (I => A[I]), eachstoredindex(A))
 end
