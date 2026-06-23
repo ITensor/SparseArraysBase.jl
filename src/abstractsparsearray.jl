@@ -23,11 +23,6 @@ const AnyAbstractSparseVecOrMat{T} = Union{
 
 Base.convert(T::Type{<:AbstractSparseArray}, a::AbstractArray) = a isa T ? a : T(a)
 
-using FunctionImplementations: FunctionImplementations
-function FunctionImplementations.ImplementationStyle(::Type{<:AnyAbstractSparseArray})
-    return SparseArrayImplementationStyle()
-end
-
 function Base.copy(a::AnyAbstractSparseArray)
     return copyto!(similar(a), a)
 end
@@ -66,40 +61,66 @@ end
 using ArrayLayouts: ArrayLayouts
 using LinearAlgebra: LinearAlgebra
 
-Base.getindex(a::AnyAbstractSparseArray, I::Any...) = style(a)(getindex)(a, I...)
-Base.getindex(a::AnyAbstractSparseArray, I::Int...) = style(a)(getindex)(a, I...)
-Base.setindex!(a::AnyAbstractSparseArray, x, I::Any...) = style(a)(setindex!)(a, x, I...)
-Base.setindex!(a::AnyAbstractSparseArray, x, I::Int...) = style(a)(setindex!)(a, x, I...)
-Base.copy!(dst::AbstractArray, src::AnyAbstractSparseArray) = style(src)(copy!)(dst, src)
+# `copy!` and `real` are routed to sparse implementations that are not (yet)
+# defined, matching the prior behavior where these threw a `MethodError`.
+function copy!_sparse end
+function real_sparse end
+
+Base.getindex(a::AnyAbstractSparseArray, I::Any...) = getindex_sparse(a, I...)
+Base.getindex(a::AnyAbstractSparseArray, I::Int...) = getindex_sparse(a, I...)
+Base.setindex!(a::AnyAbstractSparseArray, x, I::Any...) = setindex!_sparse(a, x, I...)
+Base.setindex!(a::AnyAbstractSparseArray, x, I::Int...) = setindex!_sparse(a, x, I...)
+Base.copy!(dst::AbstractArray, src::AnyAbstractSparseArray) = copy!_sparse(dst, src)
 function Base.copyto!(dst::AbstractArray, src::AnyAbstractSparseArray)
-    return style(src)(copyto!)(dst, src)
+    return copyto!_sparse(dst, src)
 end
-Base.map(f, as::AnyAbstractSparseArray...) = style(as...)(map)(f, as...)
+Base.map(f, as::AnyAbstractSparseArray...) = map_sparse(f, as...)
 function Base.map!(f, dst::AbstractArray, as::AnyAbstractSparseArray...)
-    return style(as...)(map!)(f, dst, as...)
+    return map!_sparse(f, dst, as...)
 end
 function Base.mapreduce(f, op, as::AnyAbstractSparseArray...; kwargs...)
-    return style(as...)(mapreduce)(f, op, as...; kwargs...)
+    return mapreduce_sparse(f, op, as...; kwargs...)
 end
 function Base.reduce(f, as::AnyAbstractSparseArray...; kwargs...)
-    return style(as...)(reduce)(f, as...; kwargs...)
+    return reduce_sparse(f, as...; kwargs...)
 end
-Base.all(f::Function, a::AnyAbstractSparseArray) = style(a)(all)(f, a)
-Base.all(a::AnyAbstractSparseArray) = style(a)(all)(a)
-Base.iszero(a::AnyAbstractSparseArray) = style(a)(iszero)(a)
-Base.isreal(a::AnyAbstractSparseArray) = style(a)(isreal)(a)
-Base.real(a::AnyAbstractSparseArray) = style(a)(real)(a)
-Base.fill!(a::AnyAbstractSparseArray, x) = style(a)(fill!)(a, x)
-FunctionImplementations.zero!(a::AnyAbstractSparseArray) = style(a)(zero!)(a)
-Base.zero(a::AnyAbstractSparseArray) = style(a)(zero)(a)
+Base.all(f::Function, a::AnyAbstractSparseArray) = all_sparse(f, a)
+Base.all(a::AnyAbstractSparseArray) = all_sparse(a)
+Base.iszero(a::AnyAbstractSparseArray) = iszero_sparse(a)
+Base.isreal(a::AnyAbstractSparseArray) = isreal_sparse(a)
+Base.real(a::AnyAbstractSparseArray) = real_sparse(a)
+Base.fill!(a::AnyAbstractSparseArray, x) = fill!_sparse(a, x)
+zero!(a::AnyAbstractSparseArray) = zero!_sparse(a)
+Base.zero(a::AnyAbstractSparseArray) = zero_sparse(a)
 function Base.permutedims!(dst, a::AnyAbstractSparseArray, perm)
-    return style(a)(permutedims!)(dst, a, perm)
+    return permutedims!_sparse(dst, a, perm)
 end
 function LinearAlgebra.mul!(
         dst::AbstractMatrix, a1::AnyAbstractSparseArray, a2::AnyAbstractSparseArray,
         α::Number, β::Number
     )
-    return style(a1, a2)(mul!)(dst, a1, a2, α, β)
+    return mul!_sparse(dst, a1, a2, α, β)
+end
+
+# Wire the sparse stored-entry implementations (defined in `indexing.jl`) to the
+# generic interface functions for sparse array types. Concrete sparse types and
+# wrappers may override the canonical methods directly.
+@inline getstoredindex(a::AnyAbstractSparseArray, I::Int...) =
+    getstoredindex_sparse(a, I...)
+@inline function getunstoredindex(a::AnyAbstractSparseArray, I::Int...)
+    return getunstoredindex_sparse(a, I...)
+end
+@inline isstored(a::AbstractSparseArray, i::Int, I::Int...) = isstored_sparse(a, i, I...)
+@inline function setstoredindex!(a::AnyAbstractSparseArray, v, I::Int...)
+    return setstoredindex!_sparse(a, v, I...)
+end
+@inline function setunstoredindex!(a::AnyAbstractSparseArray, v, I::Int...)
+    return setunstoredindex!_sparse(a, v, I...)
+end
+storedvalues(a::AnyAbstractSparseArray) = storedvalues_sparse(a)
+storedpairs(a::AnyAbstractSparseArray) = storedpairs_sparse(a)
+function eachstoredindex(style::IndexStyle, a::AnyAbstractSparseArray, bs::AbstractArray...)
+    return eachstoredindex_sparse(style, a, bs...)
 end
 
 function Base.Broadcast.BroadcastStyle(type::Type{<:AnyAbstractSparseArray})
@@ -109,7 +130,7 @@ end
 using ArrayLayouts: ArrayLayouts
 ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()
 
-using FunctionImplementations.Concatenate: concatenate
+using .Concatenate: concatenate
 # We overload `Base._cat` instead of `Base.cat` since it
 # is friendlier for invalidations/compile times, see:
 # https://github.com/ITensor/SparseArraysBase.jl/issues/25

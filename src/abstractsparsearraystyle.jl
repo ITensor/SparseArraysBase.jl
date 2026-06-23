@@ -1,6 +1,5 @@
 using Base: @_propagate_inbounds_meta
 using FillArrays: Zeros
-using FunctionImplementations: FunctionImplementations
 
 function unstored end
 function eachstoredindex end
@@ -38,7 +37,28 @@ unstoredsimilar(a::AbstractArray) = a
 # Generic functionality for converting to a
 # dense array, trying to preserve information
 # about the array (such as which device it is on).
-using TypeParameterAccessors: unspecify_type_parameters, unwrap_array, unwrap_array_type
+# Local equivalents of the `TypeParameterAccessors` helpers; usage is
+# limited to `densetype`/`dense`.
+unspecify_type_parameters(::Type{T}) where {T} = Base.typename(T).wrapper
+function unwrap_array(a::AbstractArray)
+    p = parent(a)
+    p isa typeof(a) && return a
+    return unwrap_array(p)
+end
+using LinearAlgebra: Adjoint, Transpose
+unwrap_array_type(arraytype::Type{<:AbstractArray}) = arraytype
+unwrap_array_type(a::AbstractArray) = unwrap_array_type(typeof(a))
+unwrap_array_type(::Type{<:Adjoint{<:Any, P}}) where {P} = unwrap_array_type(P)
+unwrap_array_type(::Type{<:Transpose{<:Any, P}}) where {P} = unwrap_array_type(P)
+function unwrap_array_type(
+        ::Type{<:PermutedDimsArray{<:Any, <:Any, <:Any, <:Any, P}}
+    ) where {P}
+    return unwrap_array_type(P)
+end
+function unwrap_array_type(::Type{<:Base.ReshapedArray{<:Any, <:Any, P}}) where {P}
+    return unwrap_array_type(P)
+end
+unwrap_array_type(::Type{<:SubArray{<:Any, <:Any, P}}) where {P} = unwrap_array_type(P)
 function densetype(arraytype::Type{<:AbstractArray})
     return unspecify_type_parameters(unwrap_array_type(arraytype))
 end
@@ -49,34 +69,6 @@ end
 using GPUArraysCore: @allowscalar
 function dense(a::AbstractArray)
     return @allowscalar convert(densetype(a), a)
-end
-
-# Minimal interface for `SparseArrayImplementationStyle`.
-# Fallbacks for dense/non-sparse arrays.
-
-using FunctionImplementations: AbstractArrayImplementationStyle
-abstract type AbstractSparseArrayImplementationStyle <: AbstractArrayImplementationStyle end
-
-function FunctionImplementations.ImplementationStyle(
-        style1::AbstractSparseArrayImplementationStyle,
-        style2::AbstractSparseArrayImplementationStyle
-    )
-    return SparseArrayImplementationStyle()
-end
-function FunctionImplementations.ImplementationStyle(
-        style1::AbstractSparseArrayImplementationStyle,
-        style2::AbstractArrayImplementationStyle
-    )
-    return style1
-end
-# Fix ambiguity error with
-# `ImplementationStyle(::AbstractSparseArrayImplementationStyle, ::AbstractArrayImplementationStyle)`.
-using FunctionImplementations: DefaultArrayImplementationStyle
-function FunctionImplementations.ImplementationStyle(
-        style1::AbstractSparseArrayImplementationStyle,
-        style2::DefaultArrayImplementationStyle
-    )
-    return style1
 end
 
 to_vec(x) = vec(collect(x))

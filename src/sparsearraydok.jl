@@ -1,6 +1,5 @@
 using Accessors: @set
 using Dictionaries: Dictionary, IndexError, set!
-using FunctionImplementations: FunctionImplementations, zero!
 
 const DOKStorage{T, N} = Dictionary{CartesianIndex{N}, T}
 
@@ -108,7 +107,7 @@ end
 storedpairs(a::SparseArrayDOK) = pairs(storage(a))
 
 # TODO: Also handle wrappers.
-function FunctionImplementations.zero!(a::SparseArrayDOK)
+function zero!(a::SparseArrayDOK)
     empty!(storage(a))
     return a
 end

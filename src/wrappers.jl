@@ -194,11 +194,8 @@ for type in (:Adjoint, :PermutedDimsArray, :ReshapedArray, :SubArray, :Transpose
     end
 end
 
-using FunctionImplementations: ImplementationStyle
 using LinearAlgebra: LinearAlgebra, Diagonal
-const diag_style = ImplementationStyle(Diagonal)
-const storedvalues_diag = diag_style(storedvalues)
-storedvalues_diag(D::AbstractMatrix) = LinearAlgebra.diag(D)
+storedvalues(D::Diagonal) = LinearAlgebra.diag(D)
 
 # compat with LTS:
 @static if VERSION ≥ v"1.11"
@@ -208,21 +205,16 @@ else
         return view(CartesianIndices(x), LinearAlgebra.diagind(x))
     end
 end
-const eachstoredindex_diag = diag_style(eachstoredindex)
-eachstoredindex_diag(D::AbstractMatrix) = _diagind(D, IndexCartesian())
+eachstoredindex(D::Diagonal) = _diagind(D, IndexCartesian())
 
-const isstored_diag = diag_style(isstored)
-function isstored_diag(D::AbstractMatrix, i::Int, j::Int)
+function isstored(D::Diagonal, i::Int, j::Int)
     return i == j && checkbounds(Bool, D, i, j)
 end
-const getstoredindex_diag = diag_style(getstoredindex)
-getstoredindex_diag(D::AbstractMatrix, i::Int, j::Int) = D.diag[i]
-const getunstoredindex_diag = diag_style(getunstoredindex)
-function getunstoredindex_diag(D::AbstractMatrix, i::Int, j::Int)
+getstoredindex(D::Diagonal, i::Int, j::Int) = D.diag[i]
+function getunstoredindex(D::Diagonal, i::Int, j::Int)
     return zero(eltype(D))
 end
-const setstoredindex!_diag = diag_style(setstoredindex!)
-function setstoredindex!_diag(D::AbstractMatrix, v, i::Int, j::Int)
+function setstoredindex!(D::Diagonal, v, i::Int, j::Int)
     D.diag[i] = v
     return D
 end
