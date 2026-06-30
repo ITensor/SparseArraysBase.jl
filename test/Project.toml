@@ -19,6 +19,10 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [sources.SparseArraysBase]
 path = ".."
 
+[sources.TensorAlgebra]
+rev = "mf/inline-strided-permute"
+url = "https://github.com/ITensor/TensorAlgebra.jl"
+
 [compat]
 Adapt = "4.2"
 Aqua = "0.8.11"
