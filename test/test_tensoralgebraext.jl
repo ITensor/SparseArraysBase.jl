@@ -1,7 +1,7 @@
 using SparseArrays: SparseMatrixCSC, findnz, nnz
 using SparseArraysBase:
     SparseMatrixDOK, eachstoredindex, isstored, sparsezeros, storedlength
-using TensorAlgebra: contract, matricize
+using TensorAlgebra: contract, matricizeperm
 using Test: @test, @testset
 
 @testset "TensorAlgebraExt (eltype = $elt)" for elt in (Float32, ComplexF64)
@@ -10,7 +10,7 @@ using Test: @test, @testset
     a[2, 1, 2] = 2
 
     # matricize
-    m = matricize(a, (1, 3), (2,))
+    m = matricizeperm(a, (1, 3), (2,))
     @test m isa SparseMatrixCSC{elt}
     @test nnz(m) == 2
     @test isstored(m, 1, 1)
