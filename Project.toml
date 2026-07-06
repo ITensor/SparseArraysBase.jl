@@ -21,10 +21,6 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 [weakdeps]
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 
-[sources.TensorAlgebra]
-rev = "mf/project-trailing-axes"
-url = "https://github.com/ITensor/TensorAlgebra.jl"
-
 [extensions]
 SparseArraysBaseTensorAlgebraExt = ["TensorAlgebra", "SparseArrays"]
 
