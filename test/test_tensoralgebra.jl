@@ -4,7 +4,7 @@ using SparseArraysBase:
 using TensorAlgebra: contract, matricizeperm
 using Test: @test, @testset
 
-@testset "TensorAlgebraExt (eltype = $elt)" for elt in (Float32, ComplexF64)
+@testset "TensorAlgebra (eltype = $elt)" for elt in (Float32, ComplexF64)
     a = sparsezeros(elt, (2, 2, 2))
     a[1, 1, 1] = 1
     a[2, 1, 2] = 2

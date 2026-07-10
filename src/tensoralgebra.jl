@@ -1,9 +1,5 @@
-module SparseArraysBaseTensorAlgebraExt
-
 using SparseArrays: SparseMatrixCSC
-using SparseArraysBase: AnyAbstractSparseArray, AnyAbstractSparseMatrix, SparseArrayDOK
-using TensorAlgebra:
-    TensorAlgebra, FusionStyle, ReshapeFusion, bipermutedimsopadd!, matricize, unmatricize
+using TensorAlgebra: TensorAlgebra, FusionStyle, ReshapeFusion, matricize, unmatricize
 
 struct SparseArrayFusion <: FusionStyle end
 TensorAlgebra.FusionStyle(::Type{<:AnyAbstractSparseArray}) = SparseArrayFusion()
@@ -54,6 +50,4 @@ function _opadd!(dest::AbstractArray, op, src::AbstractArray, α, β)
         end
     end
     return dest
-end
-
 end

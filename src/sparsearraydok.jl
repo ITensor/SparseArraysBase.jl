@@ -107,7 +107,7 @@ end
 storedpairs(a::SparseArrayDOK) = pairs(storage(a))
 
 # TODO: Also handle wrappers.
-function zero!(a::SparseArrayDOK)
+function TensorAlgebra.zero!(a::SparseArrayDOK)
     empty!(storage(a))
     return a
 end

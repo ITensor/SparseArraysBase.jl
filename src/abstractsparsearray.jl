@@ -90,7 +90,7 @@ Base.iszero(a::AnyAbstractSparseArray) = iszero_sparse(a)
 Base.isreal(a::AnyAbstractSparseArray) = isreal_sparse(a)
 Base.real(a::AnyAbstractSparseArray) = real_sparse(a)
 Base.fill!(a::AnyAbstractSparseArray, x) = fill!_sparse(a, x)
-zero!(a::AnyAbstractSparseArray) = zero!_sparse(a)
+TensorAlgebra.zero!(a::AnyAbstractSparseArray) = zero!_sparse(a)
 Base.zero(a::AnyAbstractSparseArray) = zero_sparse(a)
 function Base.permutedims!(dst, a::AnyAbstractSparseArray, perm)
     return permutedims!_sparse(dst, a, perm)
@@ -130,7 +130,7 @@ end
 using ArrayLayouts: ArrayLayouts
 ArrayLayouts.MemoryLayout(type::Type{<:AnyAbstractSparseArray}) = SparseLayout()
 
-using .Concatenate: concatenate
+using TensorAlgebra: concatenate
 # We overload `Base._cat` instead of `Base.cat` since it
 # is friendlier for invalidations/compile times, see:
 # https://github.com/ITensor/SparseArraysBase.jl/issues/25

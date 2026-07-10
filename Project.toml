@@ -1,6 +1,6 @@
 name = "SparseArraysBase"
 uuid = "0d5efcca-f356-4864-8770-e1ed8d78f208"
-version = "0.10.7"
+version = "0.10.8"
 authors = ["ITensor developers <support@itensor.org> and contributors"]
 
 [workspace]
@@ -17,12 +17,11 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MapBroadcast = "ebd9b9da-f48d-417c-9660-449667d60261"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
-
-[weakdeps]
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 
-[extensions]
-SparseArraysBaseTensorAlgebraExt = ["TensorAlgebra", "SparseArrays"]
+[sources.TensorAlgebra]
+rev = "mf/concatenate-directsum"
+url = "https://github.com/ITensor/TensorAlgebra.jl"
 
 [compat]
 Accessors = "0.1.41"
@@ -35,5 +34,5 @@ LinearAlgebra = "1.10"
 MapBroadcast = "0.1.5"
 Random = "1.10"
 SparseArrays = "1.10"
-TensorAlgebra = "0.15, 0.16, 0.17"
+TensorAlgebra = "0.17.5"
 julia = "1.10"
