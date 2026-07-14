@@ -19,10 +19,6 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 
-[sources.TensorAlgebra]
-rev = "mf/concatenate-directsum"
-url = "https://github.com/ITensor/TensorAlgebra.jl"
-
 [compat]
 Accessors = "0.1.41"
 Adapt = "4.3"
