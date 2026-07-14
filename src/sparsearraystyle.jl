@@ -2,13 +2,6 @@ function fill!_sparse(a::AbstractArray, value)
     return map!(Returns(value), a, a)
 end
 
-# Generic fallback for SparseArraysBase's owned `zero!` (see the declaration
-# in `SparseArraysBase.jl`).
-function zero!(a::AbstractArray)
-    fill!(a, zero(eltype(a)))
-    return a
-end
-
 # We use a single function definition to minimize method ambiguities.
 function zero!_sparse(a::AbstractArray)
     # More generally, this codepath could be taking if `zero(eltype(a))`
