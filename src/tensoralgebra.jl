@@ -1,22 +1,22 @@
 using SparseArrays: SparseMatrixCSC
-using TensorAlgebra: TensorAlgebra, FusionStyle, ReshapeFusion, matricize, unmatricize
+using TensorAlgebra: TensorAlgebra, MatricizeStyle, ReshapeMatricize, matricize, unmatricize
 
-struct SparseArrayFusion <: FusionStyle end
-TensorAlgebra.FusionStyle(::Type{<:AnyAbstractSparseArray}) = SparseArrayFusion()
+struct SparseArrayMatricize <: MatricizeStyle end
+TensorAlgebra.MatricizeStyle(::Type{<:AnyAbstractSparseArray}) = SparseArrayMatricize()
 
 function TensorAlgebra.matricize(
-        style::SparseArrayFusion, a::AbstractArray, length_codomain::Val
+        style::SparseArrayMatricize, a::AbstractArray, length_codomain::Val
     )
-    m = matricize(ReshapeFusion(), a, length_codomain)
+    m = matricize(ReshapeMatricize(), a, length_codomain)
     return convert(SparseMatrixCSC, m)
 end
 function TensorAlgebra.unmatricize(
-        style::SparseArrayFusion,
+        style::SparseArrayMatricize,
         m::AbstractMatrix,
         axes_codomain::Tuple{Vararg{AbstractUnitRange}},
         axes_domain::Tuple{Vararg{AbstractUnitRange}}
     )
-    a = unmatricize(ReshapeFusion(), m, axes_codomain, axes_domain)
+    a = unmatricize(ReshapeMatricize(), m, axes_codomain, axes_domain)
     # TODO: Use `similar_type(m)` instead of hardcoding to `SparseArrayDOK`?
     return convert(SparseArrayDOK, a)
 end
