@@ -1,6 +1,6 @@
 name = "SparseArraysBase"
 uuid = "0d5efcca-f356-4864-8770-e1ed8d78f208"
-version = "0.10.9"
+version = "0.11.0"
 authors = ["ITensor developers <support@itensor.org> and contributors"]
 
 [workspace]
@@ -19,6 +19,10 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 TensorAlgebra = "68bd88dc-f39d-4e12-b2ca-f046b68fcc6a"
 
+[sources.TensorAlgebra]
+rev = "mf/matricize-style"
+url = "https://github.com/ITensor/TensorAlgebra.jl"
+
 [compat]
 Accessors = "0.1.41"
 Adapt = "4.3"
@@ -30,5 +34,5 @@ LinearAlgebra = "1.10"
 MapBroadcast = "0.1.5"
 Random = "1.10"
 SparseArrays = "1.10"
-TensorAlgebra = "0.17.5, 0.18"
+TensorAlgebra = "0.19"
 julia = "1.10"
